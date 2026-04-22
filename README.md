@@ -251,3 +251,14 @@ These essays explain the broader thinking behind JARVIS:
 3. [From AI Writing Code to AI-Driven R&D — The Gap Is JARVIS](https://chenjunhao.cn/2026/03/24/from-ai-writing-code-to-ai-driven-r-and-d-the-gap-is-jarvis/)
 4. [How to Run an AI R&D Experiment: What You Validate Is Loop Closure, Not Code Output](https://chenjunhao.cn/2026/03/24/how-to-run-an-ai-r-and-d-experiment-what-you-validate-is-loop-closure-not-code-output/)
 5. [JARVIS and Harness Engineering](https://chenjunhao.cn/2026/03/31/jarvis-and-harness-engineering/)
+
+## License
+
+© 2026 [Hengshi](https://github.com/hengshi). All rights reserved.
+
+JARVIS is a paid consulting product. This skill is provided for licensed users to bootstrap their JARVIS knowledge base.
+
+For licensing and consulting inquiries:
+- 🌐 [hengshi.com](https://hengshi.com)
+- 📧 hi@hengshi.com
+- 📞 15810120570

@@ -76,3 +76,14 @@ create-jarvis-skill/
 - `templates/en/*.md` 与 `templates/zh/*.md` 是**一一对应的镜像模板**。
 - 修改结构语义时，应优先更新英文与中文镜像，使同名文件保持契约一致。
 - 不要新增 `SKILL.zh.md`；避免出现双份主流程导致漂移。
+
+## 许可说明
+
+© 2026 [Hengshi](https://github.com/hengshi)。保留所有权利。
+
+JARVIS 是付费咨询产品。这个 skill 提供给已获许可的用户，用于启动他们的 JARVIS 知识库建设。
+
+如需咨询许可或合作：
+- 🌐 [hengshi.com](https://hengshi.com)
+- 📧 hi@hengshi.com
+- 📞 15810120570

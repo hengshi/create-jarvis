@@ -1,248 +1,363 @@
+---
+name: create-jarvis-skill
+description: Help any agent bootstrap and adapt an enterprise JARVIS methodology by clarifying business intent, inventorying company digital assets, repos, and workflows, mapping missing source skills, repo skills, and workflow skills, generating first-pass scaffolds and templates, forcing company-specific adaptation, and turning the work into a multi-owner rollout plan. Use when building, redesigning, or scaling a company-specific JARVIS rather than just generating a one-shot knowledge repo.
+---
+
 # Create JARVIS Skill
 
-> **你是一个 AI agent，正在帮用户为他们的产品/公司构建 JARVIS 知识体系。**
-> JARVIS 是一套让 AI agent 深度理解产品、诊断问题、辅助决策的知识库方法论。
-> 读完这个 skill，你就能从零开始帮用户构建一套完整的 JARVIS。
+Build a company-specific JARVIS as an agent operating system, not as a document dump.
 
----
+**This `SKILL.md` is the golden path.**
+Use `references/en/` only to support a specific step here. Use `templates/en/` only to produce the artifacts required by a step here.
+Chinese materials under `references/zh/` and `templates/zh/` are human-facing mirrors and helpers; they do not replace this main route.
 
-## 参考文章（必读）
+## What success looks like
 
-在开始构建之前，阅读以下文章理解 JARVIS 的理念和方法论，避免方向跑偏：
+A successful first pass does **not** mean "the whole company is mapped".
+It means:
+- one real business loop is chosen,
+- the sources, repos, and workflows for that loop are mapped,
+- a company-specific JARVIS skeleton exists,
+- the right source / repo / workflow skill stubs exist,
+- humans have confirmed the truth-bearing fields,
+- and the result is ready for a real pilot.
 
-1. [为软件公司构建 JARVIS](https://chenjunhao.cn/2026/03/23/building-jarvis-for-software-companies/) — JARVIS 是什么、为什么要建、整体架构
-2. [为什么一次性 AI 编程实验看不到真实上限](https://chenjunhao.cn/2026/03/24/why-one-shot-ai-dev-experiments-cannot-reveal-the-real-upper-bound/) — 单次实验的局限性，JARVIS 解决的是持续积累问题
-3. [从 AI 写代码到 AI 驱动研发，差距就是 JARVIS](https://chenjunhao.cn/2026/03/24/from-ai-writing-code-to-ai-driven-r-and-d-the-gap-is-jarvis/) — AI 写代码 ≠ AI 驱动研发，JARVIS 是缺失的那一层
-4. [如何跑一个 AI 研发实验：验证的是闭环，不是代码产出](https://chenjunhao.cn/2026/03/24/how-to-run-an-ai-r-and-d-experiment-what-you-validate-is-loop-closure-not-code-output/) — 闭环（START→WORK→END）才是核心验证目标
-5. [JARVIS 与 Harness Engineering](https://chenjunhao.cn/2026/03/31/jarvis-and-harness-engineering/) — JARVIS 在工程体系中的定位
+## The Golden Path
 
----
+Do the phases in order.
+Do not skip the stop conditions.
+Do not present scaffolding as mature knowledge.
 
-## 什么是 JARVIS
-
-JARVIS 是一个 **agent-first 的产品知识库**。它不是给人看的文档，是给 AI agent 用的"大脑"。
-
-核心理念：
-- **索引层，不是内容仓库** — JARVIS 存储的是路由、索引、模式总结，不是把文档搬过来
-- **三层时态架构** — History（已发生的事实）、Present（当前状态）、Future（AI 判断产出）
-- **闭环工作流** — 每个任务从 JARVIS 查知识开始，到回填 JARVIS 结束
-
-### 三层时态架构
-
-**History（最重要）**
-- `modules/*/known-issues.md` — 历史 bug 的模式索引，用于根因分析
-- `modules/*/decisions.md` — 设计决策，解释"为什么系统是这样"
-- `modules/*/rejected-features.md` — 被否决的需求，防止反复提出已否决方案
-- `cross-cutting/` — 跨模块依赖、版本 changelog
-
-**Present**
-- 当前 backlog 快照、版本计划、团队配置
-
-**Future**
-- 基于 History + Present 的 AI 判断：去重检测、根因分析、影响评估
-
-**维护优先级：History >> Present > Future。** History 层质量直接决定 agent 判断能力。
-
----
-
-## Phase 1 — Discovery（信息收集）
-
-> 目标：搞清楚用户的产品全貌和数据来源。
-
-向用户询问以下信息：
-
-1. **产品基本信息**
-   - 产品名称是什么？
-   - 产品主要解决什么问题？面向什么用户？
-   - 产品有哪些核心模块/功能领域？
-
-2. **代码仓库**
-   - 代码托管在哪里？（GitHub / GitLab / Bitbucket / 其他）
-   - 有哪些仓库？分别是什么角色？（前端/后端/文档/测试/基础设施）
-   - 每个仓库的默认分支是什么？
-
-3. **文档来源**
-   - 产品文档在哪里？（代码仓库内 / Confluence / Notion / 飞书 / 其他）
-   - 有 API 文档吗？在哪里？
-
-4. **Issue/任务系统**
-   - 用什么跟踪 bug 和需求？（GitHub Issues / GitLab Issues / Jira / Linear / 飞书项目 / 其他）
-
-5. **测试**
-   - 有自动化测试吗？在哪个仓库？
-   - 测试框架是什么？
-
-6. **其他知识来源**
-   - 有内部 wiki、设计文档、会议纪要等知识来源吗？
-   - 有客户反馈渠道吗？（工单系统、客户群等）
-
-收集完成后，确认你能通过 CLI 工具访问这些数据来源，进入 Phase 2。
-
----
-
-## Phase 2 — Connect（工具链接与认证）
-
-> 目标：确保你（agent）能从所有数据来源拉取内容。
-
-根据 Phase 1 收集到的信息，逐个建立连接：
-
-### 通用流程
-
-对于每个数据来源：
-1. 确认需要什么 CLI 工具（如 `gh`、`glab`、`jira`、`confluence-cli` 等）
-2. 检查工具是否已安装，未安装则协助安装
-3. 执行认证流程（如 `glab auth login`、配置 token 等）
-4. **验证连接** — 执行一个简单的读取操作确认能拉到数据
-
-### 验证清单
-
-每个数据来源连通后，执行验证：
-- [ ] 能列出仓库/项目
-- [ ] 能读取 issue/任务
-- [ ] 能读取代码文件
-- [ ] 能读取文档内容
-
-**全部数据来源连通后，进入 Phase 3。**
-
----
-
-## Phase 3 — Scan & Build（扫描构建）
-
-> 目标：扫描所有数据来源，按 JARVIS 方法论构建知识库。
-
-### 3.1 创建仓库结构
-
-在用户指定位置创建 JARVIS 仓库：
-
-```
-<product>-jarvis/
-├── README.md                          # 仓库说明 + 模块速查
-├── MAINTENANCE.md                     # 维护指南（含数据来源清单）
-├── modules/                           # 按产品模块组织
-│   └── <module-name>/
-│       ├── overview.md                # 模块总览：职责、代码路径、关键概念
-│       ├── known-issues.md            # 历史 bug 模式索引
-│       ├── decisions.md               # 设计决策记录
-│       ├── rejected-features.md       # 被否决需求
-│       ├── faq.md                     # 常见问题
-│       └── test-coverage.md           # 测试覆盖情况
-├── cross-cutting/                     # 跨模块专题
-│   ├── module-interactions.md         # 模块间依赖与交互
-│   └── version-changelog.md          # 版本变更索引
-└── sources/                           # 外部知识来源的路由
-    └── <source-name>/
-        └── README.md                  # 该来源的访问方式、索引
+```text
+1. CLARIFY
+2. INVENTORY
+3. CLASSIFY
+4. SCAFFOLD
+5. BOOTSTRAP SKILLS
+6. CONFIRM
+7. PILOT-READY HANDOFF
+8. GROW BY WRITEBACK
 ```
 
-### 3.2 模块识别
+---
 
-从代码仓库结构和产品文档中识别核心模块：
-- 扫描代码目录结构（前端路由、后端 API 目录、数据库 schema）
-- 扫描文档目录结构
-- 扫描 issue 标签/分类
-- 综合以上信息，划分 10-20 个核心模块
+## Phase 1 — CLARIFY
 
-### 3.3 逐模块构建
+### Goal
+Define why this company needs JARVIS and which first closed loop is worth proving.
 
-对每个模块，按以下顺序填充：
+### Output
+Create:
+- `templates/en/jarvis-build-brief.md`
 
-**Step 1 — overview.md**
-- 从代码和文档中提取：模块职责、关键代码路径、核心概念、对外接口
-- 使用 `templates/module-overview.md` 模板
+The build brief must state:
+- business intent
+- target users
+- first valuable loop
+- success signal
+- current rollout scope
 
-**Step 2 — known-issues.md**
-- 扫描 issue 系统中该模块相关的已关闭 bug
-- 提取模式：重复出现的问题类型、典型根因
-- 不要逐条搬运 issue，要总结成**模式索引**
+### Must confirm with humans
+- why JARVIS is being built now
+- which first workflow to prove
+- what success looks like
+- what is explicitly out of scope for now
 
-**Step 3 — decisions.md**
-- 从 MR 讨论、设计文档、代码注释中提取设计决策
-- 格式：决策内容 + 背景 + 为什么这样选
+### Stop if
+- the first valuable loop is still vague
+- success is described as “better knowledge” with no concrete operating scenario
+- the scope is drifting toward “map the whole company” before a pilot exists
 
-**Step 4 — rejected-features.md**
-- 从 issue 系统中找"won't fix"、"rejected"、"by design"的需求
-- 记录被否决原因，这是最有价值的知识之一
-
-**Step 5 — test-coverage.md**
-- 扫描测试代码，记录该模块有哪些测试、覆盖什么场景
-
-### 3.4 跨模块构建
-
-- `module-interactions.md` — 从代码依赖和 issue 中提取模块间交互关系
-- `version-changelog.md` — 从 release notes 或 git tag 中提取版本变更索引
-
-### 3.5 并行策略
-
-如果你支持子任务/subagent（如 OpenClaw 的 delegate_task、Claude Code 的 Task tool）：
-- 多个模块的构建可以并行执行
-- 每个子任务负责 1-3 个模块
-- 主任务负责 cross-cutting 部分
-
-如果不支持并行：
-- 串行执行，按模块重要性排序（核心模块优先）
+### Read only if needed
+- `references/en/positioning.md`
+- `references/en/adoption-guide.md`
+- `references/en/example-pilot-shape.md`
 
 ---
 
-## Phase 4 — Finalize（完成交付）
+## Phase 2 — INVENTORY
 
-> 目标：产出完整可用的 JARVIS 仓库。
+### Goal
+Map only the real operating surface needed for the first loop.
 
-### 4.1 编写 MAINTENANCE.md
+### Output
+Create:
+- `templates/en/source-inventory.md`
+- `templates/en/repo-inventory.md`
+- `templates/en/workflow-inventory.md`
 
-这是 JARVIS 的运维手册，必须包含：
+Capture only the sources, repos, and workflows required for the pilot.
 
-1. **数据来源清单** — 所有数据来源的访问方式（替代独立的 data-sources 文件）
-   - 仓库地址、CLI 工具、认证方式
-   - 文档系统、issue 系统的访问方式
-2. **三层架构说明** — History/Present/Future 各层的内容和维护规则
-3. **Write contracts** — 每类文件应该写什么、不该写什么
-4. **更新触发条件** — 什么时候需要更新 JARVIS（bug 修复后、feature 完成后、版本发布后）
-5. **工作流闭环** — START（查知识）→ WORK（干活）→ END（回填知识）
+### Must confirm with humans
+- source names and owners
+- repo roles and maintainers
+- source-of-truth locations
+- workflow boundaries and handoffs
+- access constraints that affect execution
 
-使用 `templates/maintenance.md` 模板。
+### Stop if
+- owners are guessed
+- repo roles are inferred but unconfirmed
+- workflow boundaries are still generic software lore rather than company reality
 
-### 4.2 编写 README.md
-
-仓库首页，包含：
-- 产品简介
-- 模块速查表（模块名 + 说明 + 代码仓库映射）
-- 快速使用指南（agent 读哪个文件开始）
-
-### 4.3 创建 JARVIS Skill
-
-为用户的 agent 创建一个类似 `hengshi-jarvis` 的 skill 文件，让 agent 日后能以此 skill 为入口使用 JARVIS。
-skill 内容应包含：
-- 任务路由（查询/工程/回填）
-- 知识查询流程
-- 工程工作流
-- 知识库回填规则
-
-### 4.4 初始化 Git 仓库
-
-```bash
-cd <product>-jarvis
-git init
-git add .
-git commit -m "Initial JARVIS knowledge base"
-# 推送到用户指定的远程仓库
-```
-
-### 4.5 验收清单
-
-- [ ] 所有已识别模块都有 overview.md
-- [ ] known-issues.md 包含从历史 issue 中提取的 bug 模式（至少核心模块有内容）
-- [ ] decisions.md 包含关键设计决策
-- [ ] MAINTENANCE.md 完整且包含数据来源清单
-- [ ] README.md 包含模块速查表
-- [ ] cross-cutting/ 下有模块交互和版本变更
-- [ ] JARVIS skill 文件已创建
+### Read only if needed
+- `references/en/company-adaptation.md`
+- `references/en/repo-skills.md`
+- `references/en/source-skills.md`
+- `references/en/workflow-skills.md`
 
 ---
 
-## 注意事项
+## Phase 3 — CLASSIFY
 
-1. **索引，不是搬运** — JARVIS 里不要复制粘贴大段原始文档，写摘要和指针
-2. **模式，不是流水** — known-issues 要归纳模式，不要逐条搬 issue
-3. **先读后写** — 追加任何文件前先读完整内容，匹配现有格式
-4. **History 为王** — 时间有限时优先填充 History 层
-5. **不完美也要交付** — 可以先覆盖核心模块，后续迭代补充
+### Goal
+Separate what may be scaffolded now from what requires human confirmation and what must grow later through real use.
+
+### Output
+Classify intended artifacts into three buckets:
+1. safe to scaffold automatically
+2. requires human confirmation
+3. must emerge through real START → WORK → END writeback
+
+Use this to decide what the generator is allowed to produce in the next phases.
+
+### Must confirm with humans
+- any truth-bearing field that the agent is about to freeze into documents
+- any ownership assignment
+- any workflow or routing rule that affects real operations
+
+### Stop if
+- you are about to generate fake historical content
+- you are about to treat placeholders as settled truth
+- you are about to create detailed known issues / decisions / rejected features from speculation
+
+### Read
+- `references/en/instance-generation-contract.md`
+- `references/en/instance-readiness.md`
+
+---
+
+## Phase 4 — SCAFFOLD
+
+### Goal
+Generate the minimum company-specific JARVIS structure needed to support the pilot.
+
+### Output
+Generate the core skeleton as needed for the pilot:
+- root README
+- MAINTENANCE guide
+- module skeletons
+- source routing skeletons
+- cross-cutting skeletons
+- tools index skeleton
+- optional raw/export boundary notes
+- company JARVIS entry skill stub
+
+Typical templates:
+- `templates/en/root-readme.md`
+- `templates/en/maintenance.md`
+- `templates/en/module-overview.md`
+- `templates/en/source-readme.md`
+- `templates/en/module-interactions.md`
+- `templates/en/version-changelog.md`
+- `templates/en/tools-readme.md`
+- `templates/en/raw-exports-readme.md`
+- `templates/en/company-jarvis-skill-stub.md`
+- `templates/en/instance-skeleton.md`
+
+### Must confirm with humans
+- whether the proposed topology matches the company’s real shape
+- whether `_raw/` / `_exports/` is actually needed
+- whether a proposed module split matches the company’s mental model
+
+### Stop if
+- the skeleton is turning into a content dump
+- the scaffold is pretending to contain real historical memory
+- module boundaries are being invented without confirmation
+
+### Read only if needed
+- `references/en/concrete-instance-topology.md`
+- `references/en/detailed-maintenance-contracts.md`
+- `references/en/write-contracts.md`
+
+---
+
+## Phase 5 — BOOTSTRAP SKILLS
+
+### Goal
+Generate the smallest skill set that lets agents operate inside the pilot loop.
+
+### Output
+Generate only the high-leverage stubs needed now:
+- source skill stubs
+- repo skill stubs
+- workflow skill stubs
+- company JARVIS entry skill stub
+
+Templates:
+- `templates/en/source-skill-stub.md`
+- `templates/en/repo-skill-stub.md`
+- `templates/en/workflow-skill-stub.md`
+- `templates/en/company-jarvis-skill-stub.md`
+
+Also create:
+- `templates/en/skill-backlog.md`
+- `templates/en/ownership-map.md`
+- `templates/en/rollout-plan.md`
+
+### Must confirm with humans
+- which skills are truly needed for the pilot
+- where repo-local truth should live
+- which workflow should be explicit vs left for later
+- ownership of each skill backlog item
+
+### Stop if
+- you are creating skills “just in case”
+- you are centralizing repo-local truth that should live with repos
+- the skill backlog has vague entries with no owner or outcome
+
+### Read only if needed
+- `references/en/source-skills.md`
+- `references/en/repo-skills.md`
+- `references/en/workflow-skills.md`
+- `references/en/rollout-and-ownership.md`
+
+---
+
+## Phase 6 — CONFIRM
+
+### Goal
+Force a human confirmation pass before calling the result pilot-ready.
+
+### Output
+Run and complete:
+- `templates/en/rollout-confirmation-checklist.md`
+
+Review:
+- build brief
+- inventories
+- generated skeleton
+- skill stubs
+- ownership map
+- rollout plan
+
+### Must confirm with humans
+- business intent
+- first loop
+- included sources, repos, workflows
+- source-of-truth locations
+- owner assignments
+- security / compliance-sensitive paths
+
+### Stop if
+- any truth-bearing field is still guessed
+- placeholders are still ambiguous
+- the pilot scope is still company-wide in disguise
+
+### Read only if needed
+- `references/en/company-adaptation.md`
+- `references/en/instance-readiness.md`
+
+---
+
+## Phase 7 — PILOT-READY HANDOFF
+
+### Goal
+Declare the instance ready for a real pilot, not mature.
+
+### Output
+A pilot-ready result should include:
+- confirmed build brief
+- confirmed inventories for the pilot scope
+- a usable root structure
+- a usable company JARVIS entry skill
+- the minimum source / repo / workflow skill stubs
+- a skill backlog
+- an ownership map
+- a rollout plan
+- a completed confirmation checklist
+
+### Must say explicitly
+- this is pilot-ready, not mature
+- historical knowledge is still shallow unless it came from real work
+- maturity must come from continued writeback
+
+### Stop if
+- you are tempted to describe the instance as complete or mature
+- you are treating scaffolding as operational memory
+
+### Read only if needed
+- `references/en/instance-readiness.md`
+
+---
+
+## Phase 8 — GROW BY WRITEBACK
+
+### Goal
+Turn the pilot scaffold into a real JARVIS instance through actual use.
+
+### Output
+Only now should these files begin to accumulate real value:
+- `known-issues.md`
+- `decisions.md`
+- `rejected-features.md`
+- `test-coverage.md`
+- `cross-cutting/module-interactions.md`
+- `cross-cutting/version-changelog.md`
+
+### Writeback rules
+- promote repeated truths, not one-off chat residue
+- record durable patterns, not chronological logs
+- keep repo-local truth with the repo when appropriate
+- update JARVIS after real START → WORK → END loops
+
+### Must confirm with humans when needed
+- whether a pattern is durable enough to promote
+- whether a decision is real and lasting
+- whether a rejection belongs in long-term memory
+
+### Stop if
+- you are writing speculative history
+- you are copying raw source material instead of extracting patterns
+- you are bloating overview files with operational noise
+
+### Read only if needed
+- `references/en/detailed-maintenance-contracts.md`
+- `references/en/write-contracts.md`
+- `references/en/anti-patterns.md`
+
+---
+
+## Common Rationalizations
+
+| Rationalization | Reality |
+|---|---|
+| “Let’s just generate the JARVIS repo first.” | A repo without a confirmed first loop is just a shell. |
+| “We should inventory the whole company now.” | Pilot scope beats fake completeness. |
+| “We can fill in the owners later.” | Ownership is a truth-bearing field, not decoration. |
+| “We already know what the workflow probably is.” | Probable is not confirmed. Ask. |
+| “We can generate known issues and decisions now and improve them later.” | Fake history poisons trust. Grow it from real work. |
+| “We should create every possible skill while we’re here.” | Only bootstrap the skills needed for the first loop. |
+| “These placeholders are obvious enough.” | If they can be mistaken for truth, they are not obvious enough. |
+
+## Red Flags
+
+- `SKILL.md` is not being treated as the main route
+- references are driving the process instead of supporting it
+- inventories are broader than the pilot scope
+- owners, boundaries, or source-of-truth locations are guessed
+- history files contain generated content with no real evidence
+- repo-local truth is being centralized for convenience
+- the output is described as mature before real writeback exists
+
+## Verification
+
+Before finishing, confirm:
+- [ ] A first valuable loop is explicitly named and confirmed.
+- [ ] Pilot-scope sources, repos, and workflows are inventoried.
+- [ ] Intended artifacts were classified into scaffold / confirm / grow-later.
+- [ ] The generated structure is company-specific enough to support a pilot.
+- [ ] Only the minimum high-leverage skills were bootstrapped.
+- [ ] A human confirmation pass was completed.
+- [ ] The result is described as pilot-ready rather than mature.
+- [ ] The path from pilot to real writeback-based growth is explicit.

@@ -1,102 +1,253 @@
 # Create JARVIS Skill
 
-**Turn any AI agent into your product's expert — in one session.**
+**Bootstrap an enterprise JARVIS with any agent.**
 
-JARVIS is an agent-first product knowledge base methodology. Give this skill to your AI agent (Claude Code, OpenClaw, Codex, Cursor, GitHub Copilot, or any other), and it will build a structured "brain" for your product — so every agent on your team deeply understands your codebase, bug history, design decisions, and engineering context.
+- English (this file): `README.md`
+- 中文：`README.zh.md`
 
-## The Problem
+> Note: `SKILL.md` is the single golden path. Keep it as the only authoritative execution path. The supporting documentation under `references/en/`, `references/zh/`, `templates/en/`, and `templates/zh/` is organized as mirrored same-name files across English and Chinese.
 
-AI agents are smart but amnesiac. Every session starts from zero. They don't know:
-- Why your system was designed this way
-- Which bugs keep coming back and why
-- What features were already rejected (and the reasoning)
-- How your modules interact under the hood
+This repo is not just a repo generator. It is a methodology and practical guide for helping agents turn a company's digital assets, repos, and workflows into durable, executable organizational capability.
 
-You end up repeating context, and the agent keeps making suggestions your team already tried and discarded.
+JARVIS starts as knowledge, but its real goal is execution:
+- help agents understand the company,
+- help agents enter the right repos and work surfaces,
+- help agents follow real delivery workflows,
+- and help the organization compound what agents learn over time.
 
-## What JARVIS Gives You
+## What This Project Is
 
-A **living knowledge repository** (a git repo) that any AI agent can read to instantly become a product expert:
+`create-jarvis-skill` is a meta-skill for building company-specific JARVIS systems.
 
-```
-<your-product>-jarvis/
-├── README.md                    # Module quick-reference
-├── MAINTENANCE.md               # Data sources, update rules, workflows
-├── modules/
-│   └── <module>/
-│       ├── overview.md          # What it does, key code paths
-│       ├── known-issues.md      # Bug pattern index (not raw tickets)
-│       ├── decisions.md         # Why the system is the way it is
-│       ├── rejected-features.md # What was tried and why it was rejected
-│       └── test-coverage.md     # What's tested, what's not
-└── cross-cutting/
-    ├── module-interactions.md   # How modules depend on each other
-    └── version-changelog.md     # Release history index
-```
+It helps an agent:
+1. clarify why a company needs JARVIS,
+2. inventory sources, repos, and workflows,
+3. identify missing skill layers,
+4. generate a usable first pass,
+5. force company-specific adaptation,
+6. and turn the work into a multi-owner rollout.
 
-### The Three-Layer Architecture
+## What This Project Is Not
 
-| Layer | What it stores | Why it matters |
-|-------|---------------|----------------|
-| **History** | Bug patterns, design decisions, rejected features | Prevents repeating mistakes. This is the most valuable layer. |
-| **Present** | Current backlog, version plans, team structure | Gives agents situational awareness. |
-| **Future** | AI-generated analysis: dedup detection, root cause, impact | Agents produce insights, not just retrieve facts. |
+It is **not**:
+- a one-shot exporter for a knowledge repo,
+- a document dumping workflow,
+- a promise that one agent can finish an enterprise rollout in one session,
+- or a replacement for repo-local source of truth.
 
-**Priority: History >> Present > Future.** The quality of the History layer directly determines how good your agent's judgment is.
+If it only generates a pretty `<company>-jarvis` repo, it has not gone far enough.
+
+## What a Strong Result Looks Like
+
+A strong result is not just a generated repo. It is a usable company-specific JARVIS instance.
+
+A useful first pass can already produce:
+- a JARVIS core scaffold,
+- source / repo / workflow inventories,
+- skill backlog and ownership map,
+- rollout plan,
+- and first-pass source / repo / workflow skill stubs.
+
+But a mature result goes further. It accumulates:
+- real company history,
+- real source routing,
+- real repo-local operating guidance,
+- real workflow closure,
+- and repeated START → WORK → END writeback.
+
+So the standard is:
+- **first pass** = enough structure to begin real rollout
+- **pilot** = enough truth to prove one high-value loop
+- **operational instance** = enough durable knowledge to reduce rediscovery in real work
+- **mature instance** = part of how the organization actually thinks and works
+
+This project is meant to help agents move through those stages intentionally.
+
+## The Three Skill Layers
+
+A strong JARVIS rollout needs all three layers.
+
+### 1. Source skills
+Skills that help agents access and understand company digital assets.
+
+Examples:
+- docs and wiki systems
+- issue trackers
+- meeting notes
+- analytics / BI systems
+- customer feedback systems
+- incident and support records
+
+### 2. Repo skills
+Skills that help agents execute inside specific repos.
+
+Examples:
+- frontend repo skills
+- backend repo skills
+- docs repo skills
+- QA / automation repo skills
+- infrastructure repo skills
+
+These usually belong with the repo itself. JARVIS should route to them, index them, and help keep the company-wide map coherent.
+
+### 3. Workflow skills
+Skills that help agents complete real cross-team loops.
+
+Examples:
+- PRD → SPEC → implementation
+- bug intake → triage → fix → regression → release note
+- feature work across frontend, backend, QA, and docs
+
+## What a Good First Pass Produces
+
+A useful first pass often includes:
+
+- a JARVIS core repo or workspace
+- a `jarvis-build-brief.md` single source of truth
+- a source inventory
+- a repo inventory
+- a workflow inventory
+- a skill backlog split by source / repo / workflow layers
+- an ownership map
+- a rollout plan
+- first-pass templates and scaffolds
+- explicit company adaptation notes
+
+That is the real output — not just one repo.
+
+## Working Principles
+
+- **Index, don’t dump.** JARVIS should route, summarize, and extract patterns instead of copying raw source material.
+- **Patterns over logs.** A known-issues file should capture recurring failure patterns, not raw ticket history.
+- **Company adaptation is mandatory.** Generated output must separate reusable method from company truth.
+- **Repo truth stays with repos.** JARVIS may index or point, but it should not absorb repo-local source of truth by default.
+- **History matters most.** Historical bugs, decisions, and rejected ideas are often more valuable than current status snapshots.
+- **Build for handoff.** JARVIS should survive changes in owner, team, or agent.
+- **Unlock the first closed loop first.** Do not wait for perfect coverage before proving value.
 
 ## How to Use
 
-### Step 1: Open SKILL.md with your agent
+### Step 1 — Give `SKILL.md` to your agent
 
-Give your AI agent the [SKILL.md](./SKILL.md) file. That's the instruction set.
+Ask your agent to read `SKILL.md` and use this repo as the methodology for building JARVIS.
 
 Examples:
-- **Claude Code**: `Read SKILL.md and help me build JARVIS for my product`
-- **OpenClaw/Hermes**: Load as a skill or paste the content
-- **Codex/Cursor**: Paste SKILL.md content into the conversation
-- **Any agent**: Just share the file — if it can read markdown, it can run JARVIS
+- "Read `SKILL.md` and help me bootstrap JARVIS for my company."
+- "Use this repo to map our sources, repos, and workflows into a JARVIS rollout plan."
+- "Use `create-jarvis-skill` to generate the first-pass JARVIS scaffolds and backlog for our company."
 
-### Step 2: Answer the agent's questions
+### Step 2 — Clarify the first valuable loop
 
-The agent will ask about your product: what it does, where the code lives, where docs and issues are tracked, etc.
+Do not begin with structure for structure’s sake.
 
-### Step 3: Let it connect and scan
+First determine:
+- why the company wants JARVIS,
+- who needs it,
+- what the first high-value workflow is,
+- and how success will be recognized.
 
-The agent connects to your data sources (GitHub/GitLab, Jira/Linear, Confluence/Notion, etc.), then systematically scans your codebase, issues, and docs to build the knowledge base.
+### Step 3 — Inventory the real operating surface
 
-### Step 4: Get your JARVIS repo
+Use the provided templates to map:
+- digital assets,
+- repos,
+- workflows,
+- owners,
+- and the current source of truth.
 
-You get a complete `<product>-jarvis` git repository, ready to use. Point any agent at it and they'll have deep product context from day one.
+### Step 4 — Generate the first pass
 
-## After Setup: The Closed Loop
+Use the skill to create:
+- JARVIS core scaffolds,
+- skill backlog,
+- ownership map,
+- rollout plan,
+- and the first high-leverage source / repo / workflow skill stubs.
 
-JARVIS isn't a one-time export. It stays alive through a simple workflow:
+Use the adoption references when you need a practical rollout shape rather than more abstraction:
+- `references/en/adoption-guide.md`
+- `references/en/example-pilot-shape.md`
+- `references/en/concrete-instance-topology.md`
+- `references/en/instance-readiness.md`
+- `references/en/detailed-maintenance-contracts.md`
+- `references/en/instance-generation-contract.md`
 
+Chinese mirrors with the same basenames are available under `references/zh/`.
+
+### Step 5 — Adapt, don’t cargo-cult
+
+Replace placeholders with company truth.
+
+The point is not to copy this repo mechanically. The point is to adapt its method to the company’s actual systems, people, language, and workflows.
+
+### Step 6 — Continue as a rollout
+
+Once the first pass exists, continue through staged rollout rather than restarting from scratch.
+
+## Repo Structure
+
+```text
+create-jarvis-skill/
+├── README.md
+├── README.zh.md
+├── SKILL.md
+├── references/
+│   ├── en/
+│   │   ├── positioning.md
+│   │   ├── company-adaptation.md
+│   │   ├── instance-generation-contract.md
+│   │   └── ...
+│   └── zh/
+│       ├── positioning.md
+│       ├── company-adaptation.md
+│       ├── instance-generation-contract.md
+│       └── ...
+└── templates/
+    ├── en/
+    │   ├── jarvis-build-brief.md
+    │   ├── source-inventory.md
+    │   ├── repo-inventory.md
+    │   └── ...
+    └── zh/
+        ├── jarvis-build-brief.md
+        ├── source-inventory.md
+        ├── repo-inventory.md
+        └── ...
 ```
-START  →  Query JARVIS for context before any task
-WORK   →  Do the work (fix bug, build feature, investigate issue)
-END    →  Write back what you learned to JARVIS
-```
 
-Every bug fix, every design decision, every rejected proposal gets fed back. The knowledge compounds.
+## Generation Discipline
+
+A responsible JARVIS generator should:
+- scaffold structure aggressively,
+- ask humans to confirm truth-bearing fields,
+- and leave real historical memory to grow through actual writeback.
+
+That is why this repo now includes:
+- concrete instance topology guidance,
+- instance readiness levels,
+- a generation contract,
+- detailed maintenance contracts,
+- and a fuller set of instance templates.
+
+## Why This Matters
+
+Agents are no longer only code generators. In strong environments, they can participate in planning, implementation, testing, documentation, and cross-repo delivery.
+
+That only works when the organization gives them a real operating substrate:
+- structured memory,
+- clear routing,
+- repo-local instructions,
+- cross-team workflow guidance,
+- and a way to preserve what they learn.
+
+That substrate is JARVIS.
 
 ## Background Reading
 
-These articles explain the methodology and philosophy behind JARVIS:
+These essays explain the broader thinking behind JARVIS:
 
 1. [Building JARVIS for Software Companies](https://chenjunhao.cn/2026/03/23/building-jarvis-for-software-companies/)
 2. [Why One-Shot AI Dev Experiments Can't Reveal the Real Upper Bound](https://chenjunhao.cn/2026/03/24/why-one-shot-ai-dev-experiments-cannot-reveal-the-real-upper-bound/)
 3. [From AI Writing Code to AI-Driven R&D — The Gap Is JARVIS](https://chenjunhao.cn/2026/03/24/from-ai-writing-code-to-ai-driven-r-and-d-the-gap-is-jarvis/)
 4. [How to Run an AI R&D Experiment: What You Validate Is Loop Closure, Not Code Output](https://chenjunhao.cn/2026/03/24/how-to-run-an-ai-r-and-d-experiment-what-you-validate-is-loop-closure-not-code-output/)
 5. [JARVIS and Harness Engineering](https://chenjunhao.cn/2026/03/31/jarvis-and-harness-engineering/)
-
-## License
-
-© 2026 [Hengshi](https://github.com/hengshi). All rights reserved.
-
-JARVIS is a paid consulting product. This skill is provided for licensed users to bootstrap their JARVIS knowledge base.
-
-For licensing and consulting inquiries:
-- 🌐 [hengshi.com](https://hengshi.com)
-- 📧 hi@hengshi.com
-- 📞 15810120570

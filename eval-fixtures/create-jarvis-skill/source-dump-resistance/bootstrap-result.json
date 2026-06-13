@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "result_code": "ok",
+  "summary": "Source skill boundaries generated without mirroring raw sources.",
+  "paths": {
+    "jarvis_home": "/srv/acme/jarvis"
+  },
+  "method_repo": {
+    "url": "https://github.com/hengshi/create-jarvis-skill.git"
+  },
+  "blockers": [],
+  "writeback_policy": "local-only",
+  "next_action": "confirm source owners",
+  "generated_at": "2026-06-13T00:00:00Z"
+}

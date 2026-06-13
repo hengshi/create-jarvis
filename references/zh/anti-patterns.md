@@ -34,3 +34,23 @@
 把第一版 scaffold 当成已经完成的 JARVIS。
 
 **更好的做法：** 把 first pass 当作 rollout 的一个阶段发布，并附带 backlog 与后续步骤。
+
+## 8. Skill 膨胀
+每次失败或每个想法都新建 skill。
+
+**更好的做法：** 先检查 `no_skill_gap`，默认合并到已有 skill，并要求证据支撑 skill growth。
+
+## 9. 过早 upstream
+把公司私有 facts、examples、repo names 或 issue IDs 移进通用 create-jarvis-skill 方法论。
+
+**更好的做法：** 只有在脱敏且证明可复用后，才提升 company-neutral method。
+
+## 10. Template 污染
+因为一个内部 pilot 更清楚，就把私有例子放进通用模板。
+
+**更好的做法：** template 保持抽象；私有例子留在 company instance 或 repo-local skill。
+
+## 11. Runtime 接管
+要求 create-jarvis-skill 管理 install、credentials、webhooks、task queues 或 service lifecycle。
+
+**更好的做法：** runtime mechanics 留给 jarvis-box 或调用方 runtime；本仓库聚焦 methodology、scaffold、pilot 和 calibration。

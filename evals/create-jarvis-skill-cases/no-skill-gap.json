@@ -1,0 +1,22 @@
+{
+  "id": "no-skill-gap",
+  "title": "One-off failure can be no_skill_gap",
+  "mode": "adversarial",
+  "prompt": "Use create-jarvis-skill methodology to review a fictional pilot failure. The agent failed once because the task prompt omitted the issue link, but existing source, repo, and workflow skills already describe the correct process. Decide whether to create a new skill.",
+  "expected": {
+    "status": "completed",
+    "required_files": [
+      "bootstrap-result.json",
+      "calibration-decision.md"
+    ],
+    "required_patterns": [
+      "no_skill_gap",
+      "task evidence|missing evidence|omitted",
+      "do not create|do not expand"
+    ],
+    "forbidden_patterns": [
+      "create a new skill for this one failure",
+      "add a new template just in case"
+    ]
+  }
+}

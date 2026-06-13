@@ -31,6 +31,7 @@
 - 影响提示
 - 调查入口
 - 必要时的代表性参考
+- 当重复失败改变 routing 或 skill guidance 时，记录 calibration evidence
 
 ### Should not contain
 - 日志式逐日记录
@@ -49,6 +50,7 @@
 - 取舍或边界
 - 原因
 - 持续性的影响
+- internal rule 是否应该 upstream 的 promotion decision
 
 ### Should not contain
 - 短暂的实现细节
@@ -79,6 +81,8 @@
 - 重要的已覆盖行为
 - 有意义的缺口
 - 已被保护的边界条件
+- 足够稳定可 replay 的 eval cases
+- 应影响 skills 的 failure taxonomy
 
 ### Should not contain
 - 测试运行日志
@@ -126,17 +130,31 @@
 ### Should not contain
 - 如果已有更好 source，却仍复制臃肿的 release notes
 
-## `skills/<company-jarvis>/SKILL.md`
+## `SKILL.md` and `skills/<company-jarvis>/SKILL.md`
 
 ### Purpose
 作为进入 JARVIS instance 的主 agent 入口。
+
+runtime 调用方应该可以校验根目录 `SKILL.md`。特定 agent 分发可以把同一份入口 skill 镜像到 `skills/<company-jarvis>/SKILL.md`。
 
 ### Should contain
 - 应该先看哪里
 - 如何在 modules、sources、cross-cutting docs 和 tools 之间做选择
 - 什么时候向外路由到 repo 内事实
 - 如何处理 回写
+- 如何记录 `no_skill_gap`
+- calibration 和 promotion decisions 放在哪里
 
 ### Should not contain
 - 完整维护手册
 - 来自每个 module 或 source 的重复内容
+
+## Calibration evidence
+
+当一次运行产生 learning 时，先判断它的归属：
+- task-local note；
+- repo-local skill/reference；
+- central JARVIS routing/workflow/source knowledge；
+- upstream create-jarvis-skill methodology。
+
+不要把 private example 直接 upstream。只有当脱敏后的 method 可复用于当前 company instance 之外时，才提升到 generic 方法论。

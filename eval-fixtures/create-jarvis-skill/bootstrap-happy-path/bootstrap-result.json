@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "result_code": "ok",
+  "retryable": false,
+  "summary": "Pilot-ready JARVIS scaffold generated for Acme Metrics.",
+  "paths": {
+    "jarvis_home": "/srv/acme/jarvis",
+    "jarvis_target_home": "/srv/acme/jarvis",
+    "entry_skill": "/srv/acme/jarvis/SKILL.md"
+  },
+  "method_repo": {
+    "url": "https://github.com/hengshi/create-jarvis-skill.git",
+    "requested_ref": "main",
+    "resolved_commit": "fixture"
+  },
+  "created_files": [
+    "SKILL.md",
+    "README.md",
+    "MAINTENANCE.md",
+    "bootstrap-state.json",
+    "bootstrap-result.json"
+  ],
+  "updated_files": [],
+  "preserved_files": [],
+  "unresolved_questions": [],
+  "missing_inputs": [],
+  "conflicting_inputs": [],
+  "blockers": [],
+  "writeback_policy": "local-only",
+  "next_action": "shadow pilot",
+  "generated_at": "2026-06-13T00:00:00Z"
+}

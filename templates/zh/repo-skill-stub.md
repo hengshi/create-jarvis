@@ -33,11 +33,14 @@ description: 帮助 agents 在 <company/product> 的 <repo-name> repository 中�
 这个 repo skill 应负责：
 - `<repo 内事实>`
 - `<repo 内事实>`
+- build / run / test commands
+- local validation 和 safe mutation rules
 
 这个 repo skill 应回交给 JARVIS 处理：
 - company-wide routing
 - cross-repo workflow coordination
 - organization-level rollout 与 ownership
+- generic methodology 和 upstream create-jarvis-skill rules
 
 ## Task Routing
 
@@ -55,3 +58,4 @@ description: 帮助 agents 在 <company/product> 的 <repo-name> repository 中�
 - [ ] repo 内事实 已明确
 - [ ] cross-repo concerns 没有在这里被不必要地重复
 - [ ] 下一份该读的文件或 skill 很明显
+- [ ] central JARVIS 只需要保留这个 repo 的 routing summary

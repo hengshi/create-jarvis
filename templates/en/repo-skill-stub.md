@@ -33,11 +33,14 @@ Include only the highest-signal repo-local guidance:
 This repo skill should own:
 - `<repo-local truth>`
 - `<repo-local truth>`
+- build / run / test commands
+- local validation and safe mutation rules
 
 This repo skill should defer back to JARVIS for:
 - company-wide routing
 - cross-repo workflow coordination
 - organization-level rollout and ownership
+- generic methodology and upstream create-jarvis-skill rules
 
 ## Task Routing
 
@@ -55,3 +58,4 @@ Escalate or hand off when:
 - [ ] repo-local truth is explicit
 - [ ] cross-repo concerns are not unnecessarily duplicated here
 - [ ] the next file or skill to read is obvious
+- [ ] central JARVIS needs only a routing summary for this repo

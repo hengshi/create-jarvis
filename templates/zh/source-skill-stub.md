@@ -18,6 +18,8 @@ description: 帮助 agents 为 <company/product> 访问并解释 <source-name>�
 - **Access path**: `<url/cli/path>`
 - **Auth / tooling**: `<tooling>`
 - **Constraints**: `<constraints>`
+- **Freshness expectation**: `<how current this source is>`
+- **Redaction boundary**: `<what must not be copied or persisted>`
 
 ## 如何使用这个 source
 
@@ -25,6 +27,7 @@ description: 帮助 agents 为 <company/product> 访问并解释 <source-name>�
 - 关键 taxonomy / labels / structure
 - 什么内容在这里容易找到
 - 什么内容在这里容易被误读
+- 什么内容应该 link 或 summarize，而不是复制
 
 ## 路由规则
 
@@ -48,4 +51,5 @@ description: 帮助 agents 为 <company/product> 访问并解释 <source-name>�
 - [ ] 新 agent 能快速找到正确材料
 - [ ] skill 说明了如何访问这个 source
 - [ ] 路由边界已明确
+- [ ] source content 没有被 mirror 进 JARVIS
 - [ ] 回写预期已明确，或明确说明故意留空

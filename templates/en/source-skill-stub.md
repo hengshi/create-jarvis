@@ -18,6 +18,8 @@ Explain:
 - **Access path**: `<url/cli/path>`
 - **Auth / tooling**: `<tooling>`
 - **Constraints**: `<constraints>`
+- **Freshness expectation**: `<how current this source is>`
+- **Redaction boundary**: `<what must not be copied or persisted>`
 
 ## How to Use This Source
 
@@ -25,6 +27,7 @@ Explain:
 - key taxonomy / labels / structure
 - what is easy to find here
 - what is easy to misread here
+- what should be linked or summarized instead of copied
 
 ## Routing Rules
 
@@ -48,4 +51,5 @@ If work should write back here, explain:
 - [ ] a new agent can find the right material quickly
 - [ ] the skill states how to access the source
 - [ ] routing boundaries are explicit
+- [ ] source content is not mirrored into JARVIS
 - [ ] writeback expectations are explicit or intentionally absent

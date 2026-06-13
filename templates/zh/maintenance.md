@@ -38,6 +38,16 @@
 
 ## 3. Skill Layers
 
+### JARVIS entry skill
+
+描述中心 entry skill 及其边界。
+
+| Skill | Instance root | Runtime owner | Status | Notes |
+|---|---|---|---|---|
+| `<company-jarvis>` | `<JARVIS_HOME>` | `<jarvis-box/other>` | `<planned/in-progress/ready>` | `<notes>` |
+
+entry skill 负责 routing 和闭环收束。它不 mirror sources、不替代 repo-local skills、不管理 runtime service behavior。
+
 ### Source skills
 
 列出帮助 agents 读取公司数字资产的 skills。
@@ -99,6 +109,8 @@
 | 某个 repo 的操作指引发生变化 | 更新 repo-local skill，并刷新 JARVIS 路由 |
 | 某个新 data source 变得有战略重要性 | 新增或修订 source skill |
 | rollout ownership 发生变化 | 更新 ownership map 与 rollout plan |
+| pilot 或 eval case 失败 | 分类 failure，并决定 no-skill-gap / merge / update / create |
+| 内部方法被证明可跨实例复用 | 脱敏后考虑 upstream create-jarvis-skill promotion |
 
 ---
 
@@ -131,12 +143,45 @@
 - 写回可持续复用的学习
 - 更新正确的层，而不是把笔记随手丢进随机文件
 - 记录这项工作是否应该改变 source skill、repo skill、workflow skill 或 governance artifact
+- 当现有 guidance 足够时，记录 `no_skill_gap`
 
 ---
 
-## 8. Rollout 状态
+## 8. Calibration 与 Promotion
 
-- **Current maturity**: `<试点 / early rollout / scaled / maintained>`
+### Calibration cadence
+
+- **Review cadence**: `<weekly / per pilot / per release / other>`
+- **Eval case sources**: `<real tasks / historical artifacts / owner corrections / replay cases>`
+- **Owner**: `<owner>`
+
+### Failure taxonomy
+
+使用共享 taxonomy：
+- `routing_failure`
+- `truth_failure`
+- `boundary_failure`
+- `writeback_failure`
+- `duplication_failure`
+- `bloat_failure`
+- `promotion_failure`
+- `verification_failure`
+- `no_skill_gap`
+
+### Promotion ladder
+
+1. task-local notes 留在 task-local。
+2. repo execution truth 进入 repo-local skills。
+3. cross-repo routing 和 workflow rules 进入 central JARVIS instance。
+4. 只有脱敏后的 company-neutral method 才能 upstream 到 create-jarvis-skill。
+
+除非证据显示存在 repeatable method gap，否则不要创建或扩展 skill。
+
+---
+
+## 9. Rollout 状态
+
+- **Current maturity**: `<installed / pilot-ready / pilot-proven / controlled-ops / mature>`
 - **Next highest-leverage additions**:
   1. `<item>`
   2. `<item>`

@@ -4,6 +4,9 @@
 <company>-jarvis/
 ├── README.md
 ├── MAINTENANCE.md
+├── SKILL.md
+├── bootstrap-state.json
+├── bootstrap-result.json
 ├── modules/
 │   ├── <module-a>/
 │   │   ├── overview.md
@@ -36,4 +39,6 @@
 
 - This is a topology example, not a claim that every folder must exist on day one.
 - Start with the smallest useful subset for the first real loop.
+- Runtime callers such as jarvis-box may require a root `SKILL.md` as the entry skill. Keep it valid and self-contained.
+- Runtime-driven bootstrap should also emit `bootstrap-state.json` and `bootstrap-result.json` at the instance root or a caller-specified result path.
 - Add historical depth through continued writeback rather than generating fake maturity.

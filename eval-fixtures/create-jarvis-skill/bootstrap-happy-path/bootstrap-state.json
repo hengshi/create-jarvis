@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "phase": "confirmation",
+  "status": "completed",
+  "paths": {
+    "jarvis_home": "/srv/acme/jarvis",
+    "jarvis_target_home": "/srv/acme/jarvis",
+    "jarvis_box_home": "/opt/jarvis-box",
+    "entry_skill": "/srv/acme/jarvis/SKILL.md"
+  },
+  "inputs": {
+    "company_name": "Acme Metrics",
+    "first_loop": "bug intake -> triage -> fix -> release note",
+    "source_scope": "wiki, issue tracker, release notes",
+    "repo_scope": "frontend repo, api repo",
+    "owners": "pilot owner confirmed",
+    "writeback_strategy": "local-only"
+  },
+  "confirmed_answers": {
+    "company_name": "Acme Metrics",
+    "first_loop": "bug intake -> triage -> fix -> release note"
+  },
+  "unresolved_questions": [],
+  "generated_files": [
+    "SKILL.md",
+    "README.md",
+    "MAINTENANCE.md",
+    "bootstrap-state.json",
+    "bootstrap-result.json"
+  ],
+  "scaffold_owned_files": [
+    "SKILL.md",
+    "README.md",
+    "MAINTENANCE.md"
+  ],
+  "preserved_user_files": [],
+  "method_repo": {
+    "url": "https://github.com/hengshi/create-jarvis-skill.git",
+    "requested_ref": "main",
+    "resolved_commit": "fixture"
+  },
+  "writeback_policy": "local-only",
+  "noninteractive": false,
+  "secrets_boundary": {
+    "declared_secret_names": [],
+    "status": "none",
+    "secret_paths": []
+  },
+  "conflicting_inputs": [],
+  "updated_at": "2026-06-13T00:00:00Z"
+}

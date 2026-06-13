@@ -7,7 +7,7 @@
 
 > Note: `SKILL.md` is the single golden path. Keep it as the only authoritative execution path. The supporting documentation under `references/en/`, `references/zh/`, `templates/en/`, and `templates/zh/` is organized as mirrored same-name files across English and Chinese.
 
-This repo is not just a repo generator. It is a methodology and practical guide for helping agents turn a company's digital assets, repos, and workflows into durable, executable organizational capability.
+This repo is not just a repo generator. It is a methodology and practical guide for helping agents turn a company's digital assets, repos, workflows, and runtime constraints into durable, executable organizational capability.
 
 JARVIS starts as knowledge, but its real goal is execution:
 - help agents understand the company,
@@ -22,10 +22,11 @@ JARVIS starts as knowledge, but its real goal is execution:
 It helps an agent:
 1. clarify why a company needs JARVIS,
 2. inventory sources, repos, and workflows,
-3. identify missing skill layers,
-4. generate a usable first pass,
+3. identify central JARVIS, source, repo-local, and workflow skill boundaries,
+4. generate a runtime-linkable first pass,
 5. force company-specific adaptation,
-6. and turn the work into a multi-owner rollout.
+6. run a shadow pilot,
+7. and evolve the system through writeback and calibration.
 
 ## What This Project Is Not
 
@@ -33,7 +34,8 @@ It is **not**:
 - a one-shot exporter for a knowledge repo,
 - a document dumping workflow,
 - a promise that one agent can finish an enterprise rollout in one session,
-- or a replacement for repo-local source of truth.
+- a replacement for repo-local source of truth,
+- or a replacement for jarvis-box runtime install/setup/service/task logic.
 
 If it only generates a pretty `<company>-jarvis` repo, it has not gone far enough.
 
@@ -56,18 +58,32 @@ But a mature result goes further. It accumulates:
 - and repeated START → WORK → END writeback.
 
 So the standard is:
-- **first pass** = enough structure to begin real rollout
-- **pilot** = enough truth to prove one high-value loop
-- **operational instance** = enough durable knowledge to reduce rediscovery in real work
+- **installed scaffold** = enough structure for a runtime to link the entry skill
+- **pilot-ready** = enough confirmed truth to begin a shadow pilot
+- **pilot-proven** = at least one real START -> WORK -> END loop has evidence
+- **controlled ops** = writeback and calibration happen under owner review
 - **mature instance** = part of how the organization actually thinks and works
 
 This project is meant to help agents move through those stages intentionally.
 
-## The Three Skill Layers
+## The Four Ecosystem Layers
 
-A strong JARVIS rollout needs all three layers.
+A strong JARVIS rollout needs four knowledge layers plus a separate runtime layer.
 
-### 1. Source skills
+### 1. JARVIS entry skill
+
+The central company entrypoint.
+
+It owns:
+- loop identification,
+- routing,
+- index and synthesis,
+- next-hop selection,
+- and END writeback judgment.
+
+It does not mirror source systems, replace repo-local skills, or manage runtime services.
+
+### 2. Source skills
 Skills that help agents access and understand company digital assets.
 
 Examples:
@@ -78,7 +94,7 @@ Examples:
 - customer feedback systems
 - incident and support records
 
-### 2. Repo skills
+### 3. Repo-local skills
 Skills that help agents execute inside specific repos.
 
 Examples:
@@ -90,13 +106,17 @@ Examples:
 
 These usually belong with the repo itself. JARVIS should route to them, index them, and help keep the company-wide map coherent.
 
-### 3. Workflow skills
+### 4. Workflow skills
 Skills that help agents complete real cross-team loops.
 
 Examples:
 - PRD → SPEC → implementation
 - bug intake → triage → fix → regression → release note
 - feature work across frontend, backend, QA, and docs
+
+### Runtime layer
+
+jarvis-box or another runtime owns install, setup, credentials, webhooks, task execution, state, logs, and service lifecycle. create-jarvis-skill owns methodology, scaffold, pilot, writeback, and calibration contracts.
 
 ## What a Good First Pass Produces
 
@@ -112,6 +132,7 @@ A useful first pass often includes:
 - a rollout plan
 - first-pass templates and scaffolds
 - explicit company adaptation notes
+- runtime bootstrap state/result files when invoked by jarvis-box or another runtime
 
 That is the real output — not just one repo.
 
@@ -124,6 +145,8 @@ That is the real output — not just one repo.
 - **History matters most.** Historical bugs, decisions, and rejected ideas are often more valuable than current status snapshots.
 - **Build for handoff.** JARVIS should survive changes in owner, team, or agent.
 - **Unlock the first closed loop first.** Do not wait for perfect coverage before proving value.
+- **Calibrate from failures.** Use eval cases, failure taxonomy, `no_skill_gap`, and scoped skill updates instead of growing skills by reflex.
+- **Promote carefully.** Internal company lessons move upstream only after redaction and method-level generalization.
 
 ## How to Use
 
@@ -135,6 +158,23 @@ Examples:
 - "Read `SKILL.md` and help me bootstrap JARVIS for my company."
 - "Use this repo to map our sources, repos, and workflows into a JARVIS rollout plan."
 - "Use `create-jarvis-skill` to generate the first-pass JARVIS scaffolds and backlog for our company."
+
+### Runtime callers such as jarvis-box
+
+jarvis-box should call this repository through its configured runtime agent instead of bundling these templates inside jarvis-box. The runtime supplies `JARVIS_TARGET_HOME`, `JARVIS_COMPANY_NAME`, `JARVIS_FIRST_LOOP`, GitLab scope, owners, and writeback policy; this repository supplies the methodology and output contract.
+
+In runtime mode, the agent must create a valid `$JARVIS_HOME/SKILL.md`, bootstrap artifacts, `bootstrap-state.json`, and `bootstrap-result.json` in the target home when possible. Use neutral runtime variables such as `JARVIS_HOME`, `JARVIS_TARGET_HOME`, and `JARVIS_BOX_HOME`; do not assume a customer runtime root is named after Hengshi. The default method repo URL is `https://github.com/hengshi/create-jarvis-skill.git`.
+
+This repo carries a deterministic eval harness for the runtime/bootstrap contract:
+
+```bash
+python3 scripts/run_create_jarvis_skill_eval.py \
+  --cases evals/create-jarvis-skill-cases \
+  --outputs eval-fixtures/create-jarvis-skill \
+  --report .eval-runs/ci-report
+```
+
+Use `--write-prompts .eval-runs/prompts` to export prompts for a runtime or agent replay. Do not use `--allow-missing-outputs` as a release gate.
 
 ### Step 2 — Clarify the first valuable loop
 
@@ -165,12 +205,17 @@ Use the skill to create:
 - and the first high-leverage source / repo / workflow skill stubs.
 
 Use the adoption references when you need a practical rollout shape rather than more abstraction:
+- `references/en/runtime-bootstrap-contract.md`
+- `references/en/jarvis-ecosystem-architecture.md`
+- `references/en/pilot-workflow-methodology.md`
 - `references/en/adoption-guide.md`
 - `references/en/example-pilot-shape.md`
 - `references/en/concrete-instance-topology.md`
 - `references/en/instance-readiness.md`
 - `references/en/detailed-maintenance-contracts.md`
 - `references/en/instance-generation-contract.md`
+- `references/en/skill-calibration-loop.md`
+- `references/en/internal-to-generic-promotion.md`
 
 Chinese mirrors with the same basenames are available under `references/zh/`.
 
@@ -223,10 +268,14 @@ A responsible JARVIS generator should:
 - and leave real historical memory to grow through actual writeback.
 
 That is why this repo now includes:
+- runtime bootstrap contracts for jarvis-box-style callers,
+- ecosystem layer boundaries,
+- pilot workflow methodology,
 - concrete instance topology guidance,
 - instance readiness levels,
 - a generation contract,
 - detailed maintenance contracts,
+- calibration and promotion rules,
 - and a fuller set of instance templates.
 
 ## Why This Matters

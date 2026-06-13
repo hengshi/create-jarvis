@@ -9,6 +9,8 @@
 - **Target users**: `<users / teams / roles>`
 - **First valuable closed loop**: `<workflow>`
 - **Success signal**: `<how we know the first loop is working>`
+- **Shadow-pilot criteria**: `<what evidence shows this is ready for controlled writeback>`
+- **Confirmation policy**: `<who must confirm truth-bearing fields>`
 
 ## 2. Current rollout scope
 
@@ -16,6 +18,8 @@
 - **Included repos**: `<list>`
 - **Included workflows**: `<list>`
 - **Out of scope for now**: `<list>`
+- **Runtime owner**: `<jarvis-box / other runtime / human-driven>`
+- **Writeback policy**: `<local-only / approval-required / repo-writeback / docs-writeback>`
 
 ## 3. Key assumptions
 
@@ -43,3 +47,9 @@
 - **Action**: `<next step>`
 - **Why this next**: `<reason>`
 - **Evidence of completion**: `<what proves it>`
+
+## 7. Calibration setup
+
+- **Initial eval cases**: `<3-5 real artifacts or none yet>`
+- **Expected failure review cadence**: `<cadence>`
+- **Promotion boundary**: `<repo-local / central JARVIS / upstream methodology>`

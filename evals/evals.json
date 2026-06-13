@@ -1,0 +1,28 @@
+{
+  "skill_name": "create-jarvis-skill",
+  "case_dir": "evals/create-jarvis-skill-cases",
+  "fixture_outputs": "eval-fixtures/create-jarvis-skill",
+  "scorer": "scripts/run_create_jarvis_skill_eval.py",
+  "evals": [
+    {
+      "id": "bootstrap-happy-path",
+      "failure_mode": "runtime_contract"
+    },
+    {
+      "id": "noninteractive-missing-owner",
+      "failure_mode": "truth_boundary"
+    },
+    {
+      "id": "repo-local-boundary",
+      "failure_mode": "boundary_failure"
+    },
+    {
+      "id": "source-dump-resistance",
+      "failure_mode": "source_dump"
+    },
+    {
+      "id": "no-skill-gap",
+      "failure_mode": "no_skill_gap"
+    }
+  ]
+}

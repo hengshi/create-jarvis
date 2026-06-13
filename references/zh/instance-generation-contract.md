@@ -11,6 +11,53 @@
 2. **在被视为 truth 之前需要人类确认**
 3. **无法在一开始诚实生成，必须从真实工作中涌现**
 
+## Runtime 调用方契约
+
+有些调用方，例如 jarvis-box，会通过 runtime agent 调用这个仓库，而不是把 templates 复制进调用方仓库。在这种模式下，本仓库仍然是方法论 source of truth；调用方只提供输入、目标路径和 runtime 约束。
+
+### 必须归一化的输入
+
+- target home：`JARVIS_TARGET_HOME` 或 `JARVIS_HOME`
+- entry skill：`JARVIS_ENTRY_SKILL`，默认 `SKILL.md`
+- 公司名称：`JARVIS_COMPANY_NAME`
+- 第一条闭环：`JARVIS_FIRST_LOOP`
+- GitLab 范围：`GITLAB_HOST`、`GITLAB_PROJECTS`
+- source-of-truth notes：`JARVIS_SOURCE_OF_TRUTH`
+- owners：`JARVIS_OWNERS`
+- 回写策略：`JARVIS_WRITEBACK_STRATEGY`
+- 中性 runtime root：如果提供则使用 `JARVIS_BOX_HOME`
+
+### 最小 runtime 输出
+
+runtime 生成的实例必须包含一个有效入口 skill；除非显式提供了其他 `JARVIS_ENTRY_SKILL`，默认位置是 `JARVIS_HOME/SKILL.md`。同时必须包含足够的 bootstrap 产物，让未来 agent 可以继续试点而不必重新发现上下文：
+
+- `README.md`
+- `MAINTENANCE.md`
+- build brief
+- source inventory
+- repo inventory
+- workflow inventory
+- ownership map
+- rollout plan
+- confirmation checklist
+- `bootstrap-state.json`
+
+### 续传与覆盖策略
+
+`bootstrap-state.json` 是 resume anchor。它应该记录：
+
+- 已确认 answers
+- 已生成 files
+- 因为看起来是用户手写而被保留的 files
+- 未解决问题
+- 可获得时记录 methodology repo URL 或 commit
+
+resume 时，不要覆盖用户手写文件，除非 human 明确确认。只有明确标记为 scaffold-owned 的生成文件才可以刷新。
+
+### 命名策略
+
+生成给客户的输出不得假设 Hengshi-specific runtime names、paths 或 owners。JARVIS instance 使用客户自己的命名，runtime 路径使用 `JARVIS_HOME`、`JARVIS_TARGET_HOME`、`JARVIS_BOX_HOME` 这类中性变量。
+
 ---
 
 ## 1. 可以自动安全搭建

@@ -5,6 +5,10 @@ description: The unified entry skill for the <company/product> JARVIS instance. 
 
 # <Company / Product> JARVIS
 
+## Runtime context
+
+This file may be installed directly as `$JARVIS_HOME/SKILL.md` by jarvis-box or another runtime. Treat `JARVIS_HOME` as the instance root and do not assume the runtime root is named after any vendor or company.
+
 ## Use the right entrypoint first
 
 - business domain questions → `modules/<module>/overview.md`

@@ -8,6 +8,7 @@ A mature company-specific JARVIS instance usually needs more than a root README 
 <company>-jarvis/
 ├── README.md
 ├── MAINTENANCE.md
+├── SKILL.md
 ├── modules/
 │   └── <module>/
 │       ├── overview.md
@@ -67,6 +68,8 @@ Do not turn this into a generic utility bucket.
 
 ### `skills/`
 Use for the JARVIS entry skill and, where needed, additional company-specific skills that help agents route into the knowledge base.
+
+For runtime callers that validate the instance root, keep the primary entry skill available at root `SKILL.md`. The same skill may also be mirrored or packaged under `skills/<company-jarvis>/SKILL.md` for agent-specific distribution.
 
 ### `_raw/` or `_exports/`
 Optional. Use only when raw snapshots or exports must be preserved for traceability or offline use.

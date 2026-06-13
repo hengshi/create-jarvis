@@ -126,10 +126,12 @@
 ### Should not contain
 - 如果已有更好 source，却仍复制臃肿的 release notes
 
-## `skills/<company-jarvis>/SKILL.md`
+## `SKILL.md` and `skills/<company-jarvis>/SKILL.md`
 
 ### Purpose
 作为进入 JARVIS instance 的主 agent 入口。
+
+runtime 调用方应该可以校验根目录 `SKILL.md`。特定 agent 分发可以把同一份入口 skill 镜像到 `skills/<company-jarvis>/SKILL.md`。
 
 ### Should contain
 - 应该先看哪里

@@ -126,10 +126,12 @@ Point agents toward version-level change understanding.
 ### Should not contain
 - bloated release-note copies if a better source already exists
 
-## `skills/<company-jarvis>/SKILL.md`
+## `SKILL.md` and `skills/<company-jarvis>/SKILL.md`
 
 ### Purpose
 Act as the main agent entrypoint into the JARVIS instance.
+
+Runtime callers should be able to validate root `SKILL.md`. Agent-specific distributions may mirror the same entry skill under `skills/<company-jarvis>/SKILL.md`.
 
 ### Should contain
 - where to look first

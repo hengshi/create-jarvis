@@ -8,6 +8,7 @@
 <company>-jarvis/
 ├── README.md
 ├── MAINTENANCE.md
+├── SKILL.md
 ├── modules/
 │   └── <module>/
 │       ├── overview.md
@@ -67,6 +68,8 @@
 
 ### `skills/`
 用于承载 JARVIS 入口 skill，以及在需要时承载其他帮助 agents 路由进入知识库的 公司专属 skills。
+
+对于会校验 instance root 的 runtime 调用方，应在根目录 `SKILL.md` 保留主入口 skill。同一份 skill 也可以镜像或打包到 `skills/<company-jarvis>/SKILL.md`，用于特定 agent 的分发。
 
 ### `_raw/` or `_exports/`
 可选。只有在为了可追溯性或离线使用，必须保留原始快照或导出物时才使用。

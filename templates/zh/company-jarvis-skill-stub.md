@@ -5,6 +5,10 @@ description: 面向 <company/product> JARVIS instance 的统一入口 skill。�
 
 # <Company / Product> JARVIS
 
+## Runtime context
+
+这个文件可以由 jarvis-box 或其他 runtime 直接安装为 `$JARVIS_HOME/SKILL.md`。把 `JARVIS_HOME` 当作 instance root，不要假设 runtime root 使用任何厂商或公司的名称。
+
 ## 先使用正确的入口
 
 - 业务领域问题 → `modules/<module>/overview.md`

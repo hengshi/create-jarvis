@@ -11,6 +11,54 @@ Build a company-specific JARVIS as an agent operating system, not as a document 
 Use `references/en/` only to support a specific step here. Use `templates/en/` only to produce the artifacts required by a step here.
 Chinese materials under `references/zh/` and `templates/zh/` are human-facing mirrors and helpers; they do not replace this main route.
 
+## Runtime Bootstrap Mode
+
+When a runtime such as jarvis-box invokes this methodology, treat the runtime as the caller and this repository as the source of truth. Do not expect the runtime repository to bundle local copies of these templates.
+
+### Runtime inputs
+
+Read the caller prompt first. Then normalize these environment variables when present:
+
+- `JARVIS_TARGET_HOME` or `JARVIS_HOME`: the output directory to create or update.
+- `JARVIS_COMPANY_NAME`: company, product, or organization name.
+- `JARVIS_FIRST_LOOP`: the first valuable loop to prove.
+- `GITLAB_HOST` and `GITLAB_PROJECTS`: initial GitLab source and repo scope.
+- `JARVIS_SOURCE_OF_TRUTH`: known docs, issue trackers, runbooks, or other sources.
+- `JARVIS_OWNERS`: initial human owners.
+- `JARVIS_WRITEBACK_STRATEGY`: local-only, repo writeback, docs writeback, or another caller-provided policy.
+- `JARVIS_ENTRY_SKILL`: entry skill path, defaulting to `SKILL.md`.
+- `JARVIS_BOX_HOME`: optional neutral runtime root for the caller. Never hard-code company-specific runtime roots such as `~/.hengshi` into generated customer output.
+- `JARVIS_BOOTSTRAP_PROMPT_FILE`: optional copy of the caller prompt for audit.
+
+### Runtime output contract
+
+Write the generated instance to `JARVIS_TARGET_HOME`. At minimum, produce:
+
+- the entry skill at `JARVIS_ENTRY_SKILL` or `SKILL.md`;
+- `README.md`;
+- `MAINTENANCE.md`;
+- a build brief naming the first loop and success signal;
+- source, repo, and workflow inventories for the pilot scope;
+- ownership and rollout artifacts;
+- a confirmation checklist that clearly marks unconfirmed truth-bearing fields;
+- `bootstrap-state.json` recording confirmed answers, generated paths, unresolved questions, and the methodology source repo.
+
+The root entry skill must be valid as a standalone skill because jarvis-box validates `JARVIS_HOME/SKILL.md` before linking the instance.
+
+### Runtime resume contract
+
+If `bootstrap-state.json` already exists, preserve confirmed answers and user-authored files. Refresh only files that are clearly generated, scaffold-owned, or explicitly approved by the human. If the runtime prompt conflicts with prior confirmed answers, keep the prior confirmed answer and record the conflict in unresolved questions.
+
+### Runtime stop conditions
+
+Stop and report a clear blocker instead of fabricating output when:
+
+- `JARVIS_TARGET_HOME` is missing or not writable;
+- the company name or first loop is absent after all available inputs are read;
+- GitLab or source scope is required for the first loop but unavailable;
+- owners or source-of-truth locations would have to be guessed;
+- generated placeholders could be mistaken for confirmed company truth.
+
 ## What success looks like
 
 A successful first pass does **not** mean "the whole company is mapped".

@@ -11,6 +11,53 @@ Every generated artifact should fall into one of three classes:
 2. **requires human confirmation before being treated as truth**
 3. **cannot be honestly generated up front and must emerge from real work**
 
+## Runtime caller contract
+
+Some callers, such as jarvis-box, invoke this repository through a runtime agent instead of copying templates into the caller repo. In that mode, this repository remains the methodology source of truth and the caller only supplies inputs, target paths, and runtime constraints.
+
+### Required normalized inputs
+
+- target home: `JARVIS_TARGET_HOME` or `JARVIS_HOME`
+- entry skill: `JARVIS_ENTRY_SKILL`, default `SKILL.md`
+- company name: `JARVIS_COMPANY_NAME`
+- first loop: `JARVIS_FIRST_LOOP`
+- GitLab scope: `GITLAB_HOST`, `GITLAB_PROJECTS`
+- source-of-truth notes: `JARVIS_SOURCE_OF_TRUTH`
+- owners: `JARVIS_OWNERS`
+- writeback policy: `JARVIS_WRITEBACK_STRATEGY`
+- neutral runtime root: `JARVIS_BOX_HOME` when supplied
+
+### Minimum runtime output
+
+A runtime-generated instance must include a valid entry skill at `JARVIS_HOME/SKILL.md` unless a different `JARVIS_ENTRY_SKILL` is explicitly supplied. It must also include enough bootstrap artifacts for a future agent to continue the pilot without rediscovery:
+
+- `README.md`
+- `MAINTENANCE.md`
+- build brief
+- source inventory
+- repo inventory
+- workflow inventory
+- ownership map
+- rollout plan
+- confirmation checklist
+- `bootstrap-state.json`
+
+### Resume and overwrite policy
+
+`bootstrap-state.json` is the resume anchor. It should record:
+
+- confirmed answers
+- generated files
+- files intentionally preserved because they appear user-authored
+- unresolved questions
+- methodology repo URL or commit when known
+
+On resume, do not overwrite user-authored files unless the human explicitly confirms it. Generated files may be refreshed only when they are clearly marked as scaffold-owned.
+
+### Naming policy
+
+Generated customer output must not assume Hengshi-specific runtime names, paths, or owners. Use customer-specific names for the JARVIS instance and use neutral runtime variables such as `JARVIS_HOME`, `JARVIS_TARGET_HOME`, and `JARVIS_BOX_HOME`.
+
 ---
 
 ## 1. Safe to scaffold automatically

@@ -4,6 +4,7 @@
 <company>-jarvis/
 ├── README.md
 ├── MAINTENANCE.md
+├── SKILL.md
 ├── modules/
 │   ├── <module-a>/
 │   │   ├── overview.md
@@ -36,4 +37,5 @@
 
 - This is a topology example, not a claim that every folder must exist on day one.
 - Start with the smallest useful subset for the first real loop.
+- Runtime callers such as jarvis-box may require a root `SKILL.md` as the entry skill. Keep it valid and self-contained.
 - Add historical depth through continued writeback rather than generating fake maturity.

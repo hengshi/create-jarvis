@@ -136,6 +136,12 @@ Examples:
 - "Use this repo to map our sources, repos, and workflows into a JARVIS rollout plan."
 - "Use `create-jarvis-skill` to generate the first-pass JARVIS scaffolds and backlog for our company."
 
+### Runtime callers such as jarvis-box
+
+jarvis-box should call this repository through its configured runtime agent instead of bundling these templates inside jarvis-box. The runtime supplies `JARVIS_TARGET_HOME`, `JARVIS_COMPANY_NAME`, `JARVIS_FIRST_LOOP`, GitLab scope, owners, and writeback policy; this repository supplies the methodology and output contract.
+
+In runtime mode, the agent must create a valid `$JARVIS_HOME/SKILL.md`, bootstrap artifacts, and `bootstrap-state.json` in the target home. Use neutral runtime variables such as `JARVIS_HOME`, `JARVIS_TARGET_HOME`, and `JARVIS_BOX_HOME`; do not assume a customer runtime root is named after Hengshi.
+
 ### Step 2 — Clarify the first valuable loop
 
 Do not begin with structure for structure’s sake.

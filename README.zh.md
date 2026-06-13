@@ -38,6 +38,12 @@
 5. 做一次人工确认（不要把占位符当真相）
 6. 进入真实试点，通过回写长出真正的组织记忆
 
+## jarvis-box 等 runtime 调用方
+
+jarvis-box 应该通过配置好的 runtime agent 调用这个仓库，而不是把本仓库 templates 复制进 jarvis-box。runtime 负责提供 `JARVIS_TARGET_HOME`、`JARVIS_COMPANY_NAME`、`JARVIS_FIRST_LOOP`、GitLab 范围、owners 和回写策略；本仓库负责方法论和输出契约。
+
+在 runtime 模式下，agent 必须在目标 home 中创建有效的 `$JARVIS_HOME/SKILL.md`、bootstrap 产物和 `bootstrap-state.json`。使用 `JARVIS_HOME`、`JARVIS_TARGET_HOME`、`JARVIS_BOX_HOME` 这类中性 runtime 变量，不要假设客户 runtime root 使用 Hengshi 命名。
+
 ## 双语结构
 
 ```text

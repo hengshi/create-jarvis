@@ -165,6 +165,17 @@ jarvis-box should call this repository through its configured runtime agent inst
 
 In runtime mode, the agent must create a valid `$JARVIS_HOME/SKILL.md`, bootstrap artifacts, `bootstrap-state.json`, and `bootstrap-result.json` in the target home when possible. Use neutral runtime variables such as `JARVIS_HOME`, `JARVIS_TARGET_HOME`, and `JARVIS_BOX_HOME`; do not assume a customer runtime root is named after Hengshi. The default method repo URL is `https://github.com/hengshi/create-jarvis-skill.git`.
 
+This repo carries a deterministic eval harness for the runtime/bootstrap contract:
+
+```bash
+python3 scripts/run_create_jarvis_skill_eval.py \
+  --cases evals/create-jarvis-skill-cases \
+  --outputs eval-fixtures/create-jarvis-skill \
+  --report .eval-runs/ci-report
+```
+
+Use `--write-prompts .eval-runs/prompts` to export prompts for a runtime or agent replay. Do not use `--allow-missing-outputs` as a release gate.
+
 ### Step 2 — Clarify the first valuable loop
 
 Do not begin with structure for structure’s sake.

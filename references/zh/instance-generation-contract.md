@@ -70,7 +70,7 @@ runtime 生成的实例必须包含一个有效入口 skill；除非显式提供
 
 resume 时，不要覆盖用户手写文件，除非 human 明确确认。只有明确标记为 scaffold-owned 的生成文件才可以刷新。
 
-`bootstrap-result.json` 是 runtime terminal verdict。至少记录 `status`、`result_code`、summary、paths、method repo、created/updated/preserved files、unresolved questions、blockers、writeback policy、next action、generated_at。即使 bootstrap 被 block，只要有安全目标，也应尽量写出该文件。
+`bootstrap-result.json` 是 runtime terminal verdict。至少记录 `schema_version`、`status`、`result_code`、`retryable`、summary、`paths.jarvis_home`、`paths.jarvis_target_home`、`paths.entry_skill`、method repo、created/updated/preserved files、unresolved questions、missing inputs、conflicting inputs、blockers、writeback policy、next action、generated_at。即使 bootstrap 被 block，只要有安全目标，也应尽量写出该文件。
 
 ### Secret 边界
 

@@ -60,6 +60,17 @@ jarvis-box 应该通过配置好的 runtime agent 调用这个仓库，而不是
 
 如果 `JARVIS_NONINTERACTIVE=1` 且缺少必填输入，agent 不应猜测 owner、source-of-truth 或 workflow，而应返回 `needs-input` / blockers。
 
+本仓库自带 deterministic eval harness，用来验证 runtime/bootstrap 契约：
+
+```bash
+python3 scripts/run_create_jarvis_skill_eval.py \
+  --cases evals/create-jarvis-skill-cases \
+  --outputs eval-fixtures/create-jarvis-skill \
+  --report .eval-runs/ci-report
+```
+
+使用 `--write-prompts .eval-runs/prompts` 可以导出 prompts 交给 runtime 或 agent replay。不要把 `--allow-missing-outputs` 当作 release gate。
+
 ## 双语结构
 
 ```text

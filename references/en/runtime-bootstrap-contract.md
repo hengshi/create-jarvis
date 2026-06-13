@@ -70,6 +70,8 @@ The target home should contain:
 - `bootstrap-state.json`;
 - `bootstrap-result.json`.
 
+Use `templates/en/bootstrap-state.json` and `templates/en/bootstrap-result.json` as the default schema examples when the caller runtime does not supply a stricter schema.
+
 ## `bootstrap-state.json`
 
 State is the resume anchor. It should include:
@@ -139,6 +141,8 @@ Allowed `status` values:
 - `failed`
 
 Even when bootstrap is blocked, write this file when a safe target or runtime-provided result path exists. The runtime should not have to parse prose to decide the next action.
+
+The committed eval harness validates this shape through dotted required fields such as `paths.jarvis_home` and `method_repo.url`.
 
 ## Error Contract
 

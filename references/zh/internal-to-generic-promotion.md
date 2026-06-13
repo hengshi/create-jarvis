@@ -36,6 +36,8 @@ Generic create-jarvis-skill：
 - calibration and promotion rules；
 - 无私有例子的 reusable anti-patterns。
 
+mirror writeback 是可选项。先为 method change 选一个 primary home；只有另一层必须消费或执行该 contract 时才 mirror。例如，通用 bootstrap result contract 属于本仓库，而消费它的 runtime 可能只需要一个本地 test 或 runbook note。
+
 ## Upstream gate
 
 只有同时满足以下条件，才提升到 create-jarvis-skill：

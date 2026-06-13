@@ -66,18 +66,18 @@ On resume, do not overwrite user-authored files unless the human explicitly conf
 
 `bootstrap-result.json` is for the runtime. It should include:
 
-- `ok`
-- maturity level such as `installed`, `pilot-ready`, or `blocked-needs-confirmation`
-- `jarvis_home`
-- `entry_skill`
-- first loop
+- `schema_version`
+- `status`: `completed`, `needs-input`, `blocked`, or `failed`
+- `result_code`
+- `retryable`
+- `summary`
+- `paths.jarvis_home`, `paths.jarvis_target_home`, and `paths.entry_skill`
 - method repo URL and commit/ref
-- generated paths
-- preserved paths
-- pending confirmations
-- writeback strategy
+- created, updated, and preserved files
+- unresolved questions, missing inputs, conflicting inputs, and blockers
+- writeback policy
 - next action
-- blockers
+- generated timestamp
 
 If required inputs are missing in noninteractive mode, write a blocked result instead of guessing.
 

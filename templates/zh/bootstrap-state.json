@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "phase": "<runtime-contract|first-workflow|pilot-inventory|truth-boundaries|scaffold|minimum-skills|confirmation>",
+  "status": "<in-progress|completed|needs-input|blocked|failed>",
+  "paths": {
+    "jarvis_home": "<JARVIS_HOME>",
+    "jarvis_target_home": "<JARVIS_TARGET_HOME>",
+    "jarvis_box_home": "<JARVIS_BOX_HOME-or-null>",
+    "entry_skill": "<SKILL.md-or-JARVIS_ENTRY_SKILL>"
+  },
+  "inputs": {
+    "company_name": "<confirmed-or-unresolved>",
+    "first_loop": "<confirmed-or-unresolved>",
+    "source_scope": "<confirmed-or-unresolved>",
+    "repo_scope": "<confirmed-or-unresolved>",
+    "owners": "<confirmed-or-unresolved>",
+    "writeback_strategy": "<local-only|approval-required|repo-writeback|docs-writeback|other>"
+  },
+  "confirmed_answers": {},
+  "unresolved_questions": [],
+  "generated_files": [],
+  "scaffold_owned_files": [],
+  "preserved_user_files": [],
+  "method_repo": {
+    "url": "https://github.com/hengshi/create-jarvis-skill.git",
+    "requested_ref": null,
+    "resolved_commit": "<sha-or-ref>"
+  },
+  "writeback_policy": "<policy>",
+  "noninteractive": false,
+  "secrets_boundary": {
+    "declared_secret_names": [],
+    "status": "<none|configured|unresolved>",
+    "secret_paths": []
+  },
+  "conflicting_inputs": [],
+  "updated_at": "<iso8601>"
+}

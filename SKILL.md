@@ -20,9 +20,10 @@ When jarvis-box or another runtime invokes this methodology:
 3. Write the generated instance to `JARVIS_TARGET_HOME` or `JARVIS_HOME`.
 4. Produce a valid entry skill at `JARVIS_ENTRY_SKILL` or `SKILL.md`.
 5. Record `bootstrap-state.json` for resume and `bootstrap-result.json` for the runtime.
-6. Use neutral paths such as `JARVIS_BOX_HOME`, `JARVIS_HOME`, and `JARVIS_TARGET_HOME`. Never hard-code company-specific runtime roots such as `.hengshi` into customer output.
-7. Record the methodology source repo URL and commit/ref when known. The expected default repo URL is `https://github.com/hengshi/create-jarvis-skill.git`.
-8. Do not read, print, or persist secret values. Only record secret names, status, and paths supplied by the runtime.
+6. Use `templates/en/bootstrap-state.json` and `templates/en/bootstrap-result.json` as the machine-readable shape when the caller has no stricter schema.
+7. Use neutral paths such as `JARVIS_BOX_HOME`, `JARVIS_HOME`, and `JARVIS_TARGET_HOME`. Never hard-code company-specific runtime roots such as `.hengshi` into customer output.
+8. Record the methodology source repo URL and commit/ref when known. The expected default repo URL is `https://github.com/hengshi/create-jarvis-skill.git`.
+9. Do not read, print, or persist secret values. Only record secret names, status, and paths supplied by the runtime.
 
 Stop instead of fabricating output when a required runtime input is absent, target paths are not writable, owners are guessed, or generated placeholders could be mistaken for confirmed company truth.
 
@@ -81,6 +82,7 @@ Output:
 - writeback policy and confirmation policy;
 - method repo URL/ref;
 - explicit blockers for missing inputs.
+- runtime-readable `bootstrap-state.json` and `bootstrap-result.json` when runtime-driven.
 
 Must confirm:
 - `JARVIS_HOME` or `JARVIS_TARGET_HOME`;
@@ -312,7 +314,17 @@ Output:
 Read:
 - `references/en/skill-calibration-loop.md`
 - `references/en/internal-to-generic-promotion.md`
+- `references/en/create-jarvis-skill-eval-scorecard.md`
 - `references/en/anti-patterns.md`
+
+When changing this methodology repo, run the committed eval harness:
+
+```bash
+python3 scripts/run_create_jarvis_skill_eval.py \
+  --cases evals/create-jarvis-skill-cases \
+  --outputs eval-fixtures/create-jarvis-skill \
+  --report .eval-runs/ci-report
+```
 
 ## Common Rationalizations
 
@@ -342,6 +354,7 @@ Read:
 Before finishing, confirm:
 
 - [ ] Runtime inputs, target paths, and method repo source are recorded when runtime-driven.
+- [ ] Runtime-driven output can satisfy the `bootstrap-state.json` / `bootstrap-result.json` eval contract.
 - [ ] A first valuable workflow and success signal are explicitly named.
 - [ ] Pilot-scope sources, repos, workflows, and owners are inventoried.
 - [ ] Intended artifacts are classified into scaffold / confirm / grow-later.
@@ -350,4 +363,5 @@ Before finishing, confirm:
 - [ ] A human confirmation pass or unresolved-field report exists.
 - [ ] Shadow pilot and controlled writeback paths are explicit.
 - [ ] Calibration can produce either `no_skill_gap` or a scoped skill/reference update.
+- [ ] `scripts/run_create_jarvis_skill_eval.py` passes against committed fixtures after methodology changes.
 - [ ] Private company lessons are promoted to generic methodology only through redacted patterns.

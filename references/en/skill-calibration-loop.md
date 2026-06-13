@@ -34,12 +34,23 @@ Single-use surprises usually stay as task notes. Repeated failures or high-blast
 | `routing_failure` | wrong module, source, repo, workflow, or next hop |
 | `truth_failure` | unconfirmed data treated as fact |
 | `boundary_failure` | repo-local truth centralized, or central routing scattered |
+| `route_invalidation` | later evidence invalidated an earlier reasonable route |
 | `writeback_failure` | durable learning missed or written to the wrong home |
 | `duplication_failure` | new skill created instead of improving an existing one |
 | `bloat_failure` | skill/template growth without repeated value |
 | `promotion_failure` | private company material promoted to generic method |
 | `verification_failure` | conclusion lacked evidence or replay |
 | `no_skill_gap` | existing skills were sufficient; the failure was task-local, data-local, or execution-local |
+
+## Calibration discipline
+
+Before changing a skill, separate:
+- prompt/task evidence missing from the run;
+- source data or runtime behavior outside the skill's control;
+- a route that was reasonable with old evidence but invalidated later;
+- a repeatable method gap that belongs in a stable skill or reference.
+
+Only the last category should normally change the skill. `route_invalidation` may change route-confidence checks, but it does not automatically mean the old skill was wrong.
 
 ## `no_skill_gap` Gate
 

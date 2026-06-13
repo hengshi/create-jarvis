@@ -36,6 +36,8 @@ Generic create-jarvis-skill:
 - calibration and promotion rules;
 - reusable anti-patterns without private examples.
 
+Mirror writeback is optional. Pick one primary home for the method change, then mirror only when another layer must consume or enforce the contract. For example, a generic bootstrap result contract belongs here, while the runtime that consumes it may need a small local test or runbook note.
+
 ## Upstream Gate
 
 Promote to create-jarvis-skill only when:

@@ -34,12 +34,23 @@ real task or historical artifact
 | `routing_failure` | 进错 module/source/repo/workflow/next hop |
 | `truth_failure` | 未确认信息被当成事实 |
 | `boundary_failure` | repo-local truth 被中央化，或 central routing 被散落 |
+| `route_invalidation` | 后续证据推翻了早期合理 route |
 | `writeback_failure` | durable learning 没写或写错位置 |
 | `duplication_failure` | 新建 skill 而不是改已有 skill |
 | `bloat_failure` | 没有重复价值的 skill/template 膨胀 |
 | `promotion_failure` | 私有公司材料被提升为通用方法 |
 | `verification_failure` | 结论缺证据或 replay |
 | `no_skill_gap` | 现有 skills 足够；失败来自 task/data/runtime/code 层 |
+
+## Calibration discipline
+
+改 skill 前先区分：
+- 本次 run 缺 prompt/task evidence；
+- source data 或 runtime behavior 超出 skill 控制；
+- route 在旧证据下合理，但被后续证据推翻；
+- 可重复的方法缺口，且最适合落入稳定 skill 或 reference。
+
+通常只有最后一类才应修改 skill。`route_invalidation` 可能需要加强 route-confidence checks，但不自动说明旧 skill 是错的。
 
 ## `no_skill_gap` 门槛
 

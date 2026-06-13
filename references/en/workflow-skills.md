@@ -20,6 +20,7 @@ Typical examples:
 A workflow skill should make these things explicit:
 - trigger or start condition
 - input evidence required
+- claim normalization: observation, expectation, requested change, and scope
 - START precheck
 - preconditions
 - main stages
@@ -27,6 +28,7 @@ A workflow skill should make these things explicit:
 - which sources and repos to use at each stage
 - escalation conditions
 - evidence needed to advance
+- route-confidence checks before high-confidence routing
 - END writeback expectations
 - known stop conditions or escalation paths
 
@@ -37,6 +39,33 @@ A workflow skill should orchestrate. It should not become a copy of repo-local i
 Reference repo skills for repo-specific execution.
 Reference source skills for source-specific retrieval.
 Keep the workflow skill focused on the loop itself.
+
+## Claim normalization and route confidence
+
+For ambiguous inputs, normalize before routing:
+- observation: what was actually seen;
+- expectation: what behavior or outcome was expected;
+- requested change: what the requester wants changed, if any;
+- scope: source, repo, workflow, user group, version, or environment.
+
+When claiming that two surfaces are equivalent or that a route is correct, name the evidence class:
+- identity: are these the same object, project, customer, or artifact?
+- scope: does the claim apply to this source/repo/workflow boundary?
+- freshness: is the evidence current enough?
+- contract: which API, prompt, workflow, or human rule defines the expected behavior?
+
+If later evidence invalidates the earlier route, record the invalidation as calibration evidence. Do not treat that as proof that the earlier route was unreasonable at the time.
+
+## Resumability, dedupe, and event hygiene
+
+Event-driven workflows should define:
+- a stable fingerprint or dedupe key for repeated triggers;
+- one in-flight unit of work when duplicate processing is harmful;
+- a resume point or terminal artifact so reruns do not restart blindly;
+- noise filters for bot/system events and low-signal follow-ups;
+- retryable vs terminal failure classes when automation is involved.
+
+This is method guidance, not a requirement to copy any runtime's queue implementation.
 
 ## Useful output pattern
 

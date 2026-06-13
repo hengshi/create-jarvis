@@ -44,6 +44,8 @@ create-jarvis-skill 负责：
 - `bootstrap-state.json`；
 - `bootstrap-result.json`。
 
+当调用方 runtime 没有提供更严格 schema 时，使用 `templates/zh/bootstrap-state.json` 和 `templates/zh/bootstrap-result.json` 作为默认 schema 示例。
+
 ## `bootstrap-state.json`
 
 它是 resume anchor，至少包含：
@@ -74,6 +76,8 @@ resume 时保留 confirmed answers 和 user-authored files。只有 scaffold-own
 - generated_at
 
 即使被 block，只要有安全目标或 runtime 提供的结果路径，也应尽量产出这个文件。
+
+仓库自带的 eval harness 会通过 `paths.jarvis_home`、`method_repo.url` 等 dotted required fields 验证这个形状。
 
 ## 错误码
 

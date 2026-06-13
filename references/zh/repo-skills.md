@@ -27,7 +27,8 @@ JARVIS 通常应保留：
 - 每个 repo 在业务中的角色，
 - 应该使用哪个 repo skill，
 - repos 如何在更大的 workflows 中相互连接，
-- 以及哪些 company-wide constraints 会塑造 repo 工作。
+- 哪些 company-wide constraints 会塑造 repo 工作，
+- 以及把 agent 路由到 repo-local truth 所需的最短 routing summary。
 
 ## 什么应该保持 repo-local
 
@@ -37,12 +38,25 @@ Repo-local skills 通常应负责：
 - runtime 与 testability 入口点
 - repo-specific constraints 与 anti-patterns
 - 详细的本地 workflows
+- safe mutation 和 local writeback rules
+- 只在该 repo 内有意义的 calibration examples
 
 ## Handoff 规则
 
 如果一个任务已经变成 repo-specific，就路由到 repo skill。
 
 不要继续把越来越细的 repo instructions 堆进中心 JARVIS 文档中；那类 guidance 应该属于 repo 内部。
+
+## Inventory requirement
+
+每个 pilot repo 至少记录：
+- first workflow 中的 repo role；
+- owner / maintainer；
+- repo-local skill path 或明确的 missing-skill gap；
+- 必须留在 repo-local 的 truth；
+- central JARVIS routing summary。
+
+如果现有 repo skill 已覆盖所需方法，标记 `no_skill_gap`，不要新建 skill。
 
 ## 质量标准
 

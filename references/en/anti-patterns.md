@@ -34,3 +34,23 @@ Assuming one person or one agent can build and maintain JARVIS alone.
 Treating the first scaffold as a finished JARVIS.
 
 **Better:** ship the first pass as a rollout stage with backlog and next steps.
+
+## 8. Skill inflation
+Creating a new skill for every failure or idea.
+
+**Better:** check `no_skill_gap`, merge with existing skills by default, and require evidence before skill growth.
+
+## 9. Premature upstreaming
+Moving company-specific facts, examples, repo names, or issue IDs into generic create-jarvis-skill methodology.
+
+**Better:** promote only redacted, company-neutral method after the pattern proves reusable.
+
+## 10. Template contamination
+Putting private examples into templates because they made one internal pilot clearer.
+
+**Better:** keep templates abstract and move private examples to the company instance or repo-local skill.
+
+## 11. Runtime takeover
+Asking create-jarvis-skill to manage install, credentials, webhooks, task queues, or service lifecycle.
+
+**Better:** keep runtime mechanics in jarvis-box or the caller runtime; keep this repo focused on methodology, scaffold, pilot, and calibration.

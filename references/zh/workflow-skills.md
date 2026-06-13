@@ -21,12 +21,15 @@ Workflow skills 帮助 agents 完成横跨 sources、repos、teams 或 roles 的
 
 workflow skill 应把这些内容明确下来：
 - trigger 或 start condition
+- input evidence required
+- START precheck
 - preconditions
 - main stages
 - required 产物
 - 每个阶段应使用哪些 sources 与 repos
+- escalation conditions
 - 推进到下一步所需的 证据
-- 结束时的 回写 expectations
+- END writeback expectations
 - 已知的 stop conditions 或 escalation paths
 
 ## 保持高杠杆
@@ -47,3 +50,11 @@ source-specific retrieval 要引用 source skills。
 - 什么算成功，
 
 那么这个 workflow skill 就是强的。
+
+## Workflow-first 试点规则
+
+试点单位是 workflow。source 和 repo inventories 是为了支撑该 workflow，而不是在证明价值前变成通用企业地图。
+
+## Calibration hook
+
+workflow run 结束后，记录 failure 属于 routing、truth、boundary、writeback、duplication、bloat、promotion、verification，还是 `no_skill_gap`。只有 failure 可重复且 skill 是正确归属时，才更新 workflow skill。

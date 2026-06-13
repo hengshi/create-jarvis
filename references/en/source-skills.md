@@ -28,14 +28,17 @@ A strong source skill should tell an agent:
 - how to search it efficiently,
 - how to interpret its structure or taxonomy,
 - what kinds of tasks it is best for,
-- and where to write back if the source participates in the JARVIS loop.
+- where to write back if the source participates in the JARVIS loop,
+- what freshness or access constraints matter,
+- and what must be linked or summarized instead of copied.
 
 ## What a source skill should not do
 
 It should not:
 - duplicate the source content wholesale,
 - pretend to be the source of truth if it is only a router,
-- or hardcode company details without labeling them as company-specific.
+- hardcode company details without labeling them as company-specific,
+- or persist secret values, private exports, or raw records in JARVIS.
 
 ## Minimum useful structure
 
@@ -49,6 +52,12 @@ For each important source, try to capture:
 - routing rules
 - update triggers
 - constraints or caveats
+- redaction boundary
+- freshness expectation
+
+## Dump prevention
+
+Source skills route to source truth. They do not move the source into JARVIS. Keep raw docs, issues, transcripts, tickets, analytics exports, or customer records in the owning source unless there is an explicit approved export boundary.
 
 ## Quality bar
 

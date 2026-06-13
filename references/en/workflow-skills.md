@@ -19,12 +19,15 @@ Typical examples:
 
 A workflow skill should make these things explicit:
 - trigger or start condition
+- input evidence required
+- START precheck
 - preconditions
 - main stages
 - required artifacts
 - which sources and repos to use at each stage
+- escalation conditions
 - evidence needed to advance
-- writeback expectations at the end
+- END writeback expectations
 - known stop conditions or escalation paths
 
 ## Keep it high-leverage
@@ -43,3 +46,11 @@ A workflow skill is strong when another owner or agent can immediately see:
 - what order things happen in,
 - where handoffs occur,
 - and what counts as success.
+
+## Workflow-first pilot rule
+
+The pilot unit is the workflow. Source and repo inventories exist to support that workflow, not to become a general enterprise map before value is proven.
+
+## Calibration hook
+
+After a workflow run, record whether failures came from routing, truth, boundary, writeback, duplication, bloat, promotion, verification, or `no_skill_gap`. Use that result to update the workflow skill only when the failure is repeatable and the skill is the right home.

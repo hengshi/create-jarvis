@@ -16,15 +16,17 @@ description: 帮助 agents 为 <company/product> 执行 <workflow-name> workflow
 
 - **Trigger**: `<start condition>`
 - **Preconditions**: `<required context>`
+- **Input evidence required**: `<artifact / issue / request / source record>`
 - **In-scope repos**: `<repos>`
 - **In-scope sources**: `<sources>`
 
 ## Workflow Stages
 
-1. **Start** — `<what happens first>`
-2. **Work** — `<main execution>`
-3. **Verify** — `<证据 or checks>`
-4. **Writeback** — `<how JARVIS and/or source systems are updated>`
+1. **START precheck** — `<what must be true before work starts>`
+2. **WORK routing** — `<which source/repo/work surface is first>`
+3. **Escalation** — `<when to move to another source/repo/owner>`
+4. **Verify** — `<证据 or checks>`
+5. **END writeback judgment** — `<what gets written back, where, or why no writeback is needed>`
 
 ## Handoffs
 
@@ -45,6 +47,9 @@ description: 帮助 agents 为 <company/product> 执行 <workflow-name> workflow
 ## Verification
 
 - [ ] start condition 已明确
+- [ ] input evidence 和 START precheck 明确
 - [ ] 交接点 与 产物 已明确
+- [ ] escalation conditions 明确
 - [ ] success 证据 已明确
 - [ ] 回写 真正闭合了闭环，而不是在交付处停止
+- [ ] 当现有 skills 足够时允许 `no_skill_gap`

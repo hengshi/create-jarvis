@@ -31,6 +31,7 @@ Capture recurring failure patterns, not chronological ticket history.
 - impact hints
 - investigation entrypoints
 - representative references when needed
+- calibration evidence when a repeated failure changed routing or skill guidance
 
 ### Should not contain
 - daily logs
@@ -49,6 +50,7 @@ Capture durable product or engineering choices and why they were made.
 - tradeoff or boundary
 - rationale
 - lasting implications
+- promotion decision when an internal rule should or should not move upstream
 
 ### Should not contain
 - transient implementation details
@@ -79,6 +81,8 @@ Describe what kinds of behavior are protected and where meaningful gaps remain.
 - important covered behaviors
 - meaningful gaps
 - boundary conditions already protected
+- eval cases that are stable enough to replay
+- failure taxonomy for gaps that should affect skills
 
 ### Should not contain
 - test run logs
@@ -138,7 +142,19 @@ Runtime callers should be able to validate root `SKILL.md`. Agent-specific distr
 - how to choose between modules, sources, cross-cutting docs, and tools
 - when to route outward to repo-local truth
 - how to handle writeback
+- how to record `no_skill_gap`
+- where calibration and promotion decisions live
 
 ### Should not contain
 - the full maintenance manual
 - duplicated content from every module or source
+
+## Calibration evidence
+
+When a run produces a learning, first decide its home:
+- task-local note;
+- repo-local skill/reference;
+- central JARVIS routing/workflow/source knowledge;
+- upstream create-jarvis-skill methodology.
+
+Do not promote a private example upstream. Promote only the redacted method when it applies beyond this company instance.

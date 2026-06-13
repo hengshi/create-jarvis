@@ -15,6 +15,8 @@ Every generated artifact should fall into one of three classes:
 
 Some callers, such as jarvis-box, invoke this repository through a runtime agent instead of copying templates into the caller repo. In that mode, this repository remains the methodology source of truth and the caller only supplies inputs, target paths, and runtime constraints.
 
+The runtime owns install, setup, credentials, webhooks, service lifecycle, task state, logs, and agent process execution. create-jarvis-skill must not generate or take ownership of runtime scripts, system services, schedulers, PATH setup, workspace clone logic, or secret storage.
+
 ### Required normalized inputs
 
 - target home: `JARVIS_TARGET_HOME` or `JARVIS_HOME`
@@ -26,6 +28,8 @@ Some callers, such as jarvis-box, invoke this repository through a runtime agent
 - owners: `JARVIS_OWNERS`
 - writeback policy: `JARVIS_WRITEBACK_STRATEGY`
 - neutral runtime root: `JARVIS_BOX_HOME` when supplied
+- method repo URL: `CREATE_JARVIS_SKILL_REPO_URL`, defaulting to `https://github.com/hengshi/create-jarvis-skill.git`
+- method repo commit/ref when known
 
 ### Minimum runtime output
 
@@ -41,6 +45,7 @@ A runtime-generated instance must include a valid entry skill at `JARVIS_HOME/SK
 - rollout plan
 - confirmation checklist
 - `bootstrap-state.json`
+- `bootstrap-result.json`
 
 ### Resume and overwrite policy
 
@@ -51,8 +56,34 @@ A runtime-generated instance must include a valid entry skill at `JARVIS_HOME/SK
 - files intentionally preserved because they appear user-authored
 - unresolved questions
 - methodology repo URL or commit when known
+- runtime input summary without secret values
+- last completed phase
+- conflicts between previous confirmed answers and new runtime input
 
 On resume, do not overwrite user-authored files unless the human explicitly confirms it. Generated files may be refreshed only when they are clearly marked as scaffold-owned.
+
+### Runtime result policy
+
+`bootstrap-result.json` is for the runtime. It should include:
+
+- `ok`
+- maturity level such as `installed`, `pilot-ready`, or `blocked-needs-confirmation`
+- `jarvis_home`
+- `entry_skill`
+- first loop
+- method repo URL and commit/ref
+- generated paths
+- preserved paths
+- pending confirmations
+- writeback strategy
+- next action
+- blockers
+
+If required inputs are missing in noninteractive mode, write a blocked result instead of guessing.
+
+### Secrets boundary
+
+Generated artifacts may record secret names, configured/unconfigured status, and safe secret paths or provider names. They must not record secret values.
 
 ### Naming policy
 
@@ -84,6 +115,8 @@ These artifacts are usually safe to generate as first-pass structure:
 
 These are structure and method artifacts. They should be generated with visible placeholders and explicit adaptation notes.
 
+Skill backlog entries may be scaffolded, but each entry should include outcome, owner or unresolved owner, evidence source, overlap/merge candidate, and whether `no_skill_gap` is currently plausible.
+
 ---
 
 ## 2. Requires human confirmation
@@ -101,6 +134,8 @@ These items should not be treated as settled truth until a human owner confirms 
 - ownership assignments
 - writeback destinations
 - what is explicitly out of scope for the current rollout
+- whether a proposed skill is truly needed or an existing skill/reference is enough
+- promotion target for calibration outcomes: repo-local, central JARVIS, or upstream methodology
 
 Agents may propose these items. Humans should ratify them.
 
@@ -119,12 +154,39 @@ These items cannot be honestly generated from zero and should grow through START
 - useful operational tools born from repeated need
 - mature repo-local operating guidance
 - mature workflow evidence and handoff rules
+- failure taxonomy and calibration evidence after real pilot or replay
+- upstream methodology changes derived from multiple redacted real cases
 
 The agent can create placeholders for these files, but not credible final content.
 
 ---
 
-## 4. Generation sequence
+## 4. Skill creation and calibration boundary
+
+Before creating or expanding a skill, evaluate `no_skill_gap`.
+
+Use `no_skill_gap` when:
+- existing source, repo, workflow, or governance skills already cover the method;
+- the failure was caused by missing task evidence, runtime behavior, source data, or code, not missing skill guidance;
+- the case is a one-off exception;
+- the fix belongs in the owning repo/source rather than in JARVIS methodology.
+
+Create or expand a skill only when:
+- a repeatable closed loop needs stable procedural guidance;
+- there is an owner;
+- the trigger is clear;
+- overlap with existing skills was checked;
+- expected value is observable;
+- replay or pilot evidence shows the update helps.
+
+Promotion rule:
+- repo execution details stay repo-local;
+- company routing, ownership, and workflow orchestration stay in central JARVIS;
+- only company-neutral method moves upstream into create-jarvis-skill.
+
+---
+
+## 5. Generation sequence
 
 ### Step 1 — Define the first loop
 Choose one real business loop and name its success signal.
@@ -141,31 +203,34 @@ Create the initial structure with clear placeholders and contracts.
 ### Step 4 — Get humans to confirm truth-bearing fields
 Do not silently lock in business truth, ownership, or operating boundaries.
 
-### Step 5 — Run a real pilot
+### Step 5 — Run a real shadow pilot
 Use the generated structure to support real work.
 
-### Step 6 — Write back only durable learnings
+### Step 6 — Calibrate and write back only durable learnings
 Promote repeated truths, not one-off chatter.
 
 ---
 
-## 5. Failure modes
+## 6. Failure modes
 
 ### Bad
 - auto-generating detailed known issues with no evidence
 - inventing owners or maintainers
 - guessing workflow stages from generic software lore
 - presenting placeholder histories as if they were real institutional memory
+- creating a new skill before checking `no_skill_gap`
+- promoting private company examples into generic methodology
 
 ### Better
 - generating the container
 - marking unknowns explicitly
 - routing truth to humans or future writeback
 - growing the memory layer only from actual work
+- treating `no_skill_gap` as a valid calibration result
 
 ---
 
-## 6. Acceptance criteria for a responsible generator
+## 7. Acceptance criteria for a responsible generator
 
 A responsible JARVIS generator:
 - [ ] separates structure from truth
@@ -173,3 +238,6 @@ A responsible JARVIS generator:
 - [ ] requests confirmation for truth-bearing fields
 - [ ] does not fake historical knowledge
 - [ ] makes writeback the path to maturity rather than pretending maturity exists at setup time
+- [ ] records runtime bootstrap state and result when runtime-driven
+- [ ] checks `no_skill_gap` before skill growth
+- [ ] keeps private instance facts out of generic methodology

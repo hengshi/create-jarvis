@@ -30,14 +30,17 @@ Source skills 帮助 agents 访问并解释公司的数字资产。
 - 如何高效搜索它，
 - 如何解释它的结构或 taxonomy，
 - 它最适合处理哪些任务，
-- 如果这个 source 参与 JARVIS loop，应写回到哪里。
+- 如果这个 source 参与 JARVIS loop，应写回到哪里，
+- 什么 freshness 或 access constraints 重要，
+- 哪些内容应该 link / summarize，而不是复制。
 
 ## source skill 不应该做什么
 
 它不应该：
 - 大段复制 source 内容，
 - 如果自己只是 router，却假装是 权威来源，
-- 或在没有明确标记 公司专属 的情况下硬编码公司细节。
+- 在没有明确标记 公司专属 的情况下硬编码公司细节，
+- 或把 secret values、private exports、raw records 持久化进 JARVIS。
 
 ## 最小可用结构
 
@@ -51,6 +54,12 @@ Source skills 帮助 agents 访问并解释公司的数字资产。
 - routing rules
 - update triggers
 - constraints 或 caveats
+- redaction boundary
+- freshness expectation
+
+## 防止 dump
+
+source skills 负责路由到 source truth，不负责把 source 搬进 JARVIS。raw docs、issues、transcripts、tickets、analytics exports 或 customer records 默认留在 owning source，除非存在明确批准的 export boundary。
 
 ## 质量标准
 

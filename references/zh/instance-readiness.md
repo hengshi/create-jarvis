@@ -1,56 +1,69 @@
-# 实例就绪度
+# 实例成熟度
 
-使用这份清单判断一个生成出来的 JARVIS 只是 scaffold、试点，还是一个真正可用的 instance。
+用这份 checklist 判断生成的 JARVIS 只是 installed、pilot-ready、pilot-proven、operational，还是 mature。
 
-## Level 0 — Scaffold
+## Level 0 - Installed Scaffold
 
-当满足以下条件时，scaffold 已存在：
-- 根结构存在，
-- maintenance guidance 存在，
-- 并且有一些 templates 或 inventories。
+满足：
+- root structure 存在；
+- maintenance guidance 存在；
+- 部分 templates / inventories 存在；
+- runtime-driven 时 runtime 能 link entry skill。
 
-scaffold **还不能算可运行**。
+Installed scaffold 还不是 operational。
 
-## Level 1 — Pilot
+## Level 1 - Pilot-Ready
 
-当满足以下条件时，试点 已存在：
-- 一条真实业务闭环已被定义，
-- 该闭环涉及的关键 sources、repos 和 workflows 已被盘点，
-- 至少部分 source / repo / workflow skills 已有草稿，
-- 并且另一个 agent 或 owner 能在此基础上继续，而不必从零开始。
+满足：
+- 定义了一条真实 business loop；
+- 该 loop 需要的 sources / repos / workflows 已 inventory；
+- source / repo / workflow skill 至少有 draft；
+- truth-bearing fields 已确认或明确 unresolved；
+- owner / escalation path 已知；
+- 另一个 agent 或 owner 能开始 pilot，不必从零发现。
 
-试点 证明的是方向，而不是完整性。
+Pilot-ready 只表示可以开始跑，不表示方法已经被证明。
 
-## Level 2 — Operational instance
+## Level 2 - Pilot-Proven
 
-当满足以下条件时，operational instance 已存在：
-- modules 中是实质知识，而不是占位符，
-- source 路由 真实且可用，
-- repo 内事实 被正确链接，
-- workflow 闭环 已明确，
-- 并且 START → WORK → END 回写 在实践中真实发生。
+满足：
+- 至少跑过一条真实 START -> WORK -> END；
+- 有证据显示 JARVIS 帮到了哪里、失败在哪里；
+- failures 已分类；
+- skill backlog 包含 `no_skill_gap` / merge / update / create 决策；
+- controlled writeback 已提出或在 owner review 下完成。
 
-在这一层级，JARVIS 已经能降低日常工作中的重新发现成本与交接成本。
+Pilot-proven 证明方向，不证明完整。
 
-## Level 3 — Mature instance
+## Level 3 - Controlled Operations
 
-当满足以下条件时，mature instance 已存在：
-- 历史知识足够深且有结构，
-- 重复性故障已被提炼为模式，
-- decisions 与 rejected ideas 都带着 rationale 被记录下来，
-- cross-cutting knowledge 在被积极维护，
-- ownership 稳定，
-- 系统能够因真实使用而持续改进。
+满足：
+- modules 中有真实知识，不是 placeholders；
+- source routing 真实可用；
+- repo-local truth 正确 linked；
+- workflow closure 明确；
+- START -> WORK -> END writeback 正在实践；
+- calibration 能防止 skill bloat。
 
-在这一层级，JARVIS 不再只是一个仓库，而是组织思考与工作的组成部分。
+## Level 4 - Mature Instance
 
-## 就绪度检查
+满足：
+- 历史知识深且结构化；
+- repeated failures 被沉淀为 patterns；
+- decisions / rejected ideas 有 rationale；
+- cross-cutting knowledge 持续维护；
+- ownership 稳定；
+- eval cases 和 calibration loops 定期运行；
+- 系统通过真实使用持续进化。
 
-在把一个 instance 称为“operational”或“mature”之前，确认：
-- [ ] 业务 modules 里有真实的 overview / issue / decision 内容
+## Readiness checks
+
+- [ ] business modules 有真实 overview / issue / decision content
 - [ ] sources 有真实 routing docs
-- [ ] 必要时存在 cross-cutting knowledge
-- [ ] 存在 公司专属 JARVIS skill entry
-- [ ] 主闭环所需的 repo skills 和 workflow skills 已存在
-- [ ] 回写 发生在真实工作之后，而不只是在 setup 期间
-- [ ] 另一位 owner 或 agent 无需重新发现基础信息即可继续
+- [ ] cross-cutting knowledge 在需要处存在
+- [ ] company-specific JARVIS skill entry 存在
+- [ ] main loops 需要的 repo skills / workflow skills 存在
+- [ ] writeback 来自真实工作，而不是只在 setup 时发生
+- [ ] claim pilot success 前已有 pilot evidence
+- [ ] calibration decisions 在适当时候包含 `no_skill_gap`
+- [ ] 另一个 owner 或 agent 能接手而不重新发现基础事实

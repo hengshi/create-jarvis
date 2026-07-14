@@ -8,6 +8,8 @@
 | 所属公司 | {{COMPANY_NAME}}（slug: {{COMPANY_SLUG}}） |
 | 产品身份 | {{PRODUCT_IDENTITY}} |
 | 能力负责人 | {{COMPANY_OWNER}} |
+| 证据置信度 | BOOTSTRAP_REQUIRED |
+| 确认状态 | BOOTSTRAP_REQUIRED |
 
 ## 业务定位
 

@@ -119,6 +119,14 @@ pilot 运行 → 收集证据 → 对比 oracle → skill-update-decision
 - **Replay 入口**：`evals/`（参照 `references/history-replay.md`）
 - **边界**：pilot/replay 循环可以产出 repo-local 改进、company entry/module/reference 改进、source-helper 改进、workflow 改进或 upstream method 改进，按 primary home 决定；不只产出 Jarvis skill 改进
 
+### Session Self-Improvement
+
+真实 agent session 中反复出现的操作失败、路由失败或验证缺口，进入 session
+self-improvement 检查。先区分一次性任务事实、客户事实修正和可复用的方法缺口；只有
+经过证据、`no_skill_gap` 判断和适用的 replay/pilot 验证后，才写回 repo-local、company
+Jarvis、workflow skill 或 upstream method。此机制由 jarvis-box 的安装能力托管，company
+Jarvis 只保存客户侧的 owner、路由和写回边界。
+
 ---
 
 ## Primary-Home Promotion

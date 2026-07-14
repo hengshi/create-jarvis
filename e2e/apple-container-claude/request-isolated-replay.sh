@@ -86,6 +86,14 @@ esac
 [ -d "$parent_worktree" ] || die "parent-worktree dir not found: $parent_worktree"
 [ -d "$company_jarvis" ]  || die "company-jarvis dir not found: $company_jarvis"
 
+# Fail before creating bridge state when the caller has not prepared a real
+# snapshot. Otherwise a later git-init/commit failure would leave a corrupt
+# request directory that blocks every retry for the same case ID.
+find "$visible_packet" -mindepth 1 -print -quit | grep -q . \
+  || die "visible-packet is empty: create the replay packet before submitting"
+find "$parent_worktree" -mindepth 1 -print -quit | grep -q . \
+  || die "parent-worktree is empty: prepare the cutoff snapshot before submitting"
+
 # ── path contracts ──────────────────────────────────────────────
 expected_visible="${E2E_ROOT}/output/company-jarvis/_bootstrap/history-replay-runs/${case_id}/visible-packet"
 expected_parent="${E2E_ROOT}/work/replay-parent-worktrees/${case_id}"
@@ -133,7 +141,8 @@ request_root="$BRIDGE_ROOT/$case_id"
 
 # ── parameter manifest helper ───────────────────────────────────
 write_manifest() {
-  cat > "$request_root/params-manifest.json" <<MANIFEST
+  local request_dir="$1"
+  cat > "$request_dir/params-manifest.json" <<MANIFEST
 {
   "case_id": "$case_id",
   "visible_packet": "$visible_packet",
@@ -203,31 +212,44 @@ MANIFEST
 else
   # ── first call: create request ─────────────────────────────────
   log "creating replay bridge request (case-id=$case_id)"
-  mkdir -p "$request_root"
+
+  # Build the complete request in a private staging directory, then publish
+  # it atomically. The host monitor only sees READY after every input and
+  # contract file exists.
+  request_tmp="$BRIDGE_ROOT/.${case_id}.tmp.$$"
+  if ! mkdir "$request_tmp"; then
+    die "cannot create temporary request directory: $request_tmp"
+  fi
+  cleanup_request_tmp() {
+    if [ -n "${request_tmp:-}" ] && [ -d "$request_tmp" ]; then
+      rm -rf -- "$request_tmp"
+    fi
+  }
+  trap cleanup_request_tmp EXIT
 
   # record first creation time for absolute timeout tracking
-  date +%s > "$request_root/CREATED_AT"
+  date +%s > "$request_tmp/CREATED_AT"
 
   # ── copy visible packet ─────────────────────────────────────────
   log "copying visible packet"
-  cp -a "$visible_packet" "$request_root/visible-packet"
+  cp -a "$visible_packet" "$request_tmp/visible-packet"
 
   # ── copy and sanitize parent worktree ───────────────────────────
   log "copying and sanitizing parent worktree"
-  cp -a "$parent_worktree" "$request_root/parent-worktree"
+  cp -a "$parent_worktree" "$request_tmp/parent-worktree"
 
   # strip all .git pointers — both worktree .git file and regular .git directory
-  find "$request_root/parent-worktree" -name '.git' -type f -delete
-  find "$request_root/parent-worktree" -name '.git' -type l -delete
-  find "$request_root/parent-worktree" -name '.git' -type d -prune -exec rm -rf -- {} \;
-  if find "$request_root/parent-worktree" -name '.git' -print -quit | grep -q .; then
+  find "$request_tmp/parent-worktree" -name '.git' -type f -delete
+  find "$request_tmp/parent-worktree" -name '.git' -type l -delete
+  find "$request_tmp/parent-worktree" -name '.git' -type d -prune -exec rm -rf -- {} \;
+  if find "$request_tmp/parent-worktree" -name '.git' -print -quit | grep -q .; then
     die "failed to remove Git history pointers from parent snapshot"
   fi
 
   # init fresh git repo with baseline commit (makes worktree editable for replay agent)
   (
     set -e
-    cd "$request_root/parent-worktree"
+    cd "$request_tmp/parent-worktree"
     git init >/dev/null 2>&1
     git config user.email "replay-isolation@e2e.local"
     git config user.name "Replay Isolation"
@@ -237,25 +259,25 @@ else
 
   # ── copy company runtime (allowlist only) ───────────────────────
   log "copying company runtime (allowlist)"
-  mkdir -p "$request_root/company-runtime"
+  mkdir -p "$request_tmp/company-runtime"
 
   for f in SKILL.md AGENTS.md CLAUDE.md jarvis.toml; do
     if [ -f "$company_jarvis/$f" ]; then
-      cp -a "$company_jarvis/$f" "$request_root/company-runtime/$f"
+      cp -a "$company_jarvis/$f" "$request_tmp/company-runtime/$f"
     fi
   done
 
   for d in modules sources cross-cutting references skills tools; do
     if [ -d "$company_jarvis/$d" ]; then
-      cp -a "$company_jarvis/$d" "$request_root/company-runtime/$d"
+      cp -a "$company_jarvis/$d" "$request_tmp/company-runtime/$d"
     fi
   done
 
   # ── create output dir ───────────────────────────────────────────
-  mkdir -p "$request_root/output"
+  mkdir -p "$request_tmp/output"
 
   # ── write request.json ──────────────────────────────────────────
-  cat > "$request_root/request.json" <<JSON
+  cat > "$request_tmp/request.json" <<JSON
 {
   "schema_version": 1,
   "case_id": "$case_id",
@@ -269,10 +291,13 @@ else
 JSON
 
   # ── write parameter manifest ────────────────────────────────────
-  write_manifest
+  write_manifest "$request_tmp"
 
   # ── signal ready ────────────────────────────────────────────────
-  touch "$request_root/READY"
+  touch "$request_tmp/READY"
+  mv "$request_tmp" "$request_root"
+  request_tmp=""
+  trap - EXIT
   log "request ready, waiting for host replay container (case-id=$case_id)"
 fi
 

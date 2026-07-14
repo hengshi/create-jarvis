@@ -163,6 +163,7 @@ Phase 14 只检查/登记这些 install-owned 和 external skills 的状态，�
 4. 不要在此 phase 创建 workflow skill 或 source-helper skill 文件（Phase 9 的职责）。
 5. 渲染 runtime / agent bridge files（`AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`），它们随 base 子命令自动渲染，指向 canonical entry skill 和 runtime pre-read 规则。
 6. 用 Phase 6 repo-role/workflow/module evidence 填写 `references/jarvis-first-routing.md`、`references/canonical-repo-fleet.md` 和 `cross-cutting/module-interactions.md`。没有 peer product、版本索引或 company-specific tool 证据时，相关文件写明确未登记状态，不填示例数据。
+7. 在离开 Phase 7 前重新读取 root `README.md` 的“模块 / 数据源 / 工作流 / 仓库”四个 scope 索引：已创建的 durable 目录必须列出实际名称；暂时没有证据时只能写 `none-yet` 和下一步，不得保留 `BOOTSTRAP_REQUIRED`。后续 `module` / `source` / Phase 9 package 实例化后要再次同步这些索引。
 
 ## Phase 7 完成 = Phase 9 可进入的门
 

@@ -386,8 +386,9 @@ class CaseLeakAnalyzer:
         if not value:
             return None
         normalized = value.strip().strip('`*_"\'').lower()
-        # Strip em-dash / en-dash explanation before checking for option lists
-        normalized = re.split(r'\s*[—–]\s+', normalized, maxsplit=1)[0]
+        # Strip a human explanation after the one machine-choice token. The
+        # checklist commonly uses an em/en dash or a parenthetical note.
+        normalized = re.split(r'\s*(?:[—–]|\()\s*', normalized, maxsplit=1)[0]
         normalized = normalized.strip().strip('`*_"\'')
         if any(separator in normalized for separator in (" / ", "|", "<", ">")):
             return None
@@ -3370,6 +3371,19 @@ class Verifier:
             ineligible_markers = {"ineligible-leaky", "low-confidence", "needs-better-start", "blocked"}
             if effective not in ineligible_markers:
                 continue
+
+            # An ineligible case may be fully constructed, but it cannot claim
+            # a valid/ready Case Readiness Gate. This contradiction otherwise
+            # lets a later agent accidentally invoke the replay bridge.
+            status_val = CaseLeakAnalyzer._parse_structured_choice(case_text, "Status")
+            case_validity = CaseLeakAnalyzer._parse_structured_choice(case_text, "Case validity")
+            readiness = CaseLeakAnalyzer._parse_structured_choice(case_text, "Readiness")
+            if status_val == "ready-for-replay" or (case_validity == "valid" and readiness == "ready"):
+                self.add(
+                    "blocker",
+                    "ineligible_case_readiness_contradiction",
+                    f"{case_id}: eligibility={effective!r} contradicts a valid/ready replay gate",
+                )
 
             decision_file = case_file.parent / "skill-update-decision.md"
             if not decision_file.is_file():

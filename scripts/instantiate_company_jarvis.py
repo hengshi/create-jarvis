@@ -153,9 +153,9 @@ def extract_globals(state: dict) -> dict:
                                            confirmed.get("gitlab_projects", "")))
 
     def _bullet_index(items: list[str], fmt: str) -> str:
-        """Generate Markdown bullet list; return BOOTSTRAP_REQUIRED if empty."""
+        """Generate a durable scope list without leaving a bootstrap sentinel."""
         if not items:
-            return "BOOTSTRAP_REQUIRED"
+            return "- none-yet (populate from Phase 6 evidence)"
         return "\n".join(f"- {fmt.format(item)}" for item in items)
 
     def _repo_basename(project: str) -> str:
@@ -177,7 +177,7 @@ def extract_globals(state: dict) -> dict:
 
     def _repo_index(items: list[str]) -> str:
         if not items:
-            return "BOOTSTRAP_REQUIRED"
+            return "- none-yet (populate from Phase 6 repo role map)"
         return "\n".join(
             f"- `{_repo_basename(project)}` — VCS project `{project}`; "
             "repo-local entry `skills/SKILL.md` inside that repo"
@@ -231,6 +231,49 @@ def check_unresolved(content: str, rel_path: str) -> list[str]:
             token = part.split("}}")[0].strip()
             tokens.append(token)
     return tokens
+
+
+def refresh_readme_scope_indexes(target: Path, *, include_workflows: bool = False) -> None:
+    """Fill the initial README scope placeholders from rendered directories.
+
+    ``base`` runs before discovery, so a state file may legitimately have no
+    module/source/workflow hints. Later deterministic instantiation commands
+    must still keep the durable company entry synchronized without overwriting
+    an agent or owner edit.
+    """
+    readme = target / "README.md"
+    if not readme.is_file():
+        return
+    text = readme.read_text(encoding="utf-8")
+
+    sections = [
+        ("模块", "数据源", target / "modules", "modules/{}/overview.md"),
+        ("数据源", "工作流", target / "sources", "sources/{}/README.md"),
+    ]
+    if include_workflows:
+        sections.append(("工作流", "仓库", target / "skills", "skills/{}/SKILL.md"))
+    for heading, next_heading, directory, item_format in sections:
+        start_marker = f"### {heading}"
+        end_marker = f"### {next_heading}"
+        start = text.find(start_marker)
+        if start < 0:
+            continue
+        content_start = start + len(start_marker)
+        end = text.find(end_marker, content_start)
+        if end < 0:
+            continue
+        current = text[content_start:end]
+        if "BOOTSTRAP_REQUIRED" not in current and not current.strip().startswith("- none-yet"):
+            continue
+        names = sorted(p.name for p in directory.iterdir() if p.is_dir()) if directory.is_dir() else []
+        replacement = "\n\n" + (
+            "- none-yet (populate from Phase 6 evidence)"
+            if not names
+            else "\n".join(f"- {item_format.format(name)}" for name in names)
+        ) + "\n\n"
+        text = text[:content_start] + replacement + text[end:]
+
+    readme.write_text(text, encoding="utf-8")
 
 
 def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
@@ -467,6 +510,7 @@ def cmd_base(state: dict) -> int:
 
     print(f"base: target={target}, slug={globals_['COMPANY_SLUG']}")
     result = copy_and_render(COMPANY_JARVIS_REPO, target, globals_)
+    refresh_readme_scope_indexes(target)
 
     print(f"created: {len(result['created'])}")
     for f in sorted(result["created"]):
@@ -526,6 +570,7 @@ def cmd_module(state: dict, name: str) -> int:
         return 1
 
     result = copy_and_render(COMPANY_JARVIS_MODULE, module_dir, globals_)
+    refresh_readme_scope_indexes(target)
 
     print(f"module: {name}")
     print(f"created: {len(result['created'])}")
@@ -563,6 +608,7 @@ def cmd_source(state: dict, name: str) -> int:
     source_dir = target / "sources" / name
 
     result = copy_and_render(src_template, source_dir, globals_)
+    refresh_readme_scope_indexes(target)
 
     print(f"source: {name}")
     print(f"created: {len(result['created'])}")
@@ -610,6 +656,7 @@ def cmd_package(state: dict, kind: str, name: str) -> int:
     pkg_dir = target / "skills" / name
 
     result = copy_and_render(pkg_template, pkg_dir, globals_)
+    refresh_readme_scope_indexes(target, include_workflows=kind != "generic-source")
 
     print(f"package: kind={kind}, name={name}")
     print(f"created: {len(result['created'])}")

@@ -32,6 +32,28 @@ description: |
 - **角色**: `BOOTSTRAP_REQUIRED`
 - **边界**: `BOOTSTRAP_REQUIRED`
 
+## First-Workflow Semantic Execution Trace
+
+当此 repo 承担 issue/bugfix、回归或代码修改时，先填实这张 trace，再进入 patch：
+
+| Field | Observed value | Evidence pointer | Status |
+|---|---|---|---|
+| Initial signal shape | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` |
+| Semantic value at risk | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` |
+| Rewrite / normalize boundaries | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` |
+| Owning sink | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` |
+| Regression proof | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` |
+| Verification command and status | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` | `BOOTSTRAP_REQUIRED` |
+
+Trace rules:
+
+- `Semantic value at risk` 必须描述实际可能错误的 request field、response field、表达式、查询谓词、生成 SQL fragment、resource identity 或 error code，不能只写“功能异常”。
+- `Rewrite / normalize boundaries` 必须列出真实调用链中的 boundary 和 repo-relative pointer；不能从 response field 缺失直接推断 collector 是 root cause。
+- 涉及过滤、聚合、表达式、生成 SQL 或外部 provider 时，显式检查 `where` / `having`、表达式 rewrite、query sink 和 response assembly 的关系。
+- `Owning sink` 必须是证据支持的最窄 owner；外层 controller/helper 只是入口时，要写出继续向下追踪的依据。
+- 只有实际运行成功才能写 `executed-pass`；从 manifest、CI、README 或代码读到但未运行的命令写 `observed-not-executed`；缺工具或环境写 `blocked`。
+- 如果该 repo 不承担 first workflow，所有字段写 `not-applicable` 并给出 repo-role evidence，不得留下模板占位符。
+
 ## Working Rules
 
 仅保留最高信号的 repo-local 规则。其余放入子文件。
@@ -98,3 +120,4 @@ description: |
 - [ ] First-workflow 角色来自仓库在 company source map 中的位置。
 - [ ] 新 agent 进入此仓库时能发现如何验证其工作。
 - [ ] Repo-local 事实与公司级指导明确分离。
+- [ ] First-workflow repo 已填 semantic execution trace：signal、semantic value、rewrite boundaries、owner sink、regression proof 和 verification status 均有可解析 evidence pointer。

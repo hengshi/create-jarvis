@@ -73,6 +73,23 @@ Owner 确认和历史回放用于模糊策略和成熟的失败模式，不用�
 
 专业的历史衍生 reference 可以后续生长，但基础 skill 必须已经能让一个新 agent 路由、构建、测试和找到 source truth。
 
+## 首个工作流的语义执行 trace
+
+canonical 十文件包只是文件形状，不代表 repo-local skill 已经具备执行能力。对 first workflow 需要在 `skills/SKILL.md` 中再填一张可审查的语义执行 trace；如果该 repo 不承担 first workflow，必须明确写 `not-applicable` 并记录判断依据。
+
+当 first workflow 包含 issue/bugfix、回归或代码修改时，trace 至少必须包含：
+
+- visible initial signal 的形状和精确 repo-relative / artifact pointer；
+- 需要保持不变或可能出错的 semantic value，例如 request field、response field、HE/HQL expression、generated SQL fragment、resource identity 或 error code；
+- 该值经过的每个实际 rewrite/normalize/serialize/query/response boundary，以及每个 boundary 的 source pointer；
+- 最窄的 owning sink 和为什么不是更外层 controller/helper；
+- 对应的最小 repro、regression test 或等价行为断言 pointer；
+- 每条验证命令的来源、是否实际执行，以及 `executed-pass` / `observed-not-executed` / `blocked` 状态。
+
+如果症状涉及请求/响应字段、过滤、聚合、表达式、生成 SQL 或外部 provider，必须显式检查 predicate placement（如 `where`/`having`）、表达式 rewrite 和 response assembly 三者是否位于同一条证据链中。只能观察到 response field 缺失时，不得直接把 response collector 当作 root cause。
+
+Phase 12 history replay 必须能从 repo-local skill 读到这张 trace，并用实际 replay trace 验证每个字段；否则该 package 只能标 `needs-improvement`，不能因 precheck 通过而标成熟。
+
 即使 repo 已有更丰富的 reference 文件，也必须保留上述固定文件名。特别是 `references/runtime-and-testability.md` 不能被 `runtime-and-forensics.md`、`local-dev-runtime.md` 等近似文件替代；可以在固定文件里链接这些更细 reference。
 
 `skills/code-review/scripts/precheck.sh` 必须是客户 repo 自包含脚本。它可以读取当前 repo 内的文件，但不能依赖 reference company、bootstrap 操作员或其他机器的绝对路径、私有脚本和维护命令。如果发现已有 precheck 存在这类依赖，必须改写为自包含 scaffold，并把迁移事实写入 repo-local reference。
@@ -98,6 +115,7 @@ bootstrap 阶段的 `precheck.sh` 是 bootstrap-safe scaffold check，不是完�
    - first workflow 中该 repo 的角色；
    - 哪些事实必须留在 repo-local；
    - 哪些命令或 owner 信息仍待确认。
+6. 对 first workflow repo，读取并确认 `skills/SKILL.md` 的语义执行 trace 已填实；缺 semantic value、rewrite boundary、owner sink、regression proof 或验证状态任一项时，写入 backlog/blocker，不得标 completed。
 
 如果 precheck 不能执行，不能把该 repo 的 repo-local skill status 标成 completed；应写入 blocker、backlog 或 unresolved question。缺少客户 repo 技术栈工具不是 precheck 不能执行的理由；此时应让 precheck 通过并把缺失工具记录为待确认/待安装。
 

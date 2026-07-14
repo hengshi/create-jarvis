@@ -1,367 +1,71 @@
 ---
 name: create-jarvis-skill
-description: Bootstrap, redesign, or scale an enterprise JARVIS ecosystem from company sources, repos, workflows, and runtime constraints. Use when an agent or runtime such as jarvis-box needs to create a company-specific JARVIS substrate, define source/repo/workflow skill boundaries, prepare a pilot workflow, or evolve skills through eval failures and writeback. This is methodology and scaffold generation, not a replacement for jarvis-box runtime logic or repo-local source of truth.
+description: Runtime agent instruction set for bootstrapping a customer-owned company Jarvis repo after jarvis-box install is complete. Use when `jarvis-box bootstrap jarvis` asks an agent to create or update company Jarvis, repo-local skills, skill packages, pilot/replay/writeback plans, or related bootstrap state.
 ---
 
 # Create JARVIS Skill
 
-Build a company-specific JARVIS substrate that can participate in real company work.
+jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill 不负责安装。
 
-This repository is the methodology source of truth. A runtime such as jarvis-box may clone or read this repo through a runtime agent, but it should not bundle stale copies of these templates. The runtime owns install, setup, service lifecycle, credentials, task execution, and artifact persistence. This skill owns enterprise JARVIS structure, pilot method, skill boundaries, and calibration discipline.
+本 skill 的任务只有一个：runtime agent 按 `playbooks/phase-checklist.md` 从 Phase 3 到 Phase 14 逐项执行，生成客户自己的 company Jarvis 生态。
 
-Use `references/en/` only when a phase needs that detail. Use `templates/en/` only to produce artifacts required by the selected phase. Chinese materials under `references/zh/` and `templates/zh/` are human-facing mirrors and helpers; the English route remains the canonical execution path.
+## 必读顺序
 
-## Runtime Bootstrap Mode
+1. `GOAL.md`
+2. `acceptance.md`
+3. `playbooks/phase-checklist.md`
+4. 当前 phase 详情：`playbooks/phases/phase-*.md`
+5. 需要生成文件时读取 `templates/`
 
-When jarvis-box or another runtime invokes this methodology:
+## 模板分类
 
-1. Treat the runtime prompt and normalized context as input, not as company truth.
-2. Read `references/en/runtime-bootstrap-contract.md`.
-3. Write the generated instance to `JARVIS_TARGET_HOME` or `JARVIS_HOME`.
-4. Produce a valid entry skill at `JARVIS_ENTRY_SKILL` or `SKILL.md`.
-5. Record `bootstrap-state.json` for resume and `bootstrap-result.json` for the runtime.
-6. Use `templates/en/bootstrap-state.json` and `templates/en/bootstrap-result.json` as the machine-readable shape when the caller has no stricter schema.
-7. Use neutral paths such as `JARVIS_BOX_HOME`, `JARVIS_HOME`, and `JARVIS_TARGET_HOME`. Never hard-code company-specific runtime roots such as `.hengshi` into customer output.
-8. Record the methodology source repo URL and commit/ref when known. The expected default repo URL is `https://github.com/hengshi/create-jarvis-skill.git`.
-9. Do not read, print, or persist secret values. Only record secret names, status, and paths supplied by the runtime.
-
-Stop instead of fabricating output when a required runtime input is absent, target paths are not writable, owners are guessed, or generated placeholders could be mistaken for confirmed company truth.
-
-## Success Standard
-
-A successful first pass does not mean the whole company is mapped.
-
-It means:
-- one valuable workflow is selected for a pilot;
-- the sources, repos, owners, and handoffs for that workflow are mapped;
-- a JARVIS entry skill and minimum source/repo/workflow skill stubs exist;
-- truth-bearing fields are confirmed or explicitly marked unresolved;
-- the runtime can link `JARVIS_HOME/SKILL.md`;
-- and the result is ready for a shadow pilot, not declared mature.
-
-Maturity comes later from real work: task outcomes, eval cases, failure analysis, and controlled writeback.
-
-## Ecosystem Model
-
-Keep these layers separate:
-
-- Runtime layer: jarvis-box or another runtime. Owns install, service, webhooks, task state, credentials, agent execution, logs, and bootstrap invocation.
-- JARVIS entry skill: the company-wide routing and closure entrypoint.
-- Workflow skills: reusable loops such as intake, bugfix, PRD review, release notes, or customer operations.
-- Project/repo-local skills: source-of-truth execution guidance inside each repo or project.
-- Source/tool skills: integrations for docs, issue trackers, BI, CRM, calendars, support systems, and other digital assets.
-- Governance references: durable routing, writeback, redaction, completion, and maintenance rules.
-- Calibration loop: eval failures and real task outcomes that decide whether a skill update is needed.
-
-Read `references/en/jarvis-ecosystem-architecture.md` when boundaries between these layers are unclear.
-
-## The Golden Path
-
-Do the phases in order. Do not skip stop conditions. Do not present scaffolding as mature knowledge.
-
-```text
-0. RUNTIME CONTRACT
-1. FIRST WORKFLOW
-2. PILOT INVENTORY
-3. TRUTH BOUNDARIES
-4. SCAFFOLD JARVIS SUBSTRATE
-5. BOOTSTRAP MINIMUM SKILLS
-6. CONFIRMATION GATE
-7. SHADOW PILOT
-8. CONTROLLED WRITEBACK
-9. SKILL CALIBRATION LOOP
-```
-
-## Phase 0 - RUNTIME CONTRACT
-
-Goal: establish whether this is human-driven bootstrap, runtime-driven bootstrap, or maintenance of an existing instance.
-
-Output:
-- normalized runtime context if called by jarvis-box;
-- target path and entry skill path;
-- writeback policy and confirmation policy;
-- method repo URL/ref;
-- explicit blockers for missing inputs.
-- runtime-readable `bootstrap-state.json` and `bootstrap-result.json` when runtime-driven.
-
-Must confirm:
-- `JARVIS_HOME` or `JARVIS_TARGET_HOME`;
-- company or product name;
-- first workflow candidate;
-- allowed source/repo scope;
-- human owner or escalation path.
-
-Stop if:
-- the runtime asks this repo to manage service lifecycle, credentials, task queues, or webhooks;
-- target paths are missing or unsafe;
-- noninteractive mode lacks required inputs.
-
-Read:
-- `references/en/runtime-bootstrap-contract.md`
-- `references/en/instance-generation-contract.md`
-
-## Phase 1 - FIRST WORKFLOW
-
-Goal: choose the first valuable loop to prove, not a company-wide map.
-
-Output:
-- `templates/en/jarvis-build-brief.md`
-
-The build brief must state business intent, target users, first workflow, success signal, rollout scope, non-scope, confirmation policy, and shadow-pilot criteria.
-
-Stop if:
-- success is described only as "better knowledge";
-- the scope expands to the whole company before a pilot exists;
-- no owner can judge whether the first loop worked.
-
-Read only if needed:
-- `references/en/pilot-workflow-methodology.md`
-- `references/en/positioning.md`
-- `references/en/example-pilot-shape.md`
-
-## Phase 2 - PILOT INVENTORY
-
-Goal: map only the operating surface needed for the first workflow.
-
-Output:
-- `templates/en/source-inventory.md`
-- `templates/en/repo-inventory.md`
-- `templates/en/workflow-inventory.md`
-
-Capture source systems, repos/projects, workflow triggers, owners, access constraints, existing repo-local skills, and missing skills for the pilot.
-
-Stop if:
-- owners are guessed;
-- source-of-truth locations are inferred but unconfirmed;
-- the inventory becomes a full enterprise catalog before the pilot loop works.
-
-Read only if needed:
-- `references/en/company-adaptation.md`
-- `references/en/source-skills.md`
-- `references/en/repo-skills.md`
-- `references/en/workflow-skills.md`
-
-## Phase 3 - TRUTH BOUNDARIES
-
-Goal: classify what may be generated now, what needs human confirmation, and what must grow from real work.
-
-Output:
-- artifact classification: scaffold now / confirm before use / grow through writeback.
-
-Stop if:
-- you are about to generate fake history;
-- you are freezing ownership, workflow, or source truth without confirmation;
-- you are creating detailed known issues, decisions, or rejected features from speculation.
-
-Read:
-- `references/en/instance-generation-contract.md`
-- `references/en/instance-readiness.md`
-
-## Phase 4 - SCAFFOLD JARVIS SUBSTRATE
-
-Goal: generate the smallest company-specific JARVIS structure that can support the pilot and be linked by the runtime.
-
-Output:
-- root `README.md`;
-- root `MAINTENANCE.md`;
-- company JARVIS entry skill;
-- source/repo/workflow inventories;
-- source and module entrypoints as needed;
-- ownership map;
-- rollout plan;
-- confirmation checklist;
-- runtime bootstrap state/result files when runtime-driven.
-
-Typical templates:
-- `templates/en/root-readme.md`
-- `templates/en/maintenance.md`
-- `templates/en/company-jarvis-skill-stub.md`
-- `templates/en/source-readme.md`
-- `templates/en/module-overview.md`
-- `templates/en/ownership-map.md`
-- `templates/en/rollout-plan.md`
-- `templates/en/rollout-confirmation-checklist.md`
-
-Stop if:
-- the scaffold becomes a content dump;
-- module boundaries are invented without confirmation;
-- generated placeholders could be read as mature company memory.
-
-Read only if needed:
-- `references/en/concrete-instance-topology.md`
-- `references/en/detailed-maintenance-contracts.md`
-- `references/en/write-contracts.md`
-
-## Phase 5 - BOOTSTRAP MINIMUM SKILLS
-
-Goal: create only the skills needed for the pilot workflow.
-
-Output:
-- source skill stubs when a source requires repeated access/routing;
-- project/repo-local skill stubs when a repo lacks an execution entrypoint;
-- workflow skill stubs when the first loop spans sources/repos/teams;
-- `templates/en/skill-backlog.md`.
-
-Every proposed repo skill must name what stays repo-local. Every proposed source skill must name what must not be copied into JARVIS. Every proposed workflow skill must include gates, evidence, escalation, and END writeback judgment.
-
-Stop if:
-- you are creating skills "just in case";
-- central JARVIS is absorbing repo-local truth;
-- backlog entries have no owner, outcome, or validation path.
-
-Read only if needed:
-- `references/en/jarvis-ecosystem-architecture.md`
-- `references/en/source-skills.md`
-- `references/en/repo-skills.md`
-- `references/en/workflow-skills.md`
-- `references/en/rollout-and-ownership.md`
-
-## Phase 6 - CONFIRMATION GATE
-
-Goal: force a human confirmation pass before pilot use.
-
-Output:
-- completed `templates/en/rollout-confirmation-checklist.md`;
-- unresolved-question list;
-- explicit "pilot-ready, not mature" status.
-
-Confirm:
-- first workflow and success signal;
-- included sources, repos, and workflows;
-- source-of-truth locations;
-- owners and escalation;
-- writeback destinations;
-- security and redaction constraints;
-- runtime linkability of `JARVIS_HOME/SKILL.md`.
-
-Stop if:
-- any truth-bearing field is still guessed;
-- noninteractive bootstrap lacks a way to report unresolved fields;
-- the pilot scope is company-wide in disguise.
-
-## Phase 7 - SHADOW PILOT
-
-Goal: run the first workflow against real artifacts while humans retain control.
-
-Output:
-- 3 to 5 real pilot artifacts or eval cases;
-- task notes showing where JARVIS helped and where it failed;
-- skill backlog updates;
-- no uncontrolled production writeback.
-
-Shadow mode means agents may read, route, draft, and recommend, but humans approve writeback and operational changes.
-
-Stop if:
-- the pilot has no real artifacts;
-- the workflow can only be demonstrated with invented examples;
-- runtime failures are being patched into create-jarvis-skill instead of jarvis-box or the owning runtime.
-
-Read:
-- `references/en/pilot-workflow-methodology.md`
-
-## Phase 8 - CONTROLLED WRITEBACK
-
-Goal: let real work grow durable memory without turning JARVIS into a log pile.
-
-Output:
-- updates to known issues, decisions, rejected features, test coverage, source routes, workflow rules, or repo-local skills only when evidence justifies them.
-- updates to `bootstrap-state.json` or rollout artifacts when pilot assumptions are confirmed, disproved, or still unresolved;
-- skill backlog changes with `no_skill_gap`, merge, update, create, or defer decisions;
-- readiness level changes only when supported by pilot evidence.
-
-Writeback rules:
-- promote repeated or high-value truths, not raw chat residue;
-- keep repo-local truth with the repo when appropriate;
-- preserve one home per truth;
-- record evidence pointers without copying private source material;
-- use human approval when writeback changes operating behavior.
-
-Stop if:
-- you are copying raw issue/MR/docs text;
-- a one-off artifact is being promoted as a durable rule;
-- private company specifics are leaking into generic create-jarvis-skill methodology.
-
-Read:
-- `references/en/write-contracts.md`
-- `references/en/detailed-maintenance-contracts.md`
-- `references/en/internal-to-generic-promotion.md`
-
-## Phase 9 - SKILL CALIBRATION LOOP
-
-Goal: improve JARVIS from failures without bloating skills.
-
-Use this loop:
-
-```text
-real task or historical artifact
--> eval case
--> agent replay
--> failure mode
--> no_skill_gap or skill/reference update
--> verification
--> local writeback or upstream methodology proposal
-```
-
-`no_skill_gap` is a first-class outcome. Not every failure means a skill should grow.
-
-Output:
-- eval case record;
-- failure classification;
-- skill update or explicit no-skill-gap decision;
-- evidence that the updated skill improves the replay;
-- promotion decision: repo-local, company JARVIS, or generic create-jarvis-skill.
-
-Read:
-- `references/en/skill-calibration-loop.md`
-- `references/en/internal-to-generic-promotion.md`
-- `references/en/create-jarvis-skill-eval-scorecard.md`
-- `references/en/anti-patterns.md`
-
-When changing this methodology repo, run the committed eval harness:
-
-```bash
-python3 scripts/run_create_jarvis_skill_eval.py \
-  --cases evals/create-jarvis-skill-cases \
-  --outputs eval-fixtures/create-jarvis-skill \
-  --report .eval-runs/ci-report
-```
-
-## Common Rationalizations
-
-| Rationalization | Reality |
+| 模板 | 用途 |
 |---|---|
-| "Let's just generate the JARVIS repo first." | A repo without a confirmed first workflow is a shell. |
-| "We should inventory the whole company now." | Pilot scope beats fake completeness. |
-| "We can fill in owners later." | Ownership is a truth-bearing field. |
-| "The runtime can handle method details." | Runtime executes tasks; this repo defines the JARVIS method. |
-| "The method repo should handle credentials and webhooks." | That belongs to jarvis-box or the runtime. |
-| "Every eval failure should update a skill." | `no_skill_gap` prevents skill bloat. |
-| "Internal examples can be copied into the generic method." | Promote patterns, not private artifacts. |
+| `templates/company-jarvis/` | company JARVIS 仓库母版（repo/module/source/artifacts） |
+| `templates/repo-local-skill/` | repo-local skill canonical package 母版 |
+| `templates/skill-packages/` | 12 种 skill package 母版 |
+| `templates/replay/` | history replay 产物模板 |
 
-## Red Flags
+## Phase 7/8/9 确定性脚本
 
-- the runtime repository bundles stale copies of this repo's templates;
-- `.hengshi` or any other company-specific runtime root appears in generated customer output;
-- references drive the process instead of supporting a phase;
-- inventories are broader than the pilot scope;
-- owners, boundaries, or source-of-truth locations are guessed;
-- history files contain generated content with no real evidence;
-- repo-local truth is centralized for convenience;
-- the output is described as mature before real writeback and calibration exist.
+- **Phase 7**：`scripts/instantiate_company_jarvis.py base/module/source --state <bootstrap-state.json>`
+- **Phase 8**：`scripts/instantiate_repo_local_skill.py --repo <repo路径>`
+- **Phase 9**：`scripts/instantiate_company_jarvis.py package --kind <包类型> --name <技能名>`
+- **验证**：`scripts/verify_bootstrap_output.py --jarvis-home <目标目录>`
 
-## Verification
+## 执行规则
 
-Before finishing, confirm:
+- 从 Phase 3 开始；Phase 0-2 属于 jarvis-box install，不在本仓库重复描述。
+- 每次按 checklist 推进，当前 phase 必须写出 `completed`、`needs-input`、`blocked` 或 `failed`。
+- 先从授权 repo/source、Git/VCS metadata、文档、issues/MRs、测试与运行证据中寻找答案；只有可访问证据已穷尽后，才为仍缺失的客户事实、权限、owner、scope 或 writeback policy 向人请求输入。
+- company identity、客户确认的 product identity、source-detected product/brand identity 必须分开记录；未确认前不要混写成一个已确认主体。
+- 业务 modules 必须来自客户授权的 docs、repos、tests、issues/MRs、wiki 或 owner 确认。
+- 不把 `backend`、`frontend`、`api`、`database`、`infra` 这类工程层当作主要业务 module。
+- repo execution truth 留在 repo-local skills；company Jarvis 只做入口、路由、workflow 编排和 writeback 判断。
+- repo-local skill 复用已有内容时也必须补齐 canonical package 固定文件；`precheck.sh` 必须自包含，不能依赖 reference company 或操作员机器的私有路径、脚本和维护命令。
+- source skill 只写访问、路由、引用和边界，不复制 source 原文。
+- company Jarvis repo 必须采用 `hengshi-jarvis` 形态：`modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/`；不要创建顶层 `repos/`、`workflows/`、`pilot/`、`writeback/`、`rollout/`、`scheduled-jobs/` 作为主结构。
+- 已由客户/operator 确认的 module/source/workflow 名称必须逐字节保留为目录名，包括大小写；例如 `HQL` 必须是 `modules/HQL/`，不能被 agent 改成 `modules/hql/`。
+- company entry skill 的 canonical 位置是 `skills/<company>-jarvis/SKILL.md`。
+- skill 扩展前先判断 `no_skill_gap`。
+- Phase 12 历史回放不能默认等待人工 episode；pilot repo 有 Git 历史时，必须先自动扫描 commits、读取候选 diff，并构造 visible START / hidden oracle 分离的 replay case。没有 isolated replay agent 只阻塞 replay 执行，不阻塞 case 文件创建。候选清单不是合格产物；有候选但没有 `evals/history-replay/cases/<case-id>/history-replay-case.md` 时，Phase 12 是执行失败，不是合格 `needs-input`。
+- `bootstrap-result.json` 只报告 runtime 状态、路径、缺口和下一步，不输出复杂分层字段；其中 `missing_inputs`、`blockers`、`conflicting_inputs`、`unresolved_questions` 必须是字符串数组。
+- `bootstrap-result.json.paths` 只能是 string map，不能包含数组或对象；多个文件路径写入 `created_files` 字符串数组或 report 文件。
+- `bootstrap-result.json` 和 `bootstrap-state.json` 必须写在 company Jarvis repo 根目录，`_bootstrap/` 只能保存审计副本和过程证据。
 
-- [ ] Runtime inputs, target paths, and method repo source are recorded when runtime-driven.
-- [ ] Runtime-driven output can satisfy the `bootstrap-state.json` / `bootstrap-result.json` eval contract.
-- [ ] A first valuable workflow and success signal are explicitly named.
-- [ ] Pilot-scope sources, repos, workflows, and owners are inventoried.
-- [ ] Intended artifacts are classified into scaffold / confirm / grow-later.
-- [ ] `JARVIS_HOME/SKILL.md` is valid and runtime-linkable.
-- [ ] Only the minimum high-leverage skills are bootstrapped.
-- [ ] A human confirmation pass or unresolved-field report exists.
-- [ ] Shadow pilot and controlled writeback paths are explicit.
-- [ ] Calibration can produce either `no_skill_gap` or a scoped skill/reference update.
-- [ ] `scripts/run_create_jarvis_skill_eval.py` passes against committed fixtures after methodology changes.
-- [ ] Private company lessons are promoted to generic methodology only through redacted patterns.
+## 完成标准
+
+`completed` 只允许在产物满足 `acceptance.md` 时写出。最低要求：
+
+- company Jarvis repo 有有效 company entry skill；
+- company entry skill 位于 `skills/<company>-jarvis/SKILL.md`，并且仓库骨架接近 `hengshi-jarvis`；
+- company identity、confirmed product identity、source-detected identity 的边界清楚；
+- company entry 能把真实 artifact 路由到 module、workflow、source 或 repo-local skill；
+- 有证据驱动的客户产品/业务 module 拓扑；
+- first workflow 有 START → WORK → VERIFY → END；
+- pilot repos 有 repo-local skill package 或明确 blocker；
+- `sources/`、`references/jarvis-first-routing.md`、workflow skills 和 repo-local handoff 有 role、owner、状态、证据和缺口；
+- 影子试跑、历史回放、受控写回和第二天运营有固定产物路径，或明确写出 `needs-input` / blocker；
+- 没有 secret、私有 reference company 事实、raw source dump。
+
+如果产物不像客户自己的 company Jarvis 生态，不要写 `completed`；返回 `needs-input`、`blocked` 或 `failed`，并说明需要补哪一个 phase/checklist 项。

@@ -1,0 +1,3 @@
+schema_version = 1
+company_slug = "acme-metrics"
+entry_skill = "skills/acme-metrics-jarvis/SKILL.md"

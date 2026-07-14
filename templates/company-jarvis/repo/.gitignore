@@ -1,0 +1,20 @@
+# Machine-specific data
+indexes/data/chromadb/
+indexes/data/chromadb-config.json
+
+# Local environment
+.env
+.jarvis-context
+
+# OS
+.DS_Store
+
+# Work in progress
+_work/
+__pycache__/
+tools/__pycache__/
+
+# Daemon files
+.jarvis-daemon.pid
+.jarvis-daemon.log
+.jarvis-daemon-status.json

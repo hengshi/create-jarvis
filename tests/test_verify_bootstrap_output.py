@@ -194,6 +194,19 @@ class HistoryReplayTests(unittest.TestCase):
         codes = {f["code"] for f in report["findings"] if f["severity"] == "blocker"}
         self.assertIn("nonzero_replay_no_skill_gap", codes)
 
+    def test_ineligible_case_cannot_claim_ready_gate(self) -> None:
+        case_dir = self.home / "evals" / "history-replay" / "cases" / "case-1"
+        _touch(
+            case_dir / "history-replay-case.md",
+            "Replay eligibility: ineligible-leaky\n"
+            "Case validity: valid\n"
+            "Readiness: ready\n",
+        )
+        v = Verifier(self.home, [], run_precheck=False)
+        report = v.verify()
+        codes = {f["code"] for f in report["findings"] if f["severity"] == "blocker"}
+        self.assertIn("ineligible_case_readiness_contradiction", codes)
+
     def test_nonzero_exit_with_closed_is_blocker(self) -> None:
         run_dir = self.home / "_bootstrap" / "history-replay-runs" / "case-1"
         _touch(run_dir / "exit-code", "1")
@@ -4337,6 +4350,13 @@ class EmDashChoiceRegressionTests(unittest.TestCase):
             "Eligibility",
         )
         self.assertEqual(value, "eligible-reconstructed")
+
+    def test_parenthetical_choice_explanation_is_parsed(self) -> None:
+        value = _MOD.CaseLeakAnalyzer._parse_structured_choice(
+            "- **Replay eligibility**: `ineligible-leaky` (commit subject leaks fix area)\n",
+            "Replay eligibility",
+        )
+        self.assertEqual(value, "ineligible-leaky")
 
     def test_slash_option_list_still_rejected(self) -> None:
         """Value with slash list like 'eligible / ineligible' still rejected as option list."""

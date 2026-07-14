@@ -130,6 +130,42 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         self.assertEqual(second.returncode, 0, f"stderr: {second.stderr}")
         self.assertEqual(brief.read_text(encoding="utf-8"), edited)
 
+    def test_empty_scopes_use_durable_placeholder_and_refresh_after_instantiation(self):
+        """Late discovery commands must synchronize the company entry README."""
+        state = json.loads(self.state_path.read_text(encoding="utf-8"))
+        answers = dict(state["confirmed_answers"])
+        for key in ("module_hints", "source_scope", "workflow_scope", "gitlab_projects_confirmed"):
+            answers.pop(key, None)
+        state["confirmed_answers"] = answers
+        self.state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+
+        result = self._run("base", "--state", str(self.state_path))
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        readme = (self.tmpdir / "README.md").read_text(encoding="utf-8")
+        self.assertNotIn("BOOTSTRAP_REQUIRED", readme)
+        self.assertIn("none-yet", readme)
+
+        self.assertEqual(
+            self._run("module", "--state", str(self.state_path), "--name", "analytics").returncode,
+            0,
+        )
+        self.assertEqual(
+            self._run("source", "--state", str(self.state_path), "--name", "docs").returncode,
+            0,
+        )
+        self.assertEqual(
+            self._run(
+                "package", "--state", str(self.state_path),
+                "--kind", "generic-workflow", "--name", "issue-loop",
+            ).returncode,
+            0,
+        )
+        readme = (self.tmpdir / "README.md").read_text(encoding="utf-8")
+        self.assertIn("modules/analytics/overview.md", readme)
+        self.assertIn("sources/docs/README.md", readme)
+        self.assertIn("skills/issue-loop/SKILL.md", readme)
+        self.assertNotIn("BOOTSTRAP_REQUIRED", readme)
+
     def test_no_unresolved_tokens(self):
         """After base render, no {{...}} tokens remain."""
         result = self._run("base", "--state", str(self.state_path))

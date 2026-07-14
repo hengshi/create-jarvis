@@ -206,12 +206,13 @@ runtime agent 必须实例化并完整填写模板的现有 sections/fields，�
      --case-id <case-id>
    ```
    它只辅助检查结构和明显泄漏；runtime agent 仍负责判断每条 visible fact 的语义 provenance。preflight 不通过时修 case 或继续搜索。
-11. 在独立 container/VM 中执行 replay：只挂载 visible-packet、cutoff snapshot、裁剪后的当前 company Jarvis runtime、必要 repo-local skills、独立输出目录。透传最小凭据环境。
-12. replay 完成后，bootstrap agent 先读取 exact replay final output 和 exact 历史 final outcome，记录 command/pointer 和完整 changed surfaces 或等价非代码 artifact。
-13. 创建 `replay-failure-analysis.md`：必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。对比 replay result 和 hidden oracle，分维度判断（routing、truth boundary、repo-local boundary、verification、END writeback），分类 failure mode，先做 `no_skill_gap` check。
-14. 创建 `skill-update-decision.md`：必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。按 `references/writeback-governance.md` 决定 no_skill_gap / primary home / mirror / verification plan。
-15. 将候选写回和复跑交给 Phase 13；Phase 12 不直接修改被测 skills。
-16. 更新 registry status 和相关 state 文件。
+11. 准备 replay transport 后再调用 bridge：确认 `visible-packet` 和 cutoff snapshot 都非空，snapshot 已经固定在 parent commit；确认 bridge 合同要求的 company runtime、destination 和 parent snapshot 路径，不要用临时 runtime 副本或空目录试探性调用。若 bridge 在发布 `READY` 前返回非零，读取 exact stderr/request state，修复输入后重试；不要把 preparation/protocol failure 写成 isolation runtime unavailable，也不要继续 oracle comparison。
+12. 在独立 container/VM 中执行 replay：只挂载 visible-packet、cutoff snapshot、裁剪后的当前 company Jarvis runtime、必要 repo-local skills、独立输出目录。透传最小凭据环境。若 bridge request 已损坏且 helper 要求 fail closed，使用新 case id 重建 request，并把原 case 标记 `replay-not-executed`。
+13. replay 完成后，bootstrap agent 先读取 exact replay final output 和 exact 历史 final outcome，记录 command/pointer 和完整 changed surfaces 或等价非代码 artifact。
+14. 创建 `replay-failure-analysis.md`：必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。对比 replay result 和 hidden oracle，分维度判断（routing、truth boundary、repo-local boundary、verification、END writeback），分类 failure mode，先做 `no_skill_gap` check。
+15. 创建 `skill-update-decision.md`：必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。按 `references/writeback-governance.md` 决定 no_skill_gap / primary home / mirror / verification plan。
+16. 将候选写回和复跑交给 Phase 13；Phase 12 不直接修改被测 skills。
+17. 更新 registry status 和相关 state 文件。
 
 ## Oracle Comparison 必须在决策之前
 

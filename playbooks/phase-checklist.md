@@ -59,6 +59,7 @@
 - evidence-inventory 中每条精确 endpoint/route/label/方法/字段/版本/数量/命令必须记录 observed fact + repo-relative pointer + retrieval/check。正式文件只能引用这些事实。无证据就省略精确值或标 `needs-verification`，禁止"按常见 REST 习惯补全"。
 - repo 证据指针统一写成可解析的 `<repo-name>:<repo-relative-path>`，例如 `everest:service/src/main/java/.../DatasetProxyImpl.java`。只写 `service/`、`model/ + service/`、绝对 checkout 路径或最终 diff 才知道的 changed path 都不算合格证据。
 - 非 first-workflow 的已确认 source 暂不可访问时可标 `deferred-needs-access`，不阻断 bootstrap；只有 first workflow 必需 access 才在 Phase 5/6 阻断。
+- [ ] `deferred-needs-access` 的非 first-workflow source 不得同时出现在 `bootstrap-result.json.missing_inputs` 或 `blockers`；把它留在 source route/report 的状态和后续 action 中。
 
 ## Phase 3 - 启动交接
 
@@ -210,6 +211,7 @@ Phase 7 只创建 root、canonical company entry、完整 baseline references、
 - [ ] 不得复制 install-owned skills（jarvis-box-doctor/init/monitor、jarvis-self-improve）或 external reference skills 到 company repo。
 - [ ] 公司入口从已确认的 product identity、实际 repo-role map、实际 source route 和已有 reference 文件名填充；不用 reference-company 示例或泛化别名。entry skill 所有链接必须可解析。
 - [ ] repo-local handoff 名称必须是实际授权的 repo 名称/路径，不是 reference-company 示例或泛化别名。
+- [ ] 离开 Phase 7 前重新读取 root `README.md` 的模块、数据源、工作流、仓库四个 scope 索引：实际已创建目录必须列出，尚无证据只能写 `none-yet`/下一步；不得保留 `BOOTSTRAP_REQUIRED`。Phase 9 新增 package 后再次同步。
 - [ ] 正式 durable 文件使用 runtime 变量/contract（如 bootstrap state 确认的 runtime root 或 `JARVIS_RUNTIME_ROOT`），不保留 E2E 测试机绝对路径。Runtime 命令从已安装 `jarvis-box --help`/`version`/`doctor`/`status` 观察，不发明脚本或命令。
 - [ ] 已确认产品身份的任何正式 module/root/entry 文件不得保留未解决的身份或对该身份的 `needs-owner-confirmation`。
 - [ ] 对每个可访问 source，将 source scaffold 替换为具体 route。`needs-evidence`、`REFERENCES_PATH` 和示例占位符在可访问 route 中是 phase blocker。
@@ -274,6 +276,7 @@ Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-
 - [ ] workflow skill 写 trigger、non-trigger、evidence、routing gates、completion、END writeback。
 - [ ] 不创建 generation plan 之外的”以后可能用”的泛化 skills。
 - [ ] 运行 `python3 scripts/verify_bootstrap_output.py --stage phase-09 --jarvis-home <目标目录> --customer-repos-dir <repo副本根目录>`；Phase 3-9 blocker 清零后才能进入 Phase 10。
+- [ ] Phase 9 gate 前确认 root README scope 索引与 `modules/`、`sources/`、`skills/` 实际目录一致；可访问 source 不得残留 `BOOTSTRAP_REQUIRED` 或泛化 route。
 
 停止条件：
 
@@ -343,6 +346,7 @@ Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-
 ### Episode 搜索
 
 - [ ] 主动扫描每个 pilot repo 和已授权 issue/MR/ticket/incident/delivery history。不只扫 Git，不等用户整理。
+- [ ] 在 `replay-case-registry.md` 的 Search Coverage 表中为每个 pilot repo 写一条真实 canonical 行：exact search command/query、时间或提交边界、候选、排除理由、停止理由和状态；不能用段落或“后续扫描”替代表格行。
 - [ ] 每个 repo 记录实际命令/查询、时间或提交边界、候选和排除理由、停止原因。无固定数量或窗口。
 - [ ] episode 准入：当时明确工作目标、cutoff 前足够 initial signal、cutoff 后可验证 outcome、授权访问。纯 housekeeping / 无可验证 outcome / START-oracle 无法分离的候选不进 replay，可留 backlog。
 
@@ -364,6 +368,8 @@ Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-
 - [ ] 透传 selected agent 必需的最小凭据环境，不把值写进 artifact。
 - [ ] **Case Readiness Gate**（调用 replay bridge 前）：visible fact 表和 Packet Fact Closure 表完整；Hidden Facts Excluded 表中的每项检查结果均为 `absent`；hidden oracle 已用 exact command/pointer 从真实 artifact 完整提取。外层 agent 标记 case validity 和 `ready` / `invalid`。`invalid`/`not-ready` 不得执行。
 - [ ] Preflight：确认 START/provenance、mount allowlist、future refs/oracle 不可见、agent CLI 可用。
+- [ ] bridge 调用前先准备并确认 cutoff snapshot 非空、visible packet 非空、company Jarvis runtime 与 destination 使用 bridge 合同要求的 canonical paths；不得用临时 runtime 副本路径或空目录试探性调用。
+- [ ] bridge 返回非零时先读取 exact stderr、request state 和 output；如果失败发生在 request `READY` 之前，不得写成 isolation runtime unavailable，也不得继续 oracle comparison。修复输入后使用同一 case 重试；若 request 已损坏则换新 case id，并把 bridge protocol failure 记录为 `replay-not-executed`。
 - [ ] 记录 exact invocation（脱敏）、exit code、非空执行轨迹、diff/输出、验证结果。
 - [ ] CLI 在首个有效 action 前失败 = `replay-not-executed`，不产生 skill gap / `no_skill_gap` 结论。
 

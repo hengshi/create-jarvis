@@ -88,6 +88,19 @@ class FirstSubmitTests(unittest.TestCase):
         self.assertEqual(manifest["case_id"], self.case_id)
         self.assertIn("visible-packet", manifest["visible_packet"])
 
+    def test_empty_parent_fails_before_creating_partial_request(self) -> None:
+        parent = self.e2e / "work" / "replay-parent-worktrees" / self.case_id
+        (parent / "README.md").unlink()
+
+        cp = _run_helper(self.env, **self._args_dict())
+
+        self.assertEqual(cp.returncode, 1)
+        self.assertIn("parent-worktree is empty", cp.stderr)
+        self.assertFalse(
+            (self.bridge / self.case_id).exists(),
+            "invalid input must not leave a retry-blocking bridge request",
+        )
+
     def test_second_call_same_params_still_returns_75(self) -> None:
         args = self._args_dict()
         cp1 = _run_helper(self.env, **args)

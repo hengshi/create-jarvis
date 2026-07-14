@@ -39,6 +39,7 @@ Phase 10 完成时：
   - `paths` 只能是 string map；每个 value 必须是字符串路径或字符串值，不能放数组、对象或表格。
   - `created_files`、`updated_files`、`preserved_files` 只能是字符串数组；repo-local skill 目录如果有多个路径，也写成多个字符串条目。
   - `missing_inputs`、`blockers`、`conflicting_inputs`、`unresolved_questions` 必须是字符串数组。
+  - 只把当前 bootstrap 无法继续的硬缺口放进 `missing_inputs` / `blockers`。非 first-workflow 的 source 若已明确为 `deferred-needs-access`，只记录在 source route、onboarding report 和 next action，不得同时伪装成当前 runtime missing input/blocker。
   - 只要 `missing_inputs`、`blockers` 或 `conflicting_inputs` 非空，`status` 就不能是 `completed`。
   - 只要 `identity_reconciliation.status` 不是 `confirmed`，`status` 就不能是 `completed`。
   - 详细结构化解释放在 onboarding report、rollout checklist 或 phase report，不放进 runtime contract。

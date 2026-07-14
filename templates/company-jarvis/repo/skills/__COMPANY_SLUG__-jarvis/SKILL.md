@@ -51,6 +51,10 @@ Capability owner 可以是已确认的 product、source、process 或 repo owner
 
 ## 4. 路由算法
 
+本入口坚持 **workflow-first**：先识别要闭合的工作流，再选择 module、source 和 repo-local
+执行面；不要先按仓库猜入口。坚持 **artifact-first**：从 issue、MR、error、screenshot、
+failing test 或其他实际 artifact 提取事实后再路由，不做无上下文的全局搜索。
+
 ```text
 读 artifact / source pointer
 → 提取显式事实、claim、可观测差异、unknown

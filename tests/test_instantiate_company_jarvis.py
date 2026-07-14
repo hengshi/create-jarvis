@@ -84,6 +84,8 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
             (r"next-hop-compression|next-hop", "next-hop routing"),
             (r"END|writeback|回写", "END writeback"),
             (r"closed[- ]?loop|闭环", "closed-loop routing"),
+            (r"workflow-first", "workflow-first routing"),
+            (r"artifact-first", "artifact-first routing"),
         ]
         for pattern, desc in semantic_checks:
             self.assertTrue(
@@ -209,6 +211,14 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
 
         overview = self.tmpdir / "modules" / "HQL" / "overview.md"
         self.assertTrue(overview.is_file(), "overview.md should exist")
+
+    def test_module_template_exposes_confidence_and_status_contract(self):
+        """Module contracts must expose fillable evidence confidence/status fields."""
+        result = self._run("module", "--state", str(self.state_path), "--name", "analytics")
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        overview = (self.tmpdir / "modules" / "analytics" / "overview.md").read_text(encoding="utf-8")
+        self.assertRegex(overview, r"证据置信度")
+        self.assertRegex(overview, r"确认状态")
 
     def test_source_subcommand(self):
         """Source subcommand creates sources/<name>/README.md (route contract, not SKILL.md)."""

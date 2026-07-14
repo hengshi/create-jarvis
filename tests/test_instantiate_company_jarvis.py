@@ -112,6 +112,7 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         self.assertEqual(runtime_result["status"], "in-progress")
         self.assertEqual(runtime_result["paths"]["jarvis_target_home"], str(self.tmpdir))
         self.assertEqual(runtime_result["paths"]["entry_skill"], "skills/acme-claude-e2e-jarvis/SKILL.md")
+        self.assertRegex(runtime_result["generated_at"], r"^20\d{2}-\d{2}-\d{2}T")
         self.assertIn("bootstrap-state.json", runtime_result["created_files"])
         self.assertIn("bootstrap-result.json", runtime_result["created_files"])
         self.assertIn("_bootstrap/jarvis-build-brief.md", runtime_result["created_files"])

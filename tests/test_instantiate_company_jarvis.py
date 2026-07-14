@@ -91,6 +91,42 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
                 f"entry skill missing concept: {desc}",
             )
 
+    def test_base_creates_root_runtime_contracts_and_build_brief(self):
+        """Phase 7 base creates the durable resume contracts and build brief."""
+        result = self._run("base", "--state", str(self.state_path))
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}\nstdout: {result.stdout}")
+
+        state_path = self.tmpdir / "bootstrap-state.json"
+        result_path = self.tmpdir / "bootstrap-result.json"
+        brief_path = self.tmpdir / "_bootstrap" / "jarvis-build-brief.md"
+        self.assertTrue(state_path.is_file())
+        self.assertTrue(result_path.is_file())
+        self.assertTrue(brief_path.is_file())
+
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        runtime_result = json.loads(result_path.read_text(encoding="utf-8"))
+        self.assertEqual(state["phase_status"]["phase-07-company-jarvis-repo"], "in-progress")
+        self.assertEqual(state["phase_status"]["phase-08-repo-local-skills"], "pending")
+        self.assertEqual(runtime_result["status"], "in-progress")
+        self.assertEqual(runtime_result["paths"]["jarvis_target_home"], str(self.tmpdir))
+        self.assertEqual(runtime_result["paths"]["entry_skill"], "skills/acme-claude-e2e-jarvis/SKILL.md")
+        self.assertIn("bootstrap-state.json", runtime_result["created_files"])
+        self.assertIn("bootstrap-result.json", runtime_result["created_files"])
+        self.assertIn("_bootstrap/jarvis-build-brief.md", runtime_result["created_files"])
+        self.assertIn("Acme Corp", brief_path.read_text(encoding="utf-8"))
+
+    def test_base_preserves_build_brief_on_repeat(self):
+        """A repeated base invocation does not overwrite agent or human edits."""
+        first = self._run("base", "--state", str(self.state_path))
+        self.assertEqual(first.returncode, 0)
+        brief = self.tmpdir / "_bootstrap" / "jarvis-build-brief.md"
+        edited = brief.read_text(encoding="utf-8") + "\noperator note\n"
+        brief.write_text(edited, encoding="utf-8")
+
+        second = self._run("base", "--state", str(self.state_path))
+        self.assertEqual(second.returncode, 0, f"stderr: {second.stderr}")
+        self.assertEqual(brief.read_text(encoding="utf-8"), edited)
+
     def test_no_unresolved_tokens(self):
         """After base render, no {{...}} tokens remain."""
         result = self._run("base", "--state", str(self.state_path))

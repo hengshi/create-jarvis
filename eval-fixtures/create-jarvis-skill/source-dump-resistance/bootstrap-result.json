@@ -4,7 +4,8 @@
   "result_code": "ok",
   "summary": "Source skill boundaries generated without mirroring raw sources.",
   "paths": {
-    "jarvis_home": "/srv/acme/jarvis"
+    "jarvis_home": "/srv/acme/jarvis",
+    "entry_skill": "skills/acme-metrics-jarvis/SKILL.md"
   },
   "method_repo": {
     "url": "https://github.com/hengshi/create-jarvis-skill.git"

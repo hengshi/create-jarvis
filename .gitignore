@@ -1,4 +1,5 @@
 .DS_Store
+.jarvis-context
 .eval-runs/
 __pycache__/
 *.pyc

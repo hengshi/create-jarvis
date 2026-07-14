@@ -7,7 +7,7 @@
   "paths": {
     "jarvis_home": "/srv/acme/jarvis",
     "jarvis_target_home": "/srv/acme/jarvis",
-    "entry_skill": "/srv/acme/jarvis/SKILL.md"
+    "entry_skill": "skills/acme-metrics-jarvis/SKILL.md"
   },
   "method_repo": {
     "url": "https://github.com/hengshi/create-jarvis-skill.git",
@@ -15,9 +15,12 @@
     "resolved_commit": "fixture"
   },
   "created_files": [
-    "SKILL.md",
     "README.md",
     "MAINTENANCE.md",
+    "jarvis.toml",
+    "skills/acme-metrics-jarvis/SKILL.md",
+    "references/jarvis-first-routing.md",
+    "cross-cutting/module-interactions.md",
     "bootstrap-state.json",
     "bootstrap-result.json"
   ],

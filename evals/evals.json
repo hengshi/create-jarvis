@@ -1,6 +1,6 @@
 {
   "skill_name": "create-jarvis-skill",
-  "case_dir": "evals/create-jarvis-skill-cases",
+  "case_dir": "evals/cases",
   "fixture_outputs": "eval-fixtures/create-jarvis-skill",
   "scorer": "scripts/run_create_jarvis_skill_eval.py",
   "evals": [

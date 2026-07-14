@@ -1,0 +1,109 @@
+# Phase 8 - 创建仓库本地技能包
+
+目标：为 first workflow 涉及的 pilot repos 创建 repo-local skill 目录包或 backlog。
+
+## 核心原则
+
+必须先运行确定性母版实例化器，再以真实 repo evidence 填充：
+
+```
+python scripts/instantiate_repo_local_skill.py --repo <path>
+```
+
+这会从 `templates/repo-local-skill/skills/` 复制 canonical 10-file package 并渲染 `{{REPO_NAME}}` token。precheck 自动设为 executable。
+
+Phase 8 完成后，specialised skills 进入 Phase 12 演进（从真实 history replay 生长）。canonical 10 文件是起点，不是成熟度上限。
+
+## 判断顺序
+
+1. 该 repo 是否已有执行入口或 repo-local skill 目录。
+2. first workflow 是否真的需要 agent 在该 repo 中执行。
+3. build/test/lint/CI 命令是否能从 repo 证据或 owner 确认。
+4. 缺口是否是 `no_skill_gap`、文档缺口、repo-local skill 缺口，还是 runtime/source 权限问题。
+
+已有 repo-local skill 不是自动合格。runtime agent 必须检查它是否满足本 phase 的 canonical package contract；缺任何核心文件时要补齐，不能用“已有更多 reference 文件”替代固定核心文件。`AGENTS.md`、`CLAUDE.md`、`.claude/skills`、`.agents/skills`、`.codex/skills` 都不能替代 repo root 的 canonical `skills/` package；如果 root `skills/` 缺失，必须创建。
+
+## 输出
+
+- 每个 pilot repo 的 status：reuse existing、create package、backlog、blocked、no_skill_gap。
+- repo-local skill 目录包，或明确 backlog。
+- company Jarvis 只在 `references/jarvis-first-routing.md` 或对应 workflow skill 中登记 pilot repo 的角色、路由和边界，不复制 repo execution truth，不创建顶层 `repos/`。
+
+## 最小目录包
+
+```text
+skills/
+├── SKILL.md
+├── code-review/SKILL.md
+├── code-review/scripts/precheck.sh
+├── references/source-of-truth.md
+├── references/architecture-map.md
+├── references/test-entrypoints.md
+├── references/runtime-and-testability.md
+├── references/history-replay-loop.md
+├── eval-loop.md
+└── self-skills-improve/SKILL.md
+```
+
+引导生成阶段不只是创建骨架。repo-local skill package 的确定性十文件创建完成后，必须立即检查每个可读 repo 并填入所有可直接观察的事实：
+
+- 实际 default branch 和可由证据支持的分支策略；default branch 必须来自 remote HEAD 或 VCS project metadata，当前 checkout 分支只能作为补充观察，不能单独充当 default branch
+- repo 角色和边界
+- 语言/构建文件
+- 重要路径
+- package/module 布局
+- 精确的 build/test/lint/CI 命令及其证据（来自 CI 配置、Makefile、package.json scripts 等）
+- 测试/fixture 位置
+- runtime 前提条件
+- source-of-truth 指针
+- 可观察的生成区域
+- 公司 handoff
+
+**区分 `observed-not-executed` 和 `executed-pass`**：命令可以从构建/CI 证据中记录下来而不假装执行过。不要在未实际运行时标 `executed-pass`。
+
+语言生态惯例本身不是 repo evidence。不能因为看到 `go.mod` 就补出 `go build ./...` / `go test -race ./...`，也不能因为看到 `pom.xml` / `package.json` 就补出未在 manifest、wrapper、CI、repo 文档、owner confirmation 或执行记录中出现的命令。
+
+Owner 确认和历史回放用于模糊策略和成熟的失败模式，不用于 checked-in 文件中可直接看到的事实。
+
+**禁止**：repo 可读时，任何核心 repo-local 文件保留 `<>` 占位符、泛化示例命令、伪造的 default branch 或全面 `needs-owner-confirmation`。
+
+模板复制进客户 repo 后必须成为长期可用的 repo-local skill。`Phase 8 填充`、`用真实内容替换下表` 等生成期旁白不得留在最终 package；其中仍有长期价值的规则必须改写成不依赖 bootstrap phase 的 evidence contract。
+
+**差异化要求**：八个 package 必须根据各自 repo 证据有所不同。三个或以上归一化相同的 repo truth section 证明 Phase 8 被跳过。
+
+专业的历史衍生 reference 可以后续生长，但基础 skill 必须已经能让一个新 agent 路由、构建、测试和找到 source truth。
+
+即使 repo 已有更丰富的 reference 文件，也必须保留上述固定文件名。特别是 `references/runtime-and-testability.md` 不能被 `runtime-and-forensics.md`、`local-dev-runtime.md` 等近似文件替代；可以在固定文件里链接这些更细 reference。
+
+`skills/code-review/scripts/precheck.sh` 必须是客户 repo 自包含脚本。它可以读取当前 repo 内的文件，但不能依赖 reference company、bootstrap 操作员或其他机器的绝对路径、私有脚本和维护命令。如果发现已有 precheck 存在这类依赖，必须改写为自包含 scaffold，并把迁移事实写入 repo-local reference。
+
+bootstrap 阶段的 `precheck.sh` 是 bootstrap-safe scaffold check，不是完整语言栈环境验收。它必须：
+
+- 从 repo root 可执行；未填充的初始骨架应因 canonical 核心文件缺失、临时占位、未渲染 token 或硬编码的机器私有路径而退出非 0，Phase 8 填充完成且不存在这些 contract blocker 后才退出 0；
+- 输出明确 repo marker，例如 `repo: <repo-name>`；
+- 检查 repo 内稳定文件、目录、配置和 fixed contract；
+- 对 JDK、Node、pnpm、Go、Docker、kubectl、shellcheck 等技术栈工具只能输出 `WARN` / `INFO` 和后续安装建议，不能在 bootstrap 阶段作为 hard fail；
+- 把缺失工具写成实际 `blocked` 原因；把从 manifest / Makefile / CI 读到但未运行的命令写成 `observed-not-executed`。不要把可直接读取的命令写成 `needs-owner-confirmation`，也不要让缺失开发工具本身成为 precheck 的 hard fail。
+
+## 必做收尾
+
+每个创建出来的 repo-local skill package 都必须完成：
+
+1. `chmod +x skills/code-review/scripts/precheck.sh`。
+2. 从 repo root 执行 `skills/code-review/scripts/precheck.sh`。
+3. 确认输出中包含 `repo: <repo-name>` 或等价 repo root marker。
+4. 确认 precheck 不引用 reference company 私有路径或维护命令；如果引用，先改成自包含脚本再执行。
+5. 在 `references/jarvis-first-routing.md` 或 `skills/<workflow-skill>/SKILL.md` 中写明：
+   - repo-local skill path；
+   - first workflow 中该 repo 的角色；
+   - 哪些事实必须留在 repo-local；
+   - 哪些命令或 owner 信息仍待确认。
+
+如果 precheck 不能执行，不能把该 repo 的 repo-local skill status 标成 completed；应写入 blocker、backlog 或 unresolved question。缺少客户 repo 技术栈工具不是 precheck 不能执行的理由；此时应让 precheck 通过并把缺失工具记录为待确认/待安装。
+
+## 禁止
+
+- 不为非 pilot repo 创建 skill package。
+- 不从中心 Jarvis 猜 repo 命令。
+- 不把 repo-local truth 写成 company-wide rule。
+- 不保留依赖 reference company 环境的 precheck、脚本或路径。

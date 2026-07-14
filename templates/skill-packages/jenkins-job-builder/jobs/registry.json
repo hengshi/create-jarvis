@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "catalogScope": "{{COMPANY_SLUG}}-jenkins-jobs",
+  "notes": [
+    "This catalog stores only job selection metadata and parameter shapes.",
+    "Do not add tokens, webhook URLs, account names, host IPs, credential defaults, or one-off environment snapshots."
+  ],
+  "jobs": []
+}

@@ -49,6 +49,11 @@ python3 scripts/instantiate_company_jarvis.py source --state <...> --name <sourc
 python3 scripts/instantiate_company_jarvis.py package --state <...> --kind <包类型> --name <技能名>
 ```
 
+`base` 同时创建根目录 `bootstrap-state.json`、`bootstrap-result.json` 和
+`_bootstrap/jarvis-build-brief.md`。运行状态保持为当前 state 的状态；未进入的后续
+phase 初始化为 `pending`。重复运行会保留已经被 runtime agent 或操作员修改过的
+build brief。
+
 Phase 8（repo-local skills）使用 `instantiate_repo_local_skill.py`：
 
 ```bash

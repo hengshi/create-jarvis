@@ -85,6 +85,21 @@ class TestInstantiateRepoLocalSkill(unittest.TestCase):
             path = self.tmpdir / rel
             self.assertTrue(path.is_file(), f"missing: {rel}")
 
+    def test_template_exposes_semantic_execution_trace_contract(self):
+        """The generated entry skill must demand a semantic execution trace."""
+        result = self._run("--repo", str(self.tmpdir), "--repo-name", "test-repo")
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        content = (self.tmpdir / "skills/SKILL.md").read_text(encoding="utf-8")
+        for marker in (
+            "First-Workflow Semantic Execution Trace",
+            "Semantic value at risk",
+            "Rewrite / normalize boundaries",
+            "Owning sink",
+            "Regression proof",
+            "Verification command and status",
+        ):
+            self.assertIn(marker, content)
+
     def test_repo_name_basename_fallback(self):
         """Without --repo-name, name is inferred from directory basename."""
         shutil.rmtree(self.tmpdir)

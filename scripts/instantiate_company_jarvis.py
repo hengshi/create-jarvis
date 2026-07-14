@@ -22,6 +22,7 @@ import os
 import shutil
 import stat
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -428,6 +429,7 @@ def _runtime_contracts(state: dict, globals_: dict, target: Path, file_result: d
         "unresolved_questions": list(state.get("unresolved_questions", [])) if isinstance(state.get("unresolved_questions", []), list) else [],
         "next_action": "Continue the current phase in playbooks/phase-checklist.md.",
         "phase_summary": phase_map,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
     }
     return normalized_state, result
 

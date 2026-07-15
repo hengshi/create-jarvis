@@ -28,6 +28,8 @@ repo-local-skill/
 
 canonical 10 文件是 Phase 8 的**确定性起点**，不是成熟度上限。Phase 8 必须立刻用每个 repo 的真实证据填充核心文件：将所有 `BOOTSTRAP_REQUIRED` sentinel 替换为可观察事实。占位符不是"完成"——Phase 8 必须填充，不可将 sentinel 视为长期状态。
 
+特别是 `skills/code-review/SKILL.md` 的“仓库特有检查”表：如果扫描代码、配置、CI、测试和历史后没有观察到额外 trigger，也必须替换 sentinel 为明确的 `not-observed` 记录，并写出实际扫描范围和 pointer；不能凭通用常识补造检查，也不能原样保留 sentinel。
+
 专业 reference 后续只能由真实任务、pilot 或 history replay 生长，不设任意数量阈值。
 
 ## Token

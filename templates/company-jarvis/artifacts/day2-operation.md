@@ -2,6 +2,8 @@
 
 > 对应 Phase 14。接管并验证 day-2 运营状态，不重复实现 install-owned runtime。记录 install-owned 能力的真实状态、观测入口和恢复动作。前提 phase（11/12/13）未完成时只能写交接和待办，不能标 `completed`。
 
+> 记录规则：只有实际执行的 CLI 调用才使用反引号命令格式，例如 `jarvis-box status`。安装文件、可执行文件、安装状态和 authority 证据写成文件路径或普通名词，不要把它们写成不存在的命令，例如 `` `jarvis-box binary` `` 或 `` `jarvis-box install` ``。
+
 ## Observed Runtime
 
 - **jarvis-box version**: `<version from jarvis-box version>`

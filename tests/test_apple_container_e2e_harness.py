@@ -747,6 +747,8 @@ class ContinuationModeContract(unittest.TestCase):
         continuation, _ = self._prepare_branches()
         self.assertIn('cp -a /continue-from/customer-repos/. /e2e/customer-repos/', continuation)
         self.assertIn('cp -a /continue-from/output/company-jarvis /e2e/output/company-jarvis', continuation)
+        self.assertIn('cp -a /continue-from/work/replay-parent-worktrees/. /e2e/work/replay-parent-worktrees/', continuation)
+        self.assertIn('cp -a /continue-from/replay-bridge/. /host-e2e/replay-bridge/', continuation)
         self.assertIn('/continue-from/semantic-acceptance.md', continuation)
 
     def test_continuation_does_not_clone_remove_skills_or_make_fixture_commit(self) -> None:
@@ -1340,6 +1342,15 @@ class ExecutionContractMechanicalProtocol(unittest.TestCase):
     def test_polling_exit_code_other_nonzero(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
         self.assertIn("other nonzero = terminal failure", text)
+
+    def test_replay_poll_window_is_explicitly_passed_to_bootstrap_agent(self) -> None:
+        text = RUN_IN_CONTAINER.read_text()
+        self.assertIn('replay_bridge_poll_seconds="${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}"', text)
+        self.assertIn('REPLAY_BRIDGE_POLL_SECONDS="$replay_bridge_poll_seconds"', text)
+
+    def test_host_exposes_replay_poll_window_to_outer_container(self) -> None:
+        text = HOST_DRIVER.read_text()
+        self.assertIn('E2E_REPLAY_BRIDGE_POLL_SECONDS=${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}', text)
 
     def test_worktree_path_contract(self) -> None:
         text = RUN_IN_CONTAINER.read_text()

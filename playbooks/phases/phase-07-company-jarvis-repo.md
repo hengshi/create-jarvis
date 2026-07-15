@@ -125,12 +125,12 @@ The template `templates/company-jarvis/repo/references/` contains the full neutr
 - `jarvis-box-doctor`
 - `jarvis-box-init`
 - `jarvis-box-monitor`
-- `jarvis-self-improve-skill`
 
 以下 external reference skills 不得复制到 company repo：
 - 来自 jarvis-box install 的外部 reference skills（如 create-jarvis-skill 本身）
 
-Phase 14 只检查/登记这些 install-owned 和 external skills 的状态，不复制它们。
+Phase 14 只检查/登记这些 install-owned runtime 和 external skills 的状态，不复制它们。
+如果客户确认 `jarvis-self-improve-skill` 属于 company workflow，Phase 9 必须生成 company-owned 方法论 package；它只能路由 runtime 提供的证据和写回边界，不复制 runtime collector/scheduler。
 
 ## 步骤
 

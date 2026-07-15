@@ -31,7 +31,8 @@ python scripts/instantiate_company_jarvis.py package --state <...> --kind <templ
 
 - 只实例化 Phase 6 generation plan 中标记为 `create-now` 或 `create-scaffold-needs-pilot` 的 skills。
 - 未适用的 package（generation plan 中没有的）不复制。
-- install-owned skills（jarvis-box-doctor、jarvis-box-init、jarvis-box-monitor、jarvis-self-improve-skill）不复制到 company repo；Phase 14 只检查/登记它们。
+- install-owned runtime skills（jarvis-box-doctor、jarvis-box-init、jarvis-box-monitor）不复制到 company repo；Phase 14 只检查/登记它们。
+- `jarvis-self-improve-skill` 是可由客户确认的 company-owned 方法论 workflow，不等同于 jarvis-box 的 session self-improvement runtime。确认出现在 workflow scope 时，使用 `self-improve-skill` package 生成它；该 package 只能描述证据读取、归因、决策和写回边界，不得复制 collector、scheduler 或其他 runtime 实现。
 - external reference skills 不复制到 company repo。
 
 ## Source Skill
@@ -97,7 +98,7 @@ workflow skill 负责 START -> WORK -> VERIFY -> END 的跨 source/repo/team 闭
    - 写清缺什么 artifact、source 或 owner 才能从 scaffold 升级到完整 skill。
    - 删除所有 bootstrap-time 模板标记；只允许 task-time 参数占位。
 4. 确认没有创建 generation plan 之外的 skills。
-5. 确认没有复制 install-owned 或 external reference skills。
+5. 确认没有复制 install-owned runtime skills 或 external reference skills；确认的 company-owned `jarvis-self-improve-skill` 必须使用专用 package，且不含 runtime 实现副本。
 6. 对每个 package 逐文件检查：所有 company reference 链接可解析；所有 companion files 存在并被入口引用；没有 reference-company 名称/路径；没有未经证据支持的产品 CLI、技术栈、endpoint 或默认值。
 
 ## Phase 9 Gate
@@ -120,7 +121,7 @@ python3 scripts/verify_bootstrap_output.py \
 - skill 只是"以后可能有用"且不在 generation plan 中。
 - confirmed workflow/source 被改名、合并或省略。
 - skill package 只有统一 scaffold 没有消费 evidence inventory。
-- install-owned 或 external reference skills 被复制到 company repo。
+- install-owned runtime skills 或 external reference skills 被复制到 company repo；或 company-owned `jarvis-self-improve-skill` 变成了 runtime 实现副本。
 - package 仍有 `BOOTSTRAP_REQUIRED`、`[needs-evidence: ...]`、未渲染 token 或模板字段名。
 - source-helper 复制了 repo-local build/test/runtime/目录真相，或 workflow package 写入 evidence inventory 无法支持的命令、project、branch、label、version、endpoint、工具默认值。
 - 工具专用 package 没有可访问 source、已确认 CLI/API 和最小 first proof，却被标成可执行。

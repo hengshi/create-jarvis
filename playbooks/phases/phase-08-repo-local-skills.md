@@ -59,6 +59,8 @@ skills/
 - 可观察的生成区域
 - 公司 handoff
 
+`skills/code-review/SKILL.md` 的“仓库特有检查”表也必须在 Phase 8 收尾时完成。不得因为没有立刻找到额外 review trigger 就保留 `BOOTSTRAP_REQUIRED`。如果在已记录的代码、配置、CI、测试和历史扫描范围内确实没有观察到额外 trigger，写一条明确的 `not-observed` 记录，包含实际扫描范围和 pointer；这表示当前没有额外证据，不是凭通用常识补造检查，也不是把 sentinel 当作完成。
+
 **区分 `observed-not-executed` 和 `executed-pass`**：命令可以从构建/CI 证据中记录下来而不假装执行过。不要在未实际运行时标 `executed-pass`。
 
 语言生态惯例本身不是 repo evidence。不能因为看到 `go.mod` 就补出 `go build ./...` / `go test -race ./...`，也不能因为看到 `pom.xml` / `package.json` 就补出未在 manifest、wrapper、CI、repo 文档、owner confirmation 或执行记录中出现的命令。
@@ -110,12 +112,13 @@ bootstrap 阶段的 `precheck.sh` 是 bootstrap-safe scaffold check，不是完�
 2. 从 repo root 执行 `skills/code-review/scripts/precheck.sh`。
 3. 确认输出中包含 `repo: <repo-name>` 或等价 repo root marker。
 4. 确认 precheck 不引用 reference company 私有路径或维护命令；如果引用，先改成自包含脚本再执行。
-5. 在 `references/jarvis-first-routing.md` 或 `skills/<workflow-skill>/SKILL.md` 中写明：
+5. 如果 precheck 报告 `BOOTSTRAP_REQUIRED` 或未渲染 token，必须回到对应文件逐项填充后重新执行 precheck；不得把失败记录成“工具缺失”、跳过该 repo，或直接进入 Phase 9。
+6. 在 `references/jarvis-first-routing.md` 或 `skills/<workflow-skill>/SKILL.md` 中写明：
    - repo-local skill path；
    - first workflow 中该 repo 的角色；
    - 哪些事实必须留在 repo-local；
    - 哪些命令或 owner 信息仍待确认。
-6. 对 first workflow repo，读取并确认 `skills/SKILL.md` 的语义执行 trace 已填实；缺 semantic value、rewrite boundary、owner sink、regression proof 或验证状态任一项时，写入 backlog/blocker，不得标 completed。
+7. 对 first workflow repo，读取并确认 `skills/SKILL.md` 的语义执行 trace 已填实；缺 semantic value、rewrite boundary、owner sink、regression proof 或验证状态任一项时，写入 backlog/blocker，不得标 completed。
 
 如果 precheck 不能执行，不能把该 repo 的 repo-local skill status 标成 completed；应写入 blocker、backlog 或 unresolved question。缺少客户 repo 技术栈工具不是 precheck 不能执行的理由；此时应让 precheck 通过并把缺失工具记录为待确认/待安装。
 

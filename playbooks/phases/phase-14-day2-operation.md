@@ -23,12 +23,14 @@ install-owned managed jobs 的事实来自：当前 release docs/安装产物、
 
 ### 当前基线需要复核的关键边界
 
-- v0.1.22 的已确认合同是 Task 只有五个 lifecycle operations：**start**、**continue**、**stop**、**recover**、**retry-writeback**。
+- 当前已确认的合同是 Task 只有五个 lifecycle operations：**start**、**continue**、**stop**、**recover**、**retry-writeback**。不要把某个历史版本号当作永久基线；先以当前安装版本的 `--help`、release contract 和 live 状态复核，发现差异就记录版本与差异。
   - `reap` / `clean` 是维护操作；
   - `reconcile` 是 dry-run；
   - service restart 不自动恢复 Task；
   - `recover` 仅用于 recovery-required 状态；
   - `bootstrap --resume` 只恢复表单/已确认状态，不是 task continue。
+- `continue` 可以由 jarvis-box 使用已保存的 provider-native session handle 继续同一 agent 会话；该 handle 属于 runtime 私有状态。即使 Codex 输出 JSONL `thread.started` / `thread_id`，也不能把它复制到 company Jarvis、bootstrap artifact 或公开 handoff。
+- Task 的 `task_id`、`run_id`、workspace 和 session 状态只记录 jarvis-box 实际返回或公开暴露的值。UI/feed 对 lane display id 的解析是产品内部兼容行为，不允许 agent 根据目录名、lane 名或字符串拼接自行生成 Task/Run identity。
 - 对更新版本先读当前 help/release contract；如果语义发生变化，记录版本和差异，使用当前安装事实。
 - 至少一个已认证且 prompt probe 可用的 runtime agent 足够继续。fallback agents 可以是 backlog。jarvis-box 不安装 vendor credentials。
 

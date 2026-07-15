@@ -39,6 +39,7 @@ jarvis-box agent current
 - 写入**仅在**当前授权 target 或 worktree 内进行。
 - jarvis-box 管理的 env、service state、Task/Run artifact 及其识别出的 cache **不直接写**。
 - agent 不直接修改产品状态文件或凭据文件。
+- provider-native session handle（包括 Codex JSONL 的 `thread.started` / `thread_id`）属于 jarvis-box 私有 runtime 状态，不写入 company Jarvis 或公开 handoff；Task/Run identity 只使用 jarvis-box 实际返回的值。
 
 ## 升级到完整版的条件
 

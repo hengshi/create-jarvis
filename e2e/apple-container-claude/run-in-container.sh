@@ -198,7 +198,7 @@ jarvis_box_bin="$install_root/usr/local/bin/jarvis-box"
 # ── install evidence ────────────────────────────────────────────
 log "collecting install evidence"
 
-# hard-verify canonical install paths (release v0.1.22 layout)
+# hard-verify canonical install paths exposed by the supplied release artifact
 _check_install_artifact() {
   local label="$1" path="$2"
   if [ ! -f "$path" ] && [ ! -x "$path" ]; then

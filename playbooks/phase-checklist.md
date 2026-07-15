@@ -54,7 +54,7 @@
 - Phase 12 中，缺 isolated replay agent 或 container/VM isolation runtime 只阻塞 replay 执行，不阻塞从 Git 历史创建 case 文件。只留下 candidate registry、没有 `cases/<case-id>/history-replay-case.md`，必须视为执行失败。Phase 12 completed 必须至少有一次运行在独立 container/VM 中的有效隔离 replay。
 - Phase 7 只创建 root、canonical entry、baseline references、cross-cutting、modules、sources README、tools inventory、root runtime contracts。不得在 Phase 7 自由生成 workflow/source-helper skills——那些是 Phase 9 的职责。
 - Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-helper package。完整 package 包括母版 SKILL.md 及其 references/jobs/scripts（如适用），不能只生成统一 35 行 scaffold。未适用的 package 不复制。
-- install-owned skills（jarvis-box-doctor/init/monitor、jarvis-self-improve-skill）和 external reference skills 不复制到 company repo；Phase 14 只检查/登记。
+- install-owned runtime skills（jarvis-box-doctor/init/monitor）和 external reference skills 不复制到 company repo；Phase 14 只检查/登记。若 confirmed workflow scope 包含 `jarvis-self-improve-skill`，它作为 company-owned 方法论 workflow 由 Phase 9 生成，不复制 runtime collector/scheduler。
 - 模板提供固定方法语义直接复用并参数化，客户事实由证据填充；不以文件数量要求 module 成熟度。
 - evidence-inventory 中每条精确 endpoint/route/label/方法/字段/版本/数量/命令必须记录 observed fact + repo-relative pointer + retrieval/check。正式文件只能引用这些事实。无证据就省略精确值或标 `needs-verification`，禁止"按常见 REST 习惯补全"。
 - repo 证据指针统一写成可解析的 `<repo-name>:<repo-relative-path>`，例如 `everest:service/src/main/java/.../DatasetProxyImpl.java`。只写 `service/`、`model/ + service/`、绝对 checkout 路径或最终 diff 才知道的 changed path 都不算合格证据。
@@ -208,7 +208,7 @@ Phase 7 只创建 root、canonical company entry、完整 baseline references、
 - [ ] 所有页面都遵守 identity reconciliation。
 - [ ] 对照 `acceptance.md` 自检。
 - [ ] 不得在 Phase 7 创建 workflow skill 或 source-helper skill 文件（这些是 Phase 9 的职责）。
-- [ ] 不得复制 install-owned skills（jarvis-box-doctor/init/monitor、jarvis-self-improve）或 external reference skills 到 company repo。
+- [ ] 不得复制 install-owned runtime skills（jarvis-box-doctor/init/monitor）或 external reference skills 到 company repo；confirmed 的 `jarvis-self-improve-skill` 必须是 company-owned 方法论 package，而不是 runtime 副本。
 - [ ] 公司入口从已确认的 product identity、实际 repo-role map、实际 source route 和已有 reference 文件名填充；不用 reference-company 示例或泛化别名。entry skill 所有链接必须可解析。
 - [ ] repo-local handoff 名称必须是实际授权的 repo 名称/路径，不是 reference-company 示例或泛化别名。
 - [ ] 离开 Phase 7 前重新读取 root `README.md` 的模块、数据源、工作流、仓库四个 scope 索引：实际已创建目录必须列出，尚无证据只能写 `none-yet`/下一步；不得保留 `BOOTSTRAP_REQUIRED`。Phase 9 新增 package 后再次同步。
@@ -271,7 +271,7 @@ Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-
 - [ ] 按 generation plan 中的 `create-scaffold-needs-pilot` 运行 package 子命令创建完整 package 骨架，标 `status: scaffold-needs-pilot`。
 - [ ] 每个 package 消费 evidence inventory 中的具体事实填充 trigger、gates、handoff、verification。
 - [ ] 未适用的 package（generation plan 中没有的）不复制。
-- [ ] install-owned skills 和 external reference skills 不复制到 company repo；Phase 14 只检查/登记。
+- [ ] install-owned runtime skills 和 external reference skills 不复制到 company repo；Phase 14 只检查/登记。company-owned `jarvis-self-improve-skill` 若在 confirmed workflow scope 中则必须生成。
 - [ ] source skill 只写访问、检索、引用、边界和 writeback 限制。
 - [ ] workflow skill 写 trigger、non-trigger、evidence、routing gates、completion、END writeback。
 - [ ] 不创建 generation plan 之外的”以后可能用”的泛化 skills。
@@ -283,7 +283,7 @@ Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-
 - [ ] source access 未确认却声称可用。
 - [ ] workflow 没有跨 source/repo/team 的闭环。
 - [ ] skill package 只有统一 scaffold 没有消费 evidence inventory。
-- [ ] install-owned 或 external reference skills 被复制到 company repo。
+- [ ] install-owned runtime 或 external reference skills 被复制到 company repo；或 self-improve company workflow 被错误替换成 runtime 实现。
 - [ ] confirmed workflow/source 被改名、合并或省略。
 
 ## Phase 10 - 交付确认报告

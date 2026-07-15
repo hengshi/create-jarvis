@@ -41,6 +41,7 @@ Optional:
   E2E_CONTAINER_CPUS   optional CPU limit
   E2E_STOP_AFTER_INSTALL set 1 to run release install smoke without invoking Claude
   E2E_REPLAY_USER      replay container --user, default $(id -u):$(id -g) (non-root required by Claude CLI bypassPermissions)
+  E2E_REPLAY_BRIDGE_POLL_SECONDS single replay request wait window, default 600
   REPLAY_BRIDGE_TIMEOUT_SECONDS default 1800 (propagated to request-isolated-replay)
 USAGE
 }
@@ -204,6 +205,7 @@ outer_args=(
   -e "JARVIS_OWNERS=${JARVIS_OWNERS:-platform-owner}"
   -e "JARVIS_WRITEBACK_STRATEGY=${JARVIS_WRITEBACK_STRATEGY:-local-only}"
   -e "E2E_STOP_AFTER_INSTALL=${E2E_STOP_AFTER_INSTALL:-0}"
+  -e "E2E_REPLAY_BRIDGE_POLL_SECONDS=${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}"
   -e "REPLAY_BRIDGE_TIMEOUT_SECONDS=${REPLAY_BRIDGE_TIMEOUT_SECONDS:-1800}"
   -e "E2E_HOST_UID=$(id -u)"
   -v "$repo_root":/create-jarvis-skill:ro

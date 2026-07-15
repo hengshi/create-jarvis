@@ -6,7 +6,7 @@ Subcommands:
     module  --state <...> --name <confirmed exact name>
     source  --state <...> --name <confirmed exact name>  (creates sources/<name>/README.md only)
     package --state <...> --kind <skill-packages kind> --name <confirmed exact output name>
-             Valid Phase 9 kinds include generic-source (source-helper skill package).
+             Valid Phase 9 kinds include generic-source and self-improve-skill.
 
 The base command also creates the root runtime contracts and the initial
 _bootstrap/jarvis-build-brief.md. It leaves the supplied phase status intact

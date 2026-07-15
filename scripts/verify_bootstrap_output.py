@@ -2338,7 +2338,7 @@ class Verifier:
 
     def _verify_install_owned_skills_not_copied(self) -> None:
         """Block install-owned skills copied into company repo."""
-        INSTALL_OWNED = {"jarvis-box-doctor", "jarvis-box-init", "jarvis-box-monitor", "jarvis-self-improve-skill"}
+        INSTALL_OWNED = {"jarvis-box-doctor", "jarvis-box-init", "jarvis-box-monitor"}
         skills_dir = self.jarvis_home / "skills"
         if not skills_dir.is_dir():
             return
@@ -2434,6 +2434,11 @@ class Verifier:
                 "companions": ["references/example-contract.md"],
                 "force_four_stage": False,
                 "markers": [],
+            },
+            "self-improve-skill": {
+                "companions": [],
+                "force_four_stage": False,
+                "markers": [r"self.?improv|trajectory|no_skill_gap|no.?skill.?gap"],
             },
         }
 

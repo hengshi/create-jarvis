@@ -107,6 +107,7 @@ owners="${JARVIS_OWNERS:-platform-owner}"
 writeback_strategy="${JARVIS_WRITEBACK_STRATEGY:-local-only}"
 e2e_host_uid="${E2E_HOST_UID:-}"
 continuation="${E2E_CONTINUATION:-0}"
+replay_bridge_poll_seconds="${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}"
 
 [ -n "$repo_specs" ] || die "E2E_REPO_SPECS is required"
 [ -d "$dist_dir" ] || die "JARVIS_BOX_DIST_DIR not found in container: $dist_dir"
@@ -132,7 +133,8 @@ mkdir -p \
   /e2e/customer-repos \
   /e2e/logs \
   /e2e/output \
-  /e2e/work/bootstrap
+  /e2e/work/bootstrap \
+  /e2e/work/replay-parent-worktrees
 
 # runtime/state root from install.sh — use the actual paths created by install.sh
 runtime_state_root=/e2e/install-root/var/lib/jarvis-box
@@ -280,6 +282,15 @@ if [ "$continuation" = "1" ]; then
   log "copying prior E2E artifacts into a new continuation run"
   cp -a /continue-from/customer-repos/. /e2e/customer-repos/
   cp -a /continue-from/output/company-jarvis /e2e/output/company-jarvis
+  if [ -d /continue-from/work/replay-parent-worktrees ]; then
+    cp -a /continue-from/work/replay-parent-worktrees/. /e2e/work/replay-parent-worktrees/
+    log "reused prior history-replay parent snapshots"
+  fi
+  if [ -d /continue-from/replay-bridge ]; then
+    mkdir -p /host-e2e/replay-bridge
+    cp -a /continue-from/replay-bridge/. /host-e2e/replay-bridge/
+    log "reused prior history-replay bridge state"
+  fi
   if [ -f /continue-from/semantic-acceptance.md ]; then
     cp -a /continue-from/semantic-acceptance.md /e2e/continuation-semantic-acceptance.md
   fi
@@ -486,6 +497,7 @@ runuser -u e2e -- env \
   JARVIS_TARGET_HOME=/e2e/output/company-jarvis \
   JARVIS_ENV_FILE="$runtime_env_file" \
   E2E_CONTINUATION="$continuation" \
+  REPLAY_BRIDGE_POLL_SECONDS="$replay_bridge_poll_seconds" \
   "$jarvis_box_bin" "${bootstrap_args[@]}" \
   >/e2e/bootstrap-jarvis.log 2>&1
 bootstrap_rc=$?

@@ -101,6 +101,7 @@ Company bootstrap 负责明确以下内容：
 
 1. 创建或更新 `_bootstrap/day2-operation.md`（使用规范模板 `templates/company-jarvis/artifacts/day2-operation.md`）。所有 Phase 14 证据统一写入此文件，不再单独创建 `_bootstrap/day2-runtime-checks.md`。
 2. 运行 `jarvis-box --help` 和相关子命令 help，确认命令真实存在。把每个实际检查写入 `_bootstrap/day2-operation.md`：exact command（不含 secret）、exit code、输出摘要、观察时间和对应 capability。
+   只有实际执行的 CLI 调用才使用反引号命令格式，例如 `jarvis-box status`。安装文件、可执行文件、安装状态和 authority 证据必须写成文件路径或普通名词（例如“已安装的 jarvis-box executable”），不要写成 `` `jarvis-box binary` ``、`` `jarvis-box install` `` 这类不存在的 root command。
 3. 确认本客户实际需要的 owner：Jarvis、repo/source/workflow、知识维护、history replay；同一角色可以承担多个责任，但每项必须可找到 owner 或 escalation。
 4. 逐项检查 install-owned 能力，按能力表的五列维度分别记录：install/authority evidence、observed current state、last execution proof（或 unexercised）、readiness、owner & recovery。不得用单个模糊词合并所有维度。
 5. 登记 managed jobs 到 `references/runtime-governance.md` 的 managed jobs section。确认 container/无 systemd 环境的替代调度安排。

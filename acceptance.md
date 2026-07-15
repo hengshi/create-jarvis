@@ -98,7 +98,7 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - 泄漏/invalid/未验证 case 产生 `no_skill_gap` 或 skill gap 结论（只能为 `not-evaluated`）。
 - 执行后发现泄漏，case 未被分类为 `invalid`/`not-evaluated`，或 Phase 12 未另选有效 case 即标 completed。
 - Phase 7 自由生成了 workflow/source-helper skills（这些应由 Phase 9 按 generation plan 实例化）。
-- install-owned skills（jarvis-box-doctor/init/monitor、jarvis-self-improve）或 external reference skills 被复制到 company repo。
+- install-owned runtime skills（jarvis-box-doctor/init/monitor）或 external reference skills 被复制到 company repo；或者 company-owned `jarvis-self-improve-skill` 被错误实现成 jarvis-box runtime 副本。
 - Phase 14 用单个模糊词（如 `configured`、`installed`）替代五列维度（install/authority evidence、observed current state、last execution proof、readiness、owner & recovery）。
 - Phase 14 仅凭 artifact presence、public help、version output 或零活跃 Task 宣称能力已配置/工作。
 - Phase 14 把零 Task 写为 `not-applicable` 而非 `unexercised`，或把容器缺少 systemd 当作 service/jobs 的 `not-applicable`。

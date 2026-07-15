@@ -47,6 +47,8 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 `tasks start/continue/stop/recover/retry-writeback` 是会改变 Task、Run 或 provider delivery 的五个产品操作。仅在 Task identity、授权、目标和恢复方式明确时执行。
 
 - `continue` 在同一 Task 中创建后续 Run；它不是 bootstrap resume。
+- `continue` 可以由 jarvis-box 使用已保存的 provider-native session handle 继续同一 agent 会话；该 handle 属于 runtime 私有状态。即使 Codex 输出 JSONL `thread.started` / `thread_id`，也不能把它复制到 company Jarvis、bootstrap artifact 或公开 handoff。
+- Task 的 `task_id`、`run_id`、workspace 和 session 状态只记录 jarvis-box 实际返回或公开暴露的值。UI/feed 对 lane display id 的解析是产品内部兼容行为，不允许 agent 根据目录名、lane 名或字符串拼接自行生成 Task/Run identity。
 - `recover` 只用于 live 状态已确认的 `recovery-required` 进程观察链丢失。
 - `retry-writeback` 只重试已有 provider delivery，不运行 agent，也不做 skill/file 写回。
 - service restart 不推断旧 Task 应继续；需要恢复时由 operator 读取证据后显式选择生命周期操作。

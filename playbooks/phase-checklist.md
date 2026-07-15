@@ -443,7 +443,7 @@ Phase 9 唯一负责按 Phase 6 generation plan 实例化完整 workflow/source-
 - [ ] 逐项检查 install-owned 能力，每项分别记录五列维度：install/authority evidence、observed current state、last execution proof（或 unexercised）、readiness、owner & recovery。不得用单个模糊词合并。
 - [ ] 产物存在、public help、version 输出或零活跃 Task 不单独证明能力已配置/工作。零 Task 意为 `unexercised`，不是 `not-applicable`。容器缺少 systemd 不使 service/jobs 变为 `not-applicable`：实际探测可用替代方案或标记 `unverified`/`blocked`。
 - [ ] install-owned managed jobs 的事实来自当前 release docs/安装产物、host scheduler 或 `/server` crons、job logs/activity。不能因为不在顶层 `--help` 就判不存在。
-- [ ] 先按当前安装版本复核合同。v0.1.22 基线：Task 五个 lifecycle operations（start/continue/stop/recover/retry-writeback）；`reap`/`clean` 是维护；`reconcile` 是 dry-run；service restart 不自动恢复 Task；`recover` 仅 recovery-required；`bootstrap --resume` 只恢复表单/已确认状态，绝不是 Jarvis maintenance authority。
+- [ ] 先按当前安装版本复核合同。当前已确认的 Task 合同是五个 lifecycle operations（start/continue/stop/recover/retry-writeback）；`reap`/`clean` 是维护；`reconcile` 是 dry-run；service restart 不自动恢复 Task；`recover` 仅 recovery-required；`bootstrap --resume` 只恢复表单/已确认状态，绝不是 Jarvis maintenance authority。此处不把某个版本号当作永久基线：若当前安装版本的 `--help` 或 release contract 有差异，以当前机器的 live 输出为准并记录差异。
 - [ ] 至少一个 runtime agent 需要真实 prompt probe（受控短 prompt 确认实际响应）。`--help` 和 `agent list --check` 不能替代。
 - [ ] doctor 总体非零时按具体 finding 归属，不把所有能力一律判失败。
 - [ ] 指定 Jarvis owner；替代责任人按客户政策登记。

@@ -78,7 +78,7 @@ description: >
 到达主执行 repo 后，切换到 repo-local skill。仅在首跳证据不足时扩展到 second hop。
 
 ### 最小修复
-在证据确认的最窄 owner boundary 做最小修复。命令、工具、目录、测试全部来自 repo-local truth / source route。新证据推翻当前 route 时停止 patch 并重新路由。
+进入 patch 前加载 `ponytail`。在证据确认的最窄 owner boundary 做最小 root-cause fix；命令、工具、目录、测试全部来自 repo-local truth / source route。新证据推翻当前 route 时停止 patch 并重新路由。
 
 ## VERIFY
 
@@ -116,5 +116,6 @@ VCS 变更、review、reviewer 分配、CI、label、comment 等操作仅在客�
 - `{{COMPANY_SLUG}}-jarvis/references/runtime-governance.md`：runtime preflight
 - `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`：quality gate
 - `references/reproduction-evidence.md`：复现证据选择与等价性验证
+- `ponytail`：进入 patch 前选择最小正确实现
 - `{{COMPANY_SLUG}}-jarvis`：company Jarvis 闭环选择
 - 执行 repo 的 canonical repo-local skill：执行面明确后加载

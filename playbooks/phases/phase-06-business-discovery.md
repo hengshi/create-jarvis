@@ -23,7 +23,7 @@ Phase 6 是同一个 Phase 内的两层扫描，不是两个独立 phase：
    - 不能只输出最容易从 repo 猜到的少量模块，让 confirmed module hints 消失。
 6. 为每个 module candidate 连接 sources、repos、tests/issues 和已知 workflow role。
 7. 明确哪些 repo-local skills 必须生成，哪些 source/workflow skills 必须生成，哪些进入 backlog。
-   - 如果 Phase 4 提供了 confirmed workflow scope，这些值默认就是目标 `skills/<workflow>/SKILL.md` 名；为每个 workflow 写 `create-now` 或 `create-scaffold-needs-pilot`，不要改名或合并。
+   - 三个 starter workflows 写为 `customize-existing`，并分别记录要填入的客户事实和 first-pilot 证据。Phase 4 提供的额外 workflow scope 值是 `<name>` 部分；为每个额外 workflow 写 `create-now` 或 `create-scaffold-needs-pilot`，输出为 `skills/<slot>-workflow-<name>/SKILL.md`。
    - 如果 Phase 4 提供了 confirmed source scope，这些值默认就是目标 `sources/<source>/README.md` 路由名；为每个 source 写 `route-created`、`needs-access` 或 `raw-export-boundary`，不要改写成泛化来源名。
 8. 区分 `confirmed`、`needs-owner-confirmation`、`grow-from-pilot`、`grow-from-history-replay`。
 9. 选择需要使用的 `templates/` 文件。
@@ -167,7 +167,7 @@ Phase 6 不是"读过一些文件"就完成。进入 Phase 7 前必须同时满�
 - 不把 templates 的结构当作客户事实。
 - 不把 source-detected product/brand identity 直接并入客户 company identity。
 - 不把 pilot scope 扩成全公司扫描——全生态拓扑扫描仍以已授权范围为界。
-- 不把客户确认的 module/source/workflow 名称翻译、缩写、合并或改写成 agent 自己喜欢的分类名。
+- 不把客户确认的 module/source 名称或 workflow 的 `<name>` 部分翻译、缩写、合并或改写；workflow 只增加 `<slot>-workflow-` 命名空间。
 - 不先批量生成通用 module，再把真实客户扫描推迟到 Phase 8 或 Phase 11。
 - 不用相同的通用 source-of-truth、关键概念、接口和验证段落填满所有 modules。
 - 不根据领域常识编造 API endpoint、UI route、issue label、owner、测试数量或 CI 行为。

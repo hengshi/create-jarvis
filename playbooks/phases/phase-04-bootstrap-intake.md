@@ -55,7 +55,7 @@ Phase 4 只做信息接收、归一化和 manifest。它不做业务扫描，不
 8. 标准化 sources/repos：VCS、issues/tickets、docs/wiki、support/customer sources、pilot repos、excluded sources/repos。
    - 如果 `JARVIS_SOURCE_SCOPE` 存在，逐项记录为 confirmed source scope facts；这些值默认就是目标 `sources/<source>/README.md` 路由名，Phase 6 只能补证据和访问状态，不能无声省略或泛化改名。
    - 如果 `JARVIS_MODULE_HINTS` 存在，逐项记录为 confirmed module facts；这些值默认就是目标 `modules/<module>/` 目录名，Phase 6 必须给每项一个 coverage decision，不能无声省略、泛化改名或改大小写。
-   - 如果 `JARVIS_WORKFLOW_SCOPE` 存在，逐项记录为 confirmed workflow scope facts；这些值默认就是目标 `skills/<workflow>/SKILL.md` 名，Phase 9 必须为每项生成独立 skill scaffold，不能无声省略或泛化改名。
+   - 如果 `JARVIS_WORKFLOW_SCOPE` 存在，逐项记录为 confirmed workflow 的 `<name>`；Phase 9 必须逐字节保留并映射到 `skills/<slot>-workflow-<name>/SKILL.md`。三个 starter workflows 无条件存在，额外 workflow 不能无声省略、合并或泛化改名。
 9. 标准化 writeback policy：disabled、local-only、human-approved、repo/docs writeback 或 custom approval。
 10. 生成或校验 adaptation manifest，记录 confirmed、unresolved、missing、conflicting fields。
 11. 初始化 identity reconciliation：company identity、confirmed product identity、source-detected identity candidates、conflicts。

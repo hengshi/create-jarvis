@@ -49,6 +49,14 @@ Session compact、handoff 后，后续 agent 重新执行本节 preflight 即可
 
 Capability owner 可以是已确认的 product、source、process 或 repo owner，不预设必须是 repo。
 
+默认路由入口：
+
+- 已建 issue/ticket 需要判断、去重或路由：`{{COMPANY_SLUG}}-workflow-issue-post-check`
+- 已确认 bug 需要修复：`{{COMPANY_SLUG}}-workflow-bugfix-loop`
+- 已确认需求需要交付：`{{COMPANY_SLUG}}-workflow-feature-delivery`
+- 进入代码或耐久文档实现前：按任务加载 `ponytail`、`writing-durable-docs` 或 `stop-slop`
+- 发现重复 agent failure 或 review pattern：`jarvis-self-improve-skill`
+
 ## 4. 路由算法
 
 本入口坚持 **workflow-first**：先识别要闭合的工作流，再选择 module、source 和 repo-local

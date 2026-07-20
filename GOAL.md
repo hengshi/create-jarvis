@@ -14,16 +14,41 @@ Bootstrap company Jarvis repo 指 runtime agent 在客户授权范围内完成�
 
 1. 从客户提供或授权访问的 docs、repos、tests、issues/MRs、wiki、产品材料、支持材料、CI 配置和历史 commits 中提炼公司级事实。
 2. 用这些事实建立客户自己的产品/业务/技术 module 拓扑，而不是套用 `backend-service`、`frontend-app` 这类通用工程分层。
-3. 生成 company entry skill，让 agent 能按 artifact、问题类型、workflow、source 和 repo 路由。
+3. 创建 `<slot>-jarvis` Git 仓库和同名 company entry skill，让 agent 能按 artifact、问题类型、workflow、source 和 repo 路由。
 4. 分清 company identity、客户确认的 product identity、source-detected identity，不能把 repo/docs 里识别出的品牌或产品名直接写成客户公司身份。
 5. 建立 source、repo、workflow inventories，并明确每个条目的 evidence、owner、状态和缺口。
 6. 为第一条高价值 workflow 建立可执行闭环：START -> WORK -> VERIFY -> END。
 7. 为 pilot repos 创建或登记 repo-local skill package，让 repo execution truth 留在 repo 本地。
-8. 为 confirmed source/workflow scope 创建完整 skill package；证据不足时写明 status、unresolved 和 verification，不得只留 stub 或 backlog，也不复制 source 原文。
+8. 安装四个通用方法 skill，创建并定制三个默认 workflow 母版；再为额外 confirmed source/workflow scope 创建完整 skill package。证据不足时写明 status、unresolved 和 verification，不得只留 stub 或 backlog，也不复制 source 原文。
 9. 建立影子试跑、历史回放校准、`no_skill_gap` 判断和受控 writeback 规则。
 10. 写出 jarvis-box 和后续 agent 可继续执行的 `bootstrap-state.json` 与 `bootstrap-result.json`。
 
 模板只提供结构、边界和初始文件形状。所有 truth-bearing 内容必须来自客户证据、真实试跑、历史回放，或在穷尽可访问证据后被明确标记为 `unresolved`、`grow-from-pilot`、`grow-from-history-replay`。只有策略或语义歧义才需要 owner 确认；checked-in 文件、Git 元数据和可直接执行的命令不得因为 agent 尚未读取而写成 `needs-owner-confirmation`。
+
+## 命名和默认能力合同
+
+- Git 仓库名：`<slot>-jarvis`
+- 公司统一入口 skill：`<slot>-jarvis`
+- 公司自有 workflow：`<slot>-workflow-<name>`
+- 公司自有 source/tool skill：`<slot>-<name>`
+- repo-local skills：留在各自代码仓库，不加 slot 前缀
+
+每个客户无条件获得四个通用方法 skill：`ponytail`、`writing-durable-docs`、
+`jarvis-self-improve-skill`、`stop-slop`。它们保留通用名称，不携带 reference company
+事实。
+
+每个客户无条件获得三个完整、可编辑的工作流母版：
+
+- `<slot>-workflow-issue-post-check`
+- `<slot>-workflow-bugfix-loop`
+- `<slot>-workflow-feature-delivery`
+
+这些 workflow 不是空 scaffold。模板提供稳定闭环语义，runtime agent 在 Phase 9 根据客户
+issue/ticket 系统、repo 路由、分支与版本策略、review/CI、发布方式、owner 和 writeback
+policy 完成初次定制。
+
+`jarvis-box-doctor`、`jarvis-box-init`、`jarvis-box-monitor` 也属于所有客户的默认能力，
+但由 jarvis-box install 全局提供并随产品升级，不能复制进 `<slot>-jarvis`。
 
 ## 什么不算完成
 
@@ -45,6 +70,7 @@ Bootstrap company Jarvis repo 指 runtime agent 在客户授权范围内完成�
 模板提供的是固定方法语义（method semantics），直接复用并参数化。模板本身不含客户事实——所有 truth-bearing 内容由客户证据填充。
 
 - 模板定义结构、边界、初始文件形状和不可协商规则。
+- 四个通用方法 skill 和三个默认 workflow 的固定方法语义直接复用；客户事实只填入允许定制的位置。
 - 客户事实（module 名、product identity、source route、workflow trigger、repo role、endpoint/route/label）只能来自 evidence inventory、owner 确认、真实试跑或历史回放。
 - 不以文件数量要求 module 成熟度；一个只有 scaffold 的 module 如果证据不足、但 coverage matrix 和 generation plan 已正确记录缺口，仍是合格的 Phase 6/7 产物。
 - 禁止用模板结构充当客户事实，禁止把”模板写了几行”当成”module 已成熟”。

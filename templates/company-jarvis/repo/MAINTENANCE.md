@@ -99,7 +99,7 @@ repo 内工程执行真相留在 repo-local skills，不进入 Jarvis。
 | `cross-cutting/*.md` | 跨模块交互合约、版本变更索引、同类产品契约对照 | 单模块内部细节 |
 | `references/*.md` | 持久路由规则、质量门、写回治理、运行治理 | 临时笔记、会话上下文 |
 | `skills/<entry>/SKILL.md` | entry skill 的路由和闭环收束 | source 镜像、repo-local 工程细节 |
-| `skills/<workflow>/SKILL.md` | 闭环工作流定义、gate、handoff、writeback 规则 | repo-local 低层实现 |
+| `skills/{{COMPANY_SLUG}}-workflow-<name>/SKILL.md` | 闭环工作流定义、gate、handoff、writeback 规则 | repo-local 低层实现 |
 | `tools/README.md` | 可复用工具索引 | jarvis-box install 托管的 capability |
 | `jarvis.toml` | project、identity、runtime、bootstrap routing pointers | secret、source/repo 事实 |
 

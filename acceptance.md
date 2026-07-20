@@ -17,12 +17,12 @@
 bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 company Jarvis repo。它必须具备：
 
 - 公司级入口 skill：能识别真实 artifact，并路由到 module、workflow、source 或 repo-local skill。
-- 仓库形态：必须接近 `hengshi-jarvis` 的真实拓扑：`README.md`、`MAINTENANCE.md`、`jarvis.toml`、`AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`、`modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/`；company entry skill 位于 `skills/<company>-jarvis/SKILL.md`。
+- 仓库命名与形态：Git 仓库名为 `<slot>-jarvis`，company entry skill 位于 `skills/<slot>-jarvis/SKILL.md`；仓库拓扑必须接近 `hengshi-jarvis`：`README.md`、`MAINTENANCE.md`、`jarvis.toml`、`AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`、`modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/`。
 - 身份边界：客户 company identity、客户确认的 product identity、source 中识别出的 product/brand identity 必须分开记录。source 里出现的品牌或产品名只能作为 evidence-backed detected identity，不能在 owner 确认前并入 company identity。
 - 产品/业务 module 拓扑：modules 来自客户授权材料，不是 `backend`、`frontend`、`api`、`database`、`infra` 这类通用工程层；每个 module 必须落完整 durable contract：`overview.md`、`known-issues.md`、`decisions.md`、`rejected-features.md`、`test-coverage.md`，没有证据时用 `needs-evidence` / `none-yet` / `needs-owner-confirmation` 明确留空，不能只生成 `overview.md`。
 - source 入口：列出客户授权 sources 的访问方式、权限状态、owner、禁止复制边界和证据引用方式。
 - routing references：`references/runtime-governance-quick.md`、`runtime-governance.md`、`jarvis-first-routing.md`、`agent-engineering-quality-gate.md`、`minimal-closure-card.md`、`redaction-rules.md`、`capability-delivery-surfaces.md`、`next-hop-compression.md`、`repo-pre-push-review-loop.md` 等文件说明 runtime 前置、routing、质量门、first-proof、repo-local handoff 和 END writeback，并指向 repo-local skill。
-- workflow skill：至少一条 first workflow 以 `skills/<workflow-skill>/SKILL.md` 的形式存在，并有 START -> WORK -> VERIFY -> END 的闭环定义。
+- 默认方法和 workflow：`ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` 必须存在；`<slot>-workflow-issue-post-check`、`<slot>-workflow-bugfix-loop`、`<slot>-workflow-feature-delivery` 必须存在并有各自的 START -> WORK -> VERIFY -> END 语义。额外 company workflow 命名为 `<slot>-workflow-<name>`，source/tool skill 命名为 `<slot>-<name>`。
 - repo-local skills：pilot repos 中有 repo-local skill package 或明确 blocker；repo execution truth 留在 repo 本地。
 - 交付确认：所有未确认事实、owner 问题、权限缺口、写回策略和下一步都明确记录。
 - 演进机制：影子试跑、历史回放、`no_skill_gap` 判断和受控写回路径已经进入 checklist，并有固定产物路径或明确 `needs-input` / blocker。
@@ -33,7 +33,9 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 
 - company Jarvis repo 只有模板文件、通用段落或目录说明。
 - company Jarvis repo 长成 `repos/`、`workflows/`、`pilot/`、`writeback/`、`rollout/`、`scheduled-jobs/` 这些 bootstrap 过程目录，而不是 `hengshi-jarvis` 风格的 `modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`。
-- company entry skill 不在 `skills/<company>-jarvis/SKILL.md`。
+- Git 仓库或 company entry skill 没有使用 `<slot>-jarvis` 命名，或 entry 不在 `skills/<slot>-jarvis/SKILL.md`。
+- 缺少 `ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` 中任一默认方法 skill。
+- 缺少 `<slot>-workflow-issue-post-check`、`<slot>-workflow-bugfix-loop`、`<slot>-workflow-feature-delivery` 中任一默认 workflow，或默认 workflow 仍是未结合客户事实检查的空 scaffold。
 - company entry skill 没有强制 runtime pre-read `references/runtime-governance-quick.md`。
 - `AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md` 缺失，或没有指向 canonical entry skill。
 - baseline references 缺失，例如 `runtime-governance-quick.md`、`runtime-governance.md`、`capability-delivery-surfaces.md`、`next-hop-compression.md`。
@@ -57,9 +59,9 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - 没有 first workflow，或 workflow 没有 START -> WORK -> VERIFY -> END。
 - 没有 source route、routing reference、workflow skill、owner 状态或 writeback policy。
 - 客户/operator 已提供 confirmed product identity、source scope、workflow scope 或 module hints，但输出仍把这些事实写成 unresolved，或无声省略其中一部分。
-- 客户/operator 已提供 confirmed module/source/workflow 名称，但输出把它们改名、改大小写、翻译、合并或泛化成 agent 自己的 taxonomy；除非同一个客户/operator 明确要求改名，否则 confirmed 名称就是目标目录名。
+- 客户/operator 已提供 confirmed module/source/workflow 名称，但输出把 module/source 名称或 workflow 的 `<name>` 部分改名、改大小写、翻译、合并或泛化成 agent 自己的 taxonomy；workflow 只允许按命名合同增加 `<slot>-workflow-` 前缀。
 - confirmed workflow scope 中有多个 workflow，却被折叠成一个泛化 workflow skill，导致 START/VERIFY/END gate 不可区分。
-- confirmed workflow scope 中的 workflow 没有生成同名 `skills/<workflow>/SKILL.md` scaffold，而是只写入 backlog。
+- confirmed workflow scope 中的 `<name>` 没有生成 `skills/<slot>-workflow-<name>/SKILL.md`，而是被改名、合并或只写入 backlog。
 - company `skills/` package 保留 `BOOTSTRAP_REQUIRED`、`[needs-evidence: ...]`、`REFERENCES_PATH`、`PROJECT_NAME` 等 bootstrap-time 模板标记，或把模板标记藏进看似可执行的命令。
 - source-helper 复制 repo-local 目录/build/test/runtime 真相，或用假 clone URL、假默认分支和通用危险操作填满模板，而不是只保存 source route、边界和 evidence pointer。
 - workflow/tool package 写出 evidence inventory 无法支持的产品 CLI、project、branch、label、version、endpoint、job 参数或默认值；工具专用 package 没有实际 source/tool first proof 却宣称可执行。
@@ -97,8 +99,8 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - oracle comparison 没有读取完整 final diff / 等价受控 oracle artifact，却把 replay 漏掉的 changed surface 猜成 cosmetic、supporting 或不重要。
 - 泄漏/invalid/未验证 case 产生 `no_skill_gap` 或 skill gap 结论（只能为 `not-evaluated`）。
 - 执行后发现泄漏，case 未被分类为 `invalid`/`not-evaluated`，或 Phase 12 未另选有效 case 即标 completed。
-- Phase 7 自由生成了 workflow/source-helper skills（这些应由 Phase 9 按 generation plan 实例化）。
-- install-owned runtime skills（jarvis-box-doctor/init/monitor）或 external reference skills 被复制到 company repo；或者 company-owned `jarvis-self-improve-skill` 被错误实现成 jarvis-box runtime 副本。
+- Phase 7 在默认四个方法 skill 和三个 starter workflow 之外，自由生成了客户 workflow/source-helper skills；额外能力应由 Phase 9 按 generation plan 实例化。
+- install-owned runtime skills（jarvis-box-doctor/init/monitor）被复制到 company repo；或者默认 `jarvis-self-improve-skill` 被错误实现成 jarvis-box collector/scheduler/runtime 副本。
 - Phase 14 用单个模糊词（如 `configured`、`installed`）替代五列维度（install/authority evidence、observed current state、last execution proof、readiness、owner & recovery）。
 - Phase 14 仅凭 artifact presence、public help、version output 或零活跃 Task 宣称能力已配置/工作。
 - Phase 14 把零 Task 写为 `not-applicable` 而非 `unexercised`，或把容器缺少 systemd 当作 service/jobs 的 `not-applicable`。

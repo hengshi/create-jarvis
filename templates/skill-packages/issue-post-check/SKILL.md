@@ -6,11 +6,11 @@ description: >
   live issue 无新增/冲突/stale/risk 信号且公司策略允许时才 skip。否则进入完整 START→WORK→VERIFY→END 后检。
 ---
 
-# Issue 后检
+# {{COMPANY_NAME}} Issue 后检
 
 面向**已建 issue** 的强制审查。所有 source/tool 从 company route 和 live issue 中按需解析。
 
-不用此 skill 做建 issue 前 intake（用 issue-intake），也不替代 bugfix / feature-delivery 闭环。
+本 skill 处理已经形成 issue/ticket 的 artifact，不负责替代 issue 创建工具，也不替代 bugfix / feature-delivery 闭环。没有可信上游 intake 时直接执行完整后检。
 
 ## 强制性前置阅读
 
@@ -41,7 +41,7 @@ description: >
 
 同时满足以下全部条件：
 
-1. issue 描述携带可信 intake 来源标记（如 `<!-- {{COMPANY_SLUG}}-issue-intake:v1 -->` 或等价完整签名），依据 issue-intake 输出契约整体判断其结论与证据仍完整
+1. issue 描述携带客户 source route 已确认的可信 intake 来源标记或等价签名，并且上游输出契约、结论和证据仍完整
 2. 当前 live issue / 触发事件没有新增证据、冲突、stale 或 risk 信号
 3. 当前公司策略允许跳过
 

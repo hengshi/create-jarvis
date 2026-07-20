@@ -70,6 +70,26 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         entry = self.tmpdir / "skills" / "acme-claude-e2e-jarvis" / "SKILL.md"
         self.assertTrue(entry.is_file(), f"missing entry skill: {entry}")
 
+        # Mandatory method kernel and editable starter workflows
+        default_skills = [
+            "ponytail",
+            "writing-durable-docs",
+            "jarvis-self-improve-skill",
+            "stop-slop",
+            "acme-claude-e2e-workflow-issue-post-check",
+            "acme-claude-e2e-workflow-bugfix-loop",
+            "acme-claude-e2e-workflow-feature-delivery",
+        ]
+        for skill_name in default_skills:
+            skill = self.tmpdir / "skills" / skill_name / "SKILL.md"
+            self.assertTrue(skill.is_file(), f"missing default skill: {skill_name}")
+            content = skill.read_text(encoding="utf-8")
+            self.assertRegex(
+                content,
+                rf"(?m)^name:\s*{re.escape(skill_name)}\s*$",
+                f"default skill frontmatter name mismatch: {skill_name}",
+            )
+
         # 17 references
         refs_dir = self.tmpdir / "references"
         self.assertTrue(refs_dir.is_dir())
@@ -156,14 +176,15 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         self.assertEqual(
             self._run(
                 "package", "--state", str(self.state_path),
-                "--kind", "generic-workflow", "--name", "issue-loop",
+                "--kind", "generic-workflow",
+                "--name", "acme-claude-e2e-workflow-issue-loop",
             ).returncode,
             0,
         )
         readme = (self.tmpdir / "README.md").read_text(encoding="utf-8")
         self.assertIn("modules/analytics/overview.md", readme)
         self.assertIn("sources/docs/README.md", readme)
-        self.assertIn("skills/issue-loop/SKILL.md", readme)
+        self.assertIn("skills/acme-claude-e2e-workflow-issue-loop/SKILL.md", readme)
         self.assertNotIn("BOOTSTRAP_REQUIRED", readme)
 
     def test_no_unresolved_tokens(self):
@@ -270,29 +291,26 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         source_skill = self.tmpdir / "sources" / "customer-docs" / "SKILL.md"
         self.assertFalse(source_skill.is_file(), "source subcommand must not create SKILL.md in sources")
 
-    def test_package_issue_intake_with_companion_refs(self):
-        """Package subcommand creates issue-intake with all companion references."""
-        self._run("base", "--state", str(self.state_path))
-        result = self._run("package", "--state", str(self.state_path),
-                          "--kind", "issue-intake", "--name", "issue-intake")
+    def test_default_workflows_keep_companion_refs(self):
+        """base creates complete starter workflows, including companion references."""
+        result = self._run("base", "--state", str(self.state_path))
         self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
 
-        pkg = self.tmpdir / "skills" / "issue-intake"
-        self.assertTrue((pkg / "SKILL.md").is_file())
-        for ref in ["blocker-template", "disposition-command-checklist", "disposition-proof-sop",
-                     "guided-question-flow", "issue-type-matrix", "output-template",
-                     "pre-filing-judgment-card"]:
-            self.assertTrue((pkg / "references" / f"{ref}.md").is_file(),
-                          f"missing companion ref: {ref}")
+        post_check = self.tmpdir / "skills" / "acme-claude-e2e-workflow-issue-post-check"
+        self.assertTrue((post_check / "references" / "environment-version-evidence-gate.md").is_file())
+        self.assertTrue((post_check / "references" / "peer-product-contract-check.md").is_file())
+        bugfix = self.tmpdir / "skills" / "acme-claude-e2e-workflow-bugfix-loop"
+        self.assertTrue((bugfix / "references" / "reproduction-evidence.md").is_file())
 
     def test_package_generic_workflow(self):
         """Generic workflow package creates a non-thin SKILL.md."""
         self._run("base", "--state", str(self.state_path))
         result = self._run("package", "--state", str(self.state_path),
-                          "--kind", "generic-workflow", "--name", "customer-deploy")
+                          "--kind", "generic-workflow",
+                          "--name", "acme-claude-e2e-workflow-customer-deploy")
         self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
 
-        skill = self.tmpdir / "skills" / "customer-deploy" / "SKILL.md"
+        skill = self.tmpdir / "skills" / "acme-claude-e2e-workflow-customer-deploy" / "SKILL.md"
         self.assertTrue(skill.is_file())
         content = skill.read_text(encoding="utf-8")
         # Not a thin scaffold
@@ -309,6 +327,20 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0,
                               f"should reject path traversal: {bad_name!r}")
         # NUL byte: tested via instantiator validation, not subprocess arg
+
+    def test_company_slug_path_traversal_rejected_before_write(self):
+        """A confirmed company slug cannot escape the target directory."""
+        state = json.loads(self.state_path.read_text(encoding="utf-8"))
+        escaped_name = f"{self.tmpdir.name}-escaped"
+        state["identity_reconciliation"]["company_identity"]["slug"] = f"../{escaped_name}"
+        self.state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+
+        result = self._run("base", "--state", str(self.state_path))
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("company slug contains forbidden characters", result.stderr)
+        self.assertFalse((self.tmpdir.parent / f"{escaped_name}-jarvis").exists())
+        self.assertFalse((self.tmpdir / "README.md").exists())
 
     def test_validate_name_allows_dots(self):
         """Names containing regular dots (like foo.bar) are allowed."""
@@ -357,27 +389,47 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         """Rendered SKILL.md YAML name matches the output directory name."""
         self._run("base", "--state", str(self.state_path))
 
-        # Test issue-intake
-        self._run("package", "--state", str(self.state_path),
-                  "--kind", "issue-intake", "--name", "prefixed-issue-intake")
-        skill_md = self.tmpdir / "skills" / "prefixed-issue-intake" / "SKILL.md"
-        self.assertTrue(skill_md.is_file())
-        content = skill_md.read_text(encoding="utf-8")
-        m = re.search(r"^name:\s*(.+)$", content, re.MULTILINE)
-        self.assertIsNotNone(m, "SKILL.md should have a YAML name field")
-        self.assertEqual(m.group(1).strip(), "prefixed-issue-intake",
-                         f"frontmatter name should be 'prefixed-issue-intake', got {m.group(1).strip()!r}")
-
         # Test generic custom name
         self._run("package", "--state", str(self.state_path),
-                  "--kind", "generic-workflow", "--name", "custom-deploy-loop")
-        skill_md2 = self.tmpdir / "skills" / "custom-deploy-loop" / "SKILL.md"
+                  "--kind", "generic-workflow",
+                  "--name", "acme-claude-e2e-workflow-custom-deploy-loop")
+        skill_md2 = self.tmpdir / "skills" / "acme-claude-e2e-workflow-custom-deploy-loop" / "SKILL.md"
         self.assertTrue(skill_md2.is_file())
         content2 = skill_md2.read_text(encoding="utf-8")
         m2 = re.search(r"^name:\s*(.+)$", content2, re.MULTILINE)
         self.assertIsNotNone(m2, "SKILL.md should have a YAML name field")
-        self.assertEqual(m2.group(1).strip(), "custom-deploy-loop",
-                         f"frontmatter name should be 'custom-deploy-loop', got {m2.group(1).strip()!r}")
+        self.assertEqual(m2.group(1).strip(), "acme-claude-e2e-workflow-custom-deploy-loop")
+
+    def test_extension_package_requires_slot_prefix(self):
+        """Additional company workflow/source skills must obey the slot namespace."""
+        self._run("base", "--state", str(self.state_path))
+        workflow = self._run(
+            "package", "--state", str(self.state_path),
+            "--kind", "generic-workflow", "--name", "custom-deploy-loop",
+        )
+        self.assertNotEqual(workflow.returncode, 0)
+        source = self._run(
+            "package", "--state", str(self.state_path),
+            "--kind", "generic-source", "--name", "docs",
+        )
+        self.assertNotEqual(source.returncode, 0)
+
+    def test_extension_package_rejects_empty_suffix_and_reserved_names(self):
+        """Extension names cannot collide with the entry skill or workflow namespace."""
+        self._run("base", "--state", str(self.state_path))
+        invalid_packages = (
+            ("generic-source", "acme-claude-e2e-"),
+            ("generic-source", "acme-claude-e2e-jarvis"),
+            ("generic-source", "acme-claude-e2e-workflow-deploy"),
+            ("generic-workflow", "acme-claude-e2e-workflow-"),
+        )
+        for kind, name in invalid_packages:
+            with self.subTest(kind=kind, name=name):
+                result = self._run(
+                    "package", "--state", str(self.state_path),
+                    "--kind", kind, "--name", name,
+                )
+                self.assertNotEqual(result.returncode, 0)
 
     def test_jarvis_toml_valid_and_complete(self):
         """jarvis.toml is valid TOML with required sections."""
@@ -543,11 +595,17 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
         self.assertIn("- sources/api-reference/README.md", si)
         self.assertEqual(si.count("customer-docs"), 1, "customer-docs should appear only once (dedup)")
 
-        # WORKFLOW_INDEX: "deploy-loop, deploy-loop, prd-review" → dedup, order preserved
+        # WORKFLOW_INDEX contains defaults and slot-normalized confirmed workflows.
         wi = globals_["WORKFLOW_INDEX"]
-        self.assertIn("- skills/deploy-loop/SKILL.md", wi)
-        self.assertIn("- skills/prd-review/SKILL.md", wi)
-        self.assertEqual(wi.count("deploy-loop"), 1, "deploy-loop should appear only once (dedup)")
+        self.assertIn("- skills/acme-claude-e2e-workflow-issue-post-check/SKILL.md", wi)
+        self.assertIn("- skills/acme-claude-e2e-workflow-bugfix-loop/SKILL.md", wi)
+        self.assertIn("- skills/acme-claude-e2e-workflow-feature-delivery/SKILL.md", wi)
+        self.assertIn("- skills/acme-claude-e2e-workflow-deploy-loop/SKILL.md", wi)
+        self.assertEqual(
+            wi.count("acme-claude-e2e-workflow-deploy-loop"),
+            1,
+            "deploy-loop should appear only once (dedup)",
+        )
 
         # REPO_INDEX keeps VCS identity but uses checkout basename for the local entry.
         ri = globals_["REPO_INDEX"]
@@ -571,7 +629,7 @@ class TestInstantiateCompanyJarvis(unittest.TestCase):
 
 
 class IntegrationVerifierNoFalsePositiveTests(unittest.TestCase):
-    """Integration: instantiator renders base + source + module + 12 packages,
+    """Integration: instantiator renders base defaults plus extension packages,
     then verifier runs and asserts no template-congruence false positive."""
 
     @classmethod
@@ -599,23 +657,8 @@ class IntegrationVerifierNoFalsePositiveTests(unittest.TestCase):
             capture_output=True, text=True, timeout=30, cwd=str(self.tmpdir),
         )
 
-    ALL_12_KINDS = [
-        "generic-workflow",
-        "generic-source",
-        "issue-intake",
-        "issue-post-check",
-        "bugfix-loop",
-        "feature-delivery",
-        "prd-review",
-        "release-notes",
-        "branch-neutral-docs",
-        "outline-api",
-        "jenkins-job-builder",
-        "issue-attachment-regression-fixture",
-    ]
-
-    def test_all_12_packages_no_false_positive(self):
-        """Instantiate base + source + module + 12 packages; verifier finds no false positive."""
+    def test_default_and_extension_packages_no_false_positive(self):
+        """Instantiate defaults plus both extension kinds; verifier finds no false positive."""
         # Base
         r = self._run_inst("base", "--state", str(self.state_path))
         self.assertEqual(r.returncode, 0, f"base failed: {r.stderr}")
@@ -628,12 +671,27 @@ class IntegrationVerifierNoFalsePositiveTests(unittest.TestCase):
         r = self._run_inst("module", "--state", str(self.state_path), "--name", "analytics")
         self.assertEqual(r.returncode, 0, f"module failed: {r.stderr}")
 
-        # 12 packages with prefixed/custom names
-        for kind in self.ALL_12_KINDS:
-            pkg_name = f"prefixed-{kind}" if kind != "generic-workflow" else "custom-generic-workflow"
+        # Customer-derived extension packages
+        extension_packages = {
+            "generic-workflow": "acme-claude-e2e-workflow-custom-delivery",
+            "generic-source": "acme-claude-e2e-customer-docs",
+        }
+        for kind, pkg_name in extension_packages.items():
             r = self._run_inst("package", "--state", str(self.state_path),
                               "--kind", kind, "--name", pkg_name)
             self.assertEqual(r.returncode, 0, f"package {kind} failed: {r.stderr}")
+
+        source_skill = (
+            self.tmpdir
+            / "skills"
+            / "acme-claude-e2e-customer-docs"
+            / "SKILL.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "acme-claude-e2e-jarvis/sources/customer-docs/README.md",
+            source_skill,
+        )
+        self.assertNotIn("sources/acme-claude-e2e-customer-docs/", source_skill)
 
         # Run verifier on the output
         import importlib.util as _iu
@@ -666,19 +724,20 @@ class IntegrationVerifierNoFalsePositiveTests(unittest.TestCase):
         self.assertEqual(len(fp_findings), 0,
                          f"template-congruence false positives: {fp_findings}")
 
-    def test_r4_prefixed_issue_intake_companion_caught(self):
-        """r4: prefixed issue-intake missing companion MUST still be caught."""
+    def test_default_post_check_missing_companion_caught(self):
+        """A starter workflow missing a mandatory companion must be caught."""
         # Base first
         r = self._run_inst("base", "--state", str(self.state_path))
         self.assertEqual(r.returncode, 0, f"base failed: {r.stderr}")
 
-        # Instantiate issue-intake normally
-        r = self._run_inst("package", "--state", str(self.state_path),
-                          "--kind", "issue-intake", "--name", "prefixed-issue-intake")
-        self.assertEqual(r.returncode, 0, f"package failed: {r.stderr}")
-
         # Delete one companion file
-        comp = self.tmpdir / "skills" / "prefixed-issue-intake" / "references" / "blocker-template.md"
+        comp = (
+            self.tmpdir
+            / "skills"
+            / "acme-claude-e2e-workflow-issue-post-check"
+            / "references"
+            / "environment-version-evidence-gate.md"
+        )
         comp.unlink()
 
         import importlib.util as _iu
@@ -695,7 +754,35 @@ class IntegrationVerifierNoFalsePositiveTests(unittest.TestCase):
         report = v.verify()
         codes = {f["code"] for f in report["findings"] if f["severity"] == "blocker"}
         self.assertIn("workflow_companion_file_missing", codes,
-                      "prefixed-issue-intake with missing companion must be caught")
+                      "starter post-check with missing companion must be caught")
+
+    def test_missing_default_method_skill_caught(self):
+        """The final verifier treats the method kernel as an output contract."""
+        r = self._run_inst("base", "--state", str(self.state_path))
+        self.assertEqual(r.returncode, 0, f"base failed: {r.stderr}")
+        shutil.rmtree(self.tmpdir / "skills" / "ponytail")
+
+        import importlib.util as _iu
+        _spec = _iu.spec_from_file_location(
+            "verify_bootstrap_output",
+            Path(__file__).resolve().parent.parent / "scripts" / "verify_bootstrap_output.py",
+        )
+        _vmod = _iu.module_from_spec(_spec)
+        sys.modules["verify_bootstrap_output"] = _vmod
+        _spec.loader.exec_module(_vmod)
+
+        report = _vmod.Verifier(
+            self.tmpdir,
+            [],
+            run_precheck=False,
+            expected_company_slug="acme-claude-e2e",
+        ).verify()
+        messages = [
+            finding["message"]
+            for finding in report["findings"]
+            if finding["code"] == "default_skill_missing"
+        ]
+        self.assertTrue(any("skills/ponytail/SKILL.md" in message for message in messages))
 
 
 if __name__ == "__main__":

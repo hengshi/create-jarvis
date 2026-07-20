@@ -42,7 +42,7 @@ templates/company-jarvis/
 
 **source route 与 source-helper skill 的分工**：
 - **source route**（`sources/<name>/README.md`）：最小路由信息——identity、access、owner、query、retrieval evidence、redaction、freshness、writeback、status。帮助 agent 到达和初步理解 source，不做深度操作。
-- **source-helper skill**（`skills/<name>/SKILL.md`）：当 agent 需要对特定 source 做深度操作（如构建、测试、代码搜索）时，通过 `package --kind generic-source --name <name>` 生成。它是一个完整的 skill，包含 build/run/test 命令、目录布局、边界规则等。
+- **source-helper skill**（`skills/<slot>-<name>/SKILL.md`）：当 agent 需要对特定 source 做精确检索、证据引用、允许的写回或安全边界处理时，通过 `package --kind generic-source --name <slot>-<name>` 生成。技能名带公司命名空间，仍路由到 `sources/<name>/README.md`；repo 的构建、测试和目录真相留在 repo-local skill。
 
 简单说：source route 是路标，source-helper skill 是操作手册。Phase 9 如需要 source-helper，应使用 `package --kind generic-source`。
 
@@ -57,7 +57,7 @@ templates/company-jarvis/
 1. jarvis-box runtime 在 readiness gate 阶段收集确认信息
 2. 确认信息写入 `bootstrap-state.json`
 3. runtime agent 读取 bootstrap-state.json
-4. 调用 `instantiate_company_jarvis.py base --state <bootstrap-state.json>` 渲染母版
+4. 调用 `instantiate_company_jarvis.py base --state <bootstrap-state.json>` 渲染母版；base 同时从 `templates/skill-packages/` 安装四个通用方法 skill 和三个 slot 化 starter workflow
 5. 后续按需调用 `module`、`source`、`package` 子命令
 
 ## 渲染 Token
@@ -73,7 +73,7 @@ templates/company-jarvis/
 | `{{ENTRY_SKILL_PATH}}` | `paths.entry_skill` | fail |
 | `{{VCS_HOST}}` | `confirmed_answers.vcs_host` 或 `confirmed_answers.gitlab_host` | 渲染为 `needs-evidence` |
 | `{{COMPANY_OWNER}}` | `confirmed_answers.company_owner` 或 `confirmed_answers.owners` | 渲染为 `needs-owner-confirmation` |
-| `{{SOURCE_NAME}}` | source/package 子命令的 `--name` | — |
+| `{{SOURCE_NAME}}` | source 子命令的 `--name`；generic-source package 使用去掉 `<slot>-` 前缀后的名称 | — |
 | `{{SKILL_NAME}}` | package 子命令的 `--name` | — |
 | `{{MODULE_NAME}}` | module 子命令的 `--name` | — |
 

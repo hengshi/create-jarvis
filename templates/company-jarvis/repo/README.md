@@ -78,9 +78,16 @@ JARVIS 提供四个可验证的职责面：
 | 类别 | 位置 | 用途 |
 |---|---|---|
 | entry skill | `skills/{{COMPANY_SLUG}}-jarvis/SKILL.md` | 统一入口、闭环路由、收束 |
-| source-helper | `skills/<name>/SKILL.md` | 帮助 agent 读取特定 source（通过 `package --kind generic-source` 生成） |
-| workflow skill | `skills/<name>/SKILL.md` | 跨 repo / 跨角色的闭环工作流 |
+| 通用方法 | `skills/ponytail/`、`writing-durable-docs/`、`jarvis-self-improve-skill/`、`stop-slop/` | 所有客户默认拥有的方法内核 |
+| source/tool | `skills/{{COMPANY_SLUG}}-<name>/SKILL.md` | 帮助 agent 使用客户特定 source/tool |
+| workflow | `skills/{{COMPANY_SLUG}}-workflow-<name>/SKILL.md` | 跨 repo / 跨角色的客户闭环 |
 | repo-local skill | 各 repo 根 `skills/` canonical package | 单 repo 内工程执行方法 |
+
+默认 workflow：
+
+- `skills/{{COMPANY_SLUG}}-workflow-issue-post-check/SKILL.md`
+- `skills/{{COMPANY_SLUG}}-workflow-bugfix-loop/SKILL.md`
+- `skills/{{COMPANY_SLUG}}-workflow-feature-delivery/SKILL.md`
 
 ## 强制预读
 

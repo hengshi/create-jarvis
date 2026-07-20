@@ -651,6 +651,7 @@ class Verifier:
         self.verify_company_entry_skill()
         self.verify_module_and_source_shape()
         self._verify_install_owned_skills_not_copied()
+        self._verify_required_default_skills()
         self._verify_workflow_scaffolds_not_isomorphic()
         self._verify_root_readme_semantics()
         self._verify_maintenance_semantics()
@@ -658,7 +659,11 @@ class Verifier:
 
     def verify_company_entry_skill(self) -> None:
         skill_files = list((self.jarvis_home / "skills").glob("*/SKILL.md"))
-        jarvis_skills = [path for path in skill_files if "jarvis" in path.parent.name.lower()]
+        if self.expected_company_slug:
+            expected_dir = f"{self.expected_company_slug}-jarvis"
+            jarvis_skills = [path for path in skill_files if path.parent.name == expected_dir]
+        else:
+            jarvis_skills = [path for path in skill_files if path.parent.name.endswith("-jarvis")]
         if not jarvis_skills:
             self.add(
                 "blocker",
@@ -2350,13 +2355,50 @@ class Verifier:
                     f"install-owned skill must not be copied to company repo: skills/{skill_dir.name}",
                 )
 
+    def _skill_company_slug(self) -> str | None:
+        """Resolve the company slug without treating generic Jarvis skills as entries."""
+        if self.expected_company_slug:
+            return self.expected_company_slug
+        skills_dir = self.jarvis_home / "skills"
+        if not skills_dir.is_dir():
+            return None
+        entries = sorted(
+            path.parent.name[:-len("-jarvis")]
+            for path in skills_dir.glob("*-jarvis/SKILL.md")
+            if path.parent.name.endswith("-jarvis")
+        )
+        return entries[0] if len(entries) == 1 else None
+
+    def _verify_required_default_skills(self) -> None:
+        """Require the method kernel and editable starter workflows."""
+        company_slug = self._skill_company_slug()
+        if not company_slug:
+            return
+        required = {
+            "ponytail",
+            "writing-durable-docs",
+            "jarvis-self-improve-skill",
+            "stop-slop",
+            f"{company_slug}-workflow-issue-post-check",
+            f"{company_slug}-workflow-bugfix-loop",
+            f"{company_slug}-workflow-feature-delivery",
+        }
+        for name in sorted(required):
+            path = self.jarvis_home / "skills" / name / "SKILL.md"
+            if not path.is_file():
+                self.add(
+                    "blocker",
+                    "default_skill_missing",
+                    f"required default skill missing: skills/{name}/SKILL.md",
+                )
+
     def _verify_workflow_scaffolds_not_isomorphic(self) -> None:
         """Phase 9 check: workflows must have distinct semantics, not just copies."""
         skills_dir = self.jarvis_home / "skills"
         if not skills_dir.is_dir():
             return
 
-        # All 12 known package kinds with companion files and semantic markers.
+        # Supported default and extension package kinds with semantic markers.
         # Companion list may be empty. Source/helper kinds do not force four-stage.
         KNOWN_PACKAGE_KINDS: dict[str, dict[str, Any]] = {
             "generic-workflow": {
@@ -2368,19 +2410,6 @@ class Verifier:
                 "companions": [],
                 "force_four_stage": False,
                 "markers": [],
-            },
-            "issue-intake": {
-                "companions": [
-                    "references/blocker-template.md",
-                    "references/disposition-command-checklist.md",
-                    "references/disposition-proof-sop.md",
-                    "references/guided-question-flow.md",
-                    "references/issue-type-matrix.md",
-                    "references/output-template.md",
-                    "references/pre-filing-judgment-card.md",
-                ],
-                "force_four_stage": False,
-                "markers": [r"\bintake\b|\btriage\b|\bclaim\b|\bdisposition\b"],
             },
             "issue-post-check": {
                 "companions": [
@@ -2400,40 +2429,24 @@ class Verifier:
                 "force_four_stage": False,
                 "markers": [r"\bfeature\b|\bPRD\b|\bspec\b|\bdeliver"],
             },
-            "prd-review": {
+            "writing-durable-docs": {
+                "companions": [],
+                "force_four_stage": False,
+                "markers": [r"\bdocumentation\b|\bdocs\b|\bdurable\b|耐久文档"],
+            },
+            "ponytail": {
+                "companions": [],
+                "force_four_stage": False,
+                "markers": [r"ponytail|最小正确|smallest correct"],
+            },
+            "stop-slop": {
                 "companions": [
-                    "references/blocking-questions-template.md",
-                    "references/output-template.md",
-                    "references/source-routing.md",
-                    "references/spec-checklist.md",
+                    "references/examples.md",
+                    "references/phrases.md",
+                    "references/structures.md",
                 ],
                 "force_four_stage": False,
-                "markers": [r"\breview\b|\bPRD\b|\bspec\b|\bblocking"],
-            },
-            "release-notes": {
-                "companions": [],
-                "force_four_stage": False,
-                "markers": [r"\brelease\b|\bversion\b|\bchangelog\b"],
-            },
-            "branch-neutral-docs": {
-                "companions": [],
-                "force_four_stage": False,
-                "markers": [r"\bdocumentation\b|\bdocs\b|\bdurable\b|\bbranch"],
-            },
-            "outline-api": {
-                "companions": [],
-                "force_four_stage": False,
-                "markers": [],
-            },
-            "jenkins-job-builder": {
-                "companions": ["jobs/registry.json"],
-                "force_four_stage": False,
-                "markers": [],
-            },
-            "issue-attachment-regression-fixture": {
-                "companions": ["references/example-contract.md"],
-                "force_four_stage": False,
-                "markers": [],
+                "markers": [r"stop.?slop|AI 写作|写作模式"],
             },
             "self-improve-skill": {
                 "companions": [],
@@ -2472,8 +2485,9 @@ class Verifier:
         for skill_dir in sorted(skills_dir.iterdir()):
             if not skill_dir.is_dir():
                 continue
-            if "jarvis" in skill_dir.name.lower():
-                continue  # skip entry skill
+            company_slug = self._skill_company_slug()
+            if company_slug and skill_dir.name == f"{company_slug}-jarvis":
+                continue
             skill_md = skill_dir / "SKILL.md"
             if not skill_md.is_file():
                 continue

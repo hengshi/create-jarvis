@@ -1105,11 +1105,11 @@ class R4OldOutputStyleTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.td.cleanup()
 
-    def test_prefixed_issue_intake_missing_companion_caught(self) -> None:
-        """prefixed-issue-intake missing companion files is caught via ends-with matching."""
-        skill_dir = self.home / "skills" / "prefixed-issue-intake"
+    def test_stop_slop_missing_companion_caught(self) -> None:
+        """A mandatory method skill missing companion files is caught."""
+        skill_dir = self.home / "skills" / "stop-slop"
         skill_dir.mkdir(parents=True)
-        _touch(skill_dir / "SKILL.md", "name: prefixed-issue-intake\n\n# Issue Intake Workflow")
+        _touch(skill_dir / "SKILL.md", "name: stop-slop\n\n# Stop Slop AI 写作模式")
         # Missing all companion references
         v = Verifier(self.home, [], run_precheck=False)
         report = v.verify()
@@ -2732,7 +2732,7 @@ class SemanticGateTests(unittest.TestCase):
         _touch_json(self.home / "bootstrap-result.json",
                     {"status": "needs-input", "paths": {}, "summary": "",
                      "missing_inputs": [
-                         "scaffold-only workflows (issue-intake, post-check) need owner-provided artifacts to mature",
+                         "scaffold-only starter workflows need owner-provided artifacts to mature",
                      ],
                      "blockers": []})
         _touch(self.home / "bootstrap-state.json", "{}")

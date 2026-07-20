@@ -5,12 +5,13 @@ Subcommands:
     base    --state <bootstrap-state.json>
     module  --state <...> --name <confirmed exact name>
     source  --state <...> --name <confirmed exact name>  (creates sources/<name>/README.md only)
-    package --state <...> --kind <skill-packages kind> --name <confirmed exact output name>
-             Valid Phase 9 kinds include generic-source and self-improve-skill.
+    package --state <...> --kind <generic-source|generic-workflow>
+            --name <slot-prefixed output name>
 
-The base command also creates the root runtime contracts and the initial
-_bootstrap/jarvis-build-brief.md. It leaves the supplied phase status intact
-and initializes any future phase to pending.
+The base command also installs the mandatory method skills and editable starter
+workflows, creates the root runtime contracts, and writes the initial
+_bootstrap/jarvis-build-brief.md. It leaves the supplied phase status intact and
+initializes any future phase to pending.
 """
 
 from __future__ import annotations
@@ -34,6 +35,19 @@ COMPANY_JARVIS_ARTIFACTS = TEMPLATES_ROOT / "company-jarvis" / "artifacts"
 COMPANY_JARVIS_SOURCE = TEMPLATES_ROOT / "company-jarvis" / "source"
 SKILL_PACKAGES = TEMPLATES_ROOT / "skill-packages"
 
+CORE_METHOD_PACKAGES = (
+    ("ponytail", "ponytail"),
+    ("writing-durable-docs", "writing-durable-docs"),
+    ("self-improve-skill", "jarvis-self-improve-skill"),
+    ("stop-slop", "stop-slop"),
+)
+STARTER_WORKFLOW_PACKAGES = (
+    ("issue-post-check", "issue-post-check"),
+    ("bugfix-loop", "bugfix-loop"),
+    ("feature-delivery", "feature-delivery"),
+)
+EXTENSION_PACKAGE_KINDS = frozenset({"generic-source", "generic-workflow"})
+
 PHASE_KEYS = (
     "phase-03-bootstrap-invocation",
     "phase-04-bootstrap-intake",
@@ -48,6 +62,16 @@ PHASE_KEYS = (
     "phase-13-controlled-writeback",
     "phase-14-day2-operation",
 )
+
+
+def company_workflow_name(company_slug: str, workflow_name: str) -> str:
+    """Return the canonical company-owned workflow skill name."""
+    prefix = f"{company_slug}-workflow-"
+    if workflow_name.startswith(prefix):
+        return workflow_name
+    return f"{prefix}{workflow_name}"
+
+
 def load_state(state_path: str) -> dict:
     path = Path(state_path)
     if not path.is_file():
@@ -94,6 +118,7 @@ def extract_globals(state: dict) -> dict:
     if not company_slug or not company_slug.strip():
         print("ERROR: COMPANY_SLUG is empty — identity_reconciliation.company_identity.slug is required", file=sys.stderr)
         sys.exit(1)
+    company_slug = validate_name(company_slug, "company slug")
 
     paths = state.get("paths")
     if not isinstance(paths, dict):
@@ -197,6 +222,19 @@ def extract_globals(state: dict) -> dict:
         print("ERROR: ENTRY_SKILL_PATH is empty — paths.entry_skill is required", file=sys.stderr)
         sys.exit(1)
 
+    starter_workflows = [
+        company_workflow_name(company_slug, suffix)
+        for _, suffix in STARTER_WORKFLOW_PACKAGES
+    ]
+    workflow_index = []
+    seen_workflows = set()
+    for workflow in starter_workflows + [
+        company_workflow_name(company_slug, item) for item in workflow_scope
+    ]:
+        if workflow not in seen_workflows:
+            seen_workflows.add(workflow)
+            workflow_index.append(workflow)
+
     globals_ = {
         "COMPANY_NAME": company_name,
         "COMPANY_SLUG": company_slug,
@@ -208,7 +246,7 @@ def extract_globals(state: dict) -> dict:
         "COMPANY_OWNER": company_owner,
         "MODULE_INDEX": _bullet_index(module_hints, "modules/{}/overview.md"),
         "SOURCE_INDEX": _bullet_index(source_scope, "sources/{}/README.md"),
-        "WORKFLOW_INDEX": _bullet_index(workflow_scope, "skills/{}/SKILL.md"),
+        "WORKFLOW_INDEX": _bullet_index(workflow_index, "skills/{}/SKILL.md"),
         "REPO_INDEX": _repo_index(repo_scope),
     }
 
@@ -233,7 +271,12 @@ def check_unresolved(content: str, rel_path: str) -> list[str]:
     return tokens
 
 
-def refresh_readme_scope_indexes(target: Path, *, include_workflows: bool = False) -> None:
+def refresh_readme_scope_indexes(
+    target: Path,
+    *,
+    include_workflows: bool = False,
+    company_slug: str = "",
+) -> None:
     """Fill the initial README scope placeholders from rendered directories.
 
     ``base`` runs before discovery, so a state file may legitimately have no
@@ -263,9 +306,24 @@ def refresh_readme_scope_indexes(target: Path, *, include_workflows: bool = Fals
         if end < 0:
             continue
         current = text[content_start:end]
-        if "BOOTSTRAP_REQUIRED" not in current and not current.strip().startswith("- none-yet"):
-            continue
         names = sorted(p.name for p in directory.iterdir() if p.is_dir()) if directory.is_dir() else []
+        if heading == "工作流":
+            prefix = f"{company_slug}-workflow-"
+            names = [name for name in names if company_slug and name.startswith(prefix)]
+            if "BOOTSTRAP_REQUIRED" not in current and not current.strip().startswith("- none-yet"):
+                missing = [
+                    name for name in names
+                    if item_format.format(name) not in current
+                ]
+                if missing:
+                    addition = "".join(
+                        f"- {item_format.format(name)}\n" for name in missing
+                    )
+                    replacement = current.rstrip() + "\n" + addition + "\n"
+                    text = text[:content_start] + replacement + text[end:]
+                continue
+        elif "BOOTSTRAP_REQUIRED" not in current and not current.strip().startswith("- none-yet"):
+            continue
         replacement = "\n\n" + (
             "- none-yet (populate from Phase 6 evidence)"
             if not names
@@ -274,6 +332,32 @@ def refresh_readme_scope_indexes(target: Path, *, include_workflows: bool = Fals
         text = text[:content_start] + replacement + text[end:]
 
     readme.write_text(text, encoding="utf-8")
+
+
+def merge_copy_results(target: dict, source: dict) -> None:
+    """Merge a copy_and_render result into an aggregate result."""
+    for key in ("created", "preserved", "skipped", "errors"):
+        target[key].extend(source.get(key, []))
+
+
+def copy_skill_package(
+    target: Path,
+    globals_: dict,
+    *,
+    kind: str,
+    name: str,
+) -> dict:
+    """Render one known skill package into the company Jarvis repo."""
+    package_globals = dict(globals_)
+    package_globals["SKILL_NAME"] = name
+    if kind == "generic-source":
+        company_prefix = f"{globals_['COMPANY_SLUG']}-"
+        package_globals["SOURCE_NAME"] = name.removeprefix(company_prefix)
+    return copy_and_render(
+        SKILL_PACKAGES / kind,
+        target / "skills" / name,
+        package_globals,
+    )
 
 
 def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
@@ -510,7 +594,22 @@ def cmd_base(state: dict) -> int:
 
     print(f"base: target={target}, slug={globals_['COMPANY_SLUG']}")
     result = copy_and_render(COMPANY_JARVIS_REPO, target, globals_)
-    refresh_readme_scope_indexes(target)
+    for kind, name in CORE_METHOD_PACKAGES:
+        merge_copy_results(
+            result,
+            copy_skill_package(target, globals_, kind=kind, name=name),
+        )
+    for kind, suffix in STARTER_WORKFLOW_PACKAGES:
+        name = company_workflow_name(globals_["COMPANY_SLUG"], suffix)
+        merge_copy_results(
+            result,
+            copy_skill_package(target, globals_, kind=kind, name=name),
+        )
+    refresh_readme_scope_indexes(
+        target,
+        include_workflows=True,
+        company_slug=globals_["COMPANY_SLUG"],
+    )
 
     print(f"created: {len(result['created'])}")
     for f in sorted(result["created"]):
@@ -638,25 +737,45 @@ def cmd_package(state: dict, kind: str, name: str) -> int:
     kind = validate_name(kind, "package kind")
     name = validate_name(name, "package name")
 
-    valid_kinds = set()
-    if SKILL_PACKAGES.is_dir():
-        valid_kinds = {d.name for d in SKILL_PACKAGES.iterdir() if d.is_dir()}
+    valid_kinds = EXTENSION_PACKAGE_KINDS
+    if kind not in valid_kinds:
+        print(f"ERROR: package kind is not an extension kind: {kind}", file=sys.stderr)
+        print(f"valid kinds: {', '.join(sorted(valid_kinds))}", file=sys.stderr)
+        return 1
 
-    # generic-source is a valid Phase 9 source-helper skill package kind
     pkg_template = SKILL_PACKAGES / kind
     if not pkg_template.is_dir():
         print(f"ERROR: unknown package kind: {kind}", file=sys.stderr)
-        if valid_kinds:
-            print(f"valid kinds: {', '.join(sorted(valid_kinds))}", file=sys.stderr)
         return 1
 
-    globals_["SKILL_NAME"] = name
-    if kind == "generic-source":
-        globals_["SOURCE_NAME"] = name
-    pkg_dir = target / "skills" / name
+    company_slug = globals_["COMPANY_SLUG"]
+    if kind == "generic-workflow":
+        expected_prefix = f"{company_slug}-workflow-"
+    else:
+        expected_prefix = f"{company_slug}-"
+    if not name.startswith(expected_prefix) or name == expected_prefix:
+        print(
+            f"ERROR: {kind} output name must start with {expected_prefix!r} "
+            f"and include a name: {name!r}",
+            file=sys.stderr,
+        )
+        return 1
+    if kind == "generic-source" and (
+        name == f"{company_slug}-jarvis"
+        or name.startswith(f"{company_slug}-workflow-")
+    ):
+        print(
+            f"ERROR: generic-source output name collides with a reserved company skill: {name!r}",
+            file=sys.stderr,
+        )
+        return 1
 
-    result = copy_and_render(pkg_template, pkg_dir, globals_)
-    refresh_readme_scope_indexes(target, include_workflows=kind != "generic-source")
+    result = copy_skill_package(target, globals_, kind=kind, name=name)
+    refresh_readme_scope_indexes(
+        target,
+        include_workflows=kind == "generic-workflow",
+        company_slug=company_slug,
+    )
 
     print(f"package: kind={kind}, name={name}")
     print(f"created: {len(result['created'])}")
@@ -693,8 +812,17 @@ def main() -> int:
 
     p_package = sub.add_parser("package", help="Instantiate a skill package")
     p_package.add_argument("--state", required=True)
-    p_package.add_argument("--kind", required=True, help="Skill package kind (directory name under skill-packages/)")
-    p_package.add_argument("--name", required=True, help="Exact confirmed output skill name")
+    p_package.add_argument(
+        "--kind",
+        required=True,
+        choices=sorted(EXTENSION_PACKAGE_KINDS),
+        help="Additional customer-derived package kind",
+    )
+    p_package.add_argument(
+        "--name",
+        required=True,
+        help="Canonical slot-prefixed output skill name",
+    )
 
     args = parser.parse_args()
     state = load_state(args.state)

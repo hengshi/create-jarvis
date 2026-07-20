@@ -18,7 +18,7 @@ version: "2.0.0"
 以下输入路由到对应闭环，不由本 skill 处理：
 
 - 纯 bug 修复 → bugfix 闭环；
-- 仍需 intake 判断的零散请求 → issue-intake；
+- 已建 issue 仍需判断真实类型和路由 → `{{COMPANY_SLUG}}-workflow-issue-post-check`；
 - 已可直接按 repo-local 规则执行的小改动 → 对应 repo-local skill。
 
 ## 闭环结构
@@ -68,7 +68,7 @@ version: "2.0.0"
 
 ### 就绪判断
 
-先判断输入是否 implementation-ready。以下任一缺失时，路由到 `prd-review` 或标记为 blocked，不直接进入编码：
+先判断输入是否 implementation-ready。以下任一缺失时，在当前 workflow 中向 owner 收敛，或标记为 `needs-input` / `blocked`，不直接进入编码：
 
 - 用户目标；
 - scope 和 non-scope；
@@ -84,7 +84,7 @@ version: "2.0.0"
 
 ### 执行
 
-计划并实施满足已确认 scope 的最小改动。以下决策全部来自 source route、repo-local skill 或客户 policy：
+进入代码或耐久文档修改前加载 `ponytail`。计划并实施满足已确认 scope 的最小正确改动。以下决策全部来自 source route、repo-local skill 或客户 policy：
 
 - 命令、分支命名、工具选择；
 - 目录结构；
@@ -169,5 +169,6 @@ VCS change、MR 创建、reviewer 指定、CI 触发、label、publish 等动作
 
 ## 交接规则
 
-- PRD / spec 阶段交接给 `prd-review` skill。
+- 需求是否属于 feature 尚不明确时，交给 `{{COMPANY_SLUG}}-workflow-issue-post-check`。
 - repo 执行交接给对应 repo 的 canonical repo-local skill。
+- 进入实现前加载 `ponytail`。

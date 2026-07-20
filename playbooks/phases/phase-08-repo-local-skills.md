@@ -113,7 +113,7 @@ bootstrap 阶段的 `precheck.sh` 是 bootstrap-safe scaffold check，不是完�
 3. 确认输出中包含 `repo: <repo-name>` 或等价 repo root marker。
 4. 确认 precheck 不引用 reference company 私有路径或维护命令；如果引用，先改成自包含脚本再执行。
 5. 如果 precheck 报告 `BOOTSTRAP_REQUIRED` 或未渲染 token，必须回到对应文件逐项填充后重新执行 precheck；不得把失败记录成“工具缺失”、跳过该 repo，或直接进入 Phase 9。
-6. 在 `references/jarvis-first-routing.md` 或 `skills/<workflow-skill>/SKILL.md` 中写明：
+6. 在 `references/jarvis-first-routing.md` 或 `skills/<slot>-workflow-<name>/SKILL.md` 中写明：
    - repo-local skill path；
    - first workflow 中该 repo 的角色；
    - 哪些事实必须留在 repo-local；

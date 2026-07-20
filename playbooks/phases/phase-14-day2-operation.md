@@ -18,6 +18,7 @@
 - `jarvis-box doctor`：获取健康状态；
 - `jarvis-box agent doctor` / `jarvis-box agent list --check`：获取 agent 状态；
 - `jarvis-box status` / `jarvis-box monitor`：获取运行时状态。
+- install 提供的 `jarvis-box-monitor` skill：生成当前 slot 的人类可读运行快照，并用上述 live 输出核对。
 
 install-owned managed jobs 的事实来自：当前 release docs/安装产物、host scheduler 或 `/server` crons、job logs/activity。不能因为不在顶层 `--help` 就判不存在。
 

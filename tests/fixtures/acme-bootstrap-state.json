@@ -19,7 +19,7 @@
     "company_owner": "acme-engineering",
     "module_hints": "payroll,benefits, HQL,payroll",
     "source_scope": "customer-docs, api-reference, customer-docs",
-    "workflow_scope": "deploy-loop, deploy-loop, prd-review",
+    "workflow_scope": "deploy-loop, deploy-loop",
     "gitlab_projects_confirmed": "acme/web-frontend, acme/backend-api"
   },
   "identity_reconciliation": {

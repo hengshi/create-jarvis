@@ -23,14 +23,14 @@ jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill �
 |---|---|
 | `templates/company-jarvis/` | company JARVIS 仓库母版（repo/module/source/artifacts） |
 | `templates/repo-local-skill/` | repo-local skill canonical package 母版 |
-| `templates/skill-packages/` | 12 种 skill package 母版 |
+| `templates/skill-packages/` | 默认方法/workflow 母版与通用扩展母版 |
 | `templates/replay/` | history replay 产物模板 |
 
 ## Phase 7/8/9 确定性脚本
 
-- **Phase 7**：`scripts/instantiate_company_jarvis.py base/module/source --state <bootstrap-state.json>`
+- **Phase 7**：`scripts/instantiate_company_jarvis.py base/module/source --state <bootstrap-state.json>`；`base` 同时安装默认四个方法 skill 和三个 slot 化 workflow 母版
 - **Phase 8**：`scripts/instantiate_repo_local_skill.py --repo <repo路径>`
-- **Phase 9**：`scripts/instantiate_company_jarvis.py package --kind <包类型> --name <技能名>`
+- **Phase 9**：定制默认 workflow；额外能力使用 `package --kind <generic-source|generic-workflow> --name <slot前缀技能名>`
 - **验证**：`scripts/verify_bootstrap_output.py --jarvis-home <目标目录>`
 
 ## 执行规则
@@ -45,8 +45,11 @@ jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill �
 - repo-local skill 复用已有内容时也必须补齐 canonical package 固定文件；`precheck.sh` 必须自包含，不能依赖 reference company 或操作员机器的私有路径、脚本和维护命令。
 - source skill 只写访问、路由、引用和边界，不复制 source 原文。
 - company Jarvis repo 必须采用 `hengshi-jarvis` 形态：`modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/`；不要创建顶层 `repos/`、`workflows/`、`pilot/`、`writeback/`、`rollout/`、`scheduled-jobs/` 作为主结构。
-- 已由客户/operator 确认的 module/source/workflow 名称必须逐字节保留为目录名，包括大小写；例如 `HQL` 必须是 `modules/HQL/`，不能被 agent 改成 `modules/hql/`。
-- company entry skill 的 canonical 位置是 `skills/<company>-jarvis/SKILL.md`。
+- 已由客户/operator 确认的 module/source 名称必须逐字节保留为目录名，包括大小写；例如 `HQL` 必须是 `modules/HQL/`，不能被 agent 改成 `modules/hql/`。workflow 的 `<name>` 部分保持原样，并按公司命名合同生成 `<slot>-workflow-<name>`。
+- Git 仓库名和 company entry skill 均为 `<slot>-jarvis`；entry 的 canonical 位置是 `skills/<slot>-jarvis/SKILL.md`。
+- 通用方法 skill 固定为 `ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop`，不加 slot 前缀。
+- 默认客户工作流固定为 `<slot>-workflow-issue-post-check`、`<slot>-workflow-bugfix-loop`、`<slot>-workflow-feature-delivery`，Phase 9 必须依据客户事实完成初次定制。
+- company 自有 source/tool skill 命名为 `<slot>-<name>`；repo-local skills 留在各代码仓库，不加 slot 前缀。
 - skill 扩展前先判断 `no_skill_gap`。
 - Phase 12 历史回放不能默认等待人工 episode；pilot repo 有 Git 历史时，必须先自动扫描 commits、读取候选 diff，并构造 visible START / hidden oracle 分离的 replay case。没有 isolated replay agent 只阻塞 replay 执行，不阻塞 case 文件创建。候选清单不是合格产物；有候选但没有 `evals/history-replay/cases/<case-id>/history-replay-case.md` 时，Phase 12 是执行失败，不是合格 `needs-input`。
 - `bootstrap-result.json` 只报告 runtime 状态、路径、缺口和下一步，不输出复杂分层字段；其中 `missing_inputs`、`blockers`、`conflicting_inputs`、`unresolved_questions` 必须是字符串数组。
@@ -58,7 +61,8 @@ jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill �
 `completed` 只允许在产物满足 `acceptance.md` 时写出。最低要求：
 
 - company Jarvis repo 有有效 company entry skill；
-- company entry skill 位于 `skills/<company>-jarvis/SKILL.md`，并且仓库骨架接近 `hengshi-jarvis`；
+- company entry skill 位于 `skills/<slot>-jarvis/SKILL.md`，并且仓库骨架接近 `hengshi-jarvis`；
+- 默认四个通用方法 skill 和三个 slot 化 workflow 均存在；
 - company identity、confirmed product identity、source-detected identity 的边界清楚；
 - company entry 能把真实 artifact 路由到 module、workflow、source 或 repo-local skill；
 - 有证据驱动的客户产品/业务 module 拓扑；

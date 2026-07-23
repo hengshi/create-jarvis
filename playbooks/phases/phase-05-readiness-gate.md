@@ -12,7 +12,7 @@
 - method repo URL/ref/commit 可记录。
 - runtime agent 可执行。
 - pilot repo/source 有最小 read access。
-- company Jarvis repo 有 create/link/write 策略。
+- company Jarvis repo 有已确认的 host、namespace/project path、create/link/write 策略；使用现有远端时已验证项目存在和访问权限，准备新建时已验证当前身份具备建仓权限或明确由哪位 owner 创建。
 - secret 只记录状态，不读取值。
 - writeback policy 有 owner 和 approval model。
 - 非交互模式没有未解决必填项。
@@ -30,4 +30,6 @@
 - `JARVIS_RUNTIME_ROOT` 缺失且无法创建。
 - source/repo access 不足以验证 first workflow。
 - writeback requested 但 approval model 缺失。
+- company Jarvis 目标 project path、可见性、default branch 或首次发布审批方式未确认。
+- 远端仓库必须由客户 owner 预建，但尚未提供可访问的 remote URL。
 - 需要暴露 secret value 才能继续。

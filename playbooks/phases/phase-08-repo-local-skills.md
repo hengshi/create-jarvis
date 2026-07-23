@@ -122,9 +122,26 @@ bootstrap 阶段的 `precheck.sh` 是 bootstrap-safe scaffold check，不是完�
 
 如果 precheck 不能执行，不能把该 repo 的 repo-local skill status 标成 completed；应写入 blocker、backlog 或 unresolved question。缺少客户 repo 技术栈工具不是 precheck 不能执行的理由；此时应让 precheck 通过并把缺失工具记录为待确认/待安装。
 
+## 写入客户仓库
+
+创建并验证本地 package 不等于已经把 repo-local skills 交付给客户仓库。对每个 pilot repo，必须执行 Phase 4 已确认的 repo writeback plan：
+
+1. 读取实际 remote/default branch、保护规则和当前 worktree 状态；不得从当前 checkout branch 猜 default branch。
+2. 如果 repo 有与 bootstrap 无关的未提交改动，保留现场并改用独立 worktree/branch；不得清理、覆盖或混入提交。
+3. `disabled`：不写文件，记录 blocker 或 backlog，不把该 repo 标为 delivered。
+4. `local-only`：保留已验证 diff，记录本地 branch/路径、owner 和后续发布条件，不声称远端已交付。
+5. `branch + MR/PR` 或 `human-approved`：从实际 default branch 创建专用 bootstrap branch，只提交该 repo 的 repo-local skill 变更，推送并创建 MR/PR；不自动合并。
+6. 只有客户明确允许直接提交且分支保护允许时，才能直接 push；记录批准人、依据、commit SHA 和 remote branch。
+7. push 前运行 `git diff --cached --check`、repo-local precheck 和本 repo 已确认的必要检查；未执行的 product test 必须标 `observed-not-executed`，不得写 PASS。
+8. 在 `bootstrap-state.json` 为每个 pilot repo 记录 project path、default branch、publication policy、local branch、commit SHA、MR/PR URL、checks 和 delivery status。不得记录 token。
+
+这些是初始 repo-local package 的交付步骤，不是 Phase 13 的受控学习写回。Phase 13 只处理 Phase 11/12 已验证的新 learning。
+
 ## 禁止
 
 - 不为非 pilot repo 创建 skill package。
 - 不从中心 Jarvis 猜 repo 命令。
 - 不把 repo-local truth 写成 company-wide rule。
 - 不保留依赖 reference company 环境的 precheck、脚本或路径。
+- 不覆盖客户未提交改动，不 force-push，不绕过保护分支，不自动合并 MR/PR。
+- writeback policy 要求远端交付但 push/MR/PR 失败或无权限时，不标 delivered/completed。

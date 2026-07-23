@@ -112,10 +112,16 @@ Company bootstrap 负责明确以下内容：
 9. 记录 day-2 backlog。
 10. 在更新 Phase 14 状态前，执行跨产物一致性审查：检查 `MAINTENANCE.md`、`references/runtime-governance.md`、`tools/README.md`、`_bootstrap/day2-operation.md`、`bootstrap-state.json` 和 `bootstrap-result.json` 之间的状态一致性。例如 `MAINTENANCE.md` 不能将 Phase 11-14 标为 pending 而根 state 标为 completed。
 11. 更新 `bootstrap-state.json` 和 `bootstrap-result.json`（按通用规则中的 phase 状态传递规则）。不复制大段 JSON state 字段逐项规则，引用通用规则即可。
+12. 在最终状态文件写入后完成 company repo 发布收尾：
+    - 核对 `origin`、publication branch、upstream 和 Phase 7 `company_repository` 记录；
+    - 检查 `git status --short`，只 stage Phase 9-14 产生的最终 bootstrap 产物，运行 `git diff --cached --check`、secret/private-content 检查和最终 verifier；
+    - 形成最终 bootstrap commit，推送同一 publication branch，并更新现有 MR/PR；不自动合并；
+    - 在 `_bootstrap/day2-operation.md` 记录 remote branch、MR/PR URL、同步检查命令和检查时间；最终 commit SHA 在 push 后由 runtime 最终回答和外部验收记录采集，不要求版本化文件自引用自身 commit SHA；
+    - 最终 `git status` 必须对 bootstrap-owned 文件干净，local HEAD 必须已包含在已记录 remote branch。客户无关的既有改动继续保留并单独记录，不得纳入提交。
 
 ## 状态判定
 
-- `completed`：Phase 11/12/13 已完成；company-specific owner、维护机制、writeback policy 已明确；`_bootstrap/day2-operation.md` 已记录真实执行证据（含能力表五列维度）；每个必要运营能力的 readiness 为 `ready` 或 `ready-with-explicit-alternative`；跨产物一致性审查通过；`references/runtime-governance.md` managed jobs section、`MAINTENANCE.md`、`tools/README.md` 已更新；day-2 backlog 已记录。`unverified` 必要能力导致不能 completed。
+- `completed`：Phase 11/12/13 已完成；company-specific owner、维护机制、writeback policy 已明确；`_bootstrap/day2-operation.md` 已记录真实执行证据（含能力表五列维度）；每个必要运营能力的 readiness 为 `ready` 或 `ready-with-explicit-alternative`；跨产物一致性审查通过；`references/runtime-governance.md` managed jobs section、`MAINTENANCE.md`、`tools/README.md` 已更新；day-2 backlog 已记录；最终 bootstrap commit 已推送到已记录 publication branch/MR，bootstrap-owned worktree 干净且 local HEAD 可在 remote branch 中解析。`unverified` 必要能力或未同步远端都导致不能 completed。
 - `needs-input`：进入 Phase 14 后，缺 owner、runtime root、scheduler policy、repo fleet 或 tool ownership。
 - `blocked`：缺 runtime access、scheduler 不可用且无替代机制、security 不允许所需 job，或 install-owned 能力既无 install 托管也无明确替代 owner/机制。
 - `failed`：复制私有脚本、写入 secret、安装未经批准 job、破坏 runtime，或重新生成 install-owned runtime 产品能力。
@@ -132,6 +138,7 @@ Company bootstrap 负责明确以下内容：
 - 不把 `bootstrap --resume` 当作 Jarvis maintenance authority——它只是 bootstrap state/form 恢复。
 - 不用 artifact presence、public help、version output 或零活跃 Task 单独证明能力已配置/工作。
 - 不在跨产物一致性审查前更新 Phase 14 状态。
+- 不把最终 state/day-2 产物只留在本地，不新建第二条无人追踪的 publication branch，不自动合并 MR/PR。
 
 ## 读物
 

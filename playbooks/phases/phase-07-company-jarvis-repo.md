@@ -1,8 +1,10 @@
 # Phase 7 - 确定性实例化 company Jarvis 母版 + 填 customer modules/source routes
 
-目标：确定性实例化客户 `<slot>-jarvis` repo 的结构骨架、默认方法内核和 starter workflows。
+目标：确定性实例化客户 `<slot>-jarvis` repo 的结构骨架、默认方法内核和 starter workflows，并把通过本 phase 检查的结果建立为客户拥有、可继续协作的 Git 仓库。
 
 Phase 7 的职责是建立容器和路由骨架，安装固定默认 skills，并把 Phase 6 已确认的客户事实写入 module overview、source route 和 first routing。除默认三个 workflow 外，它不自由生成客户 workflow/source-helper skills。
+
+本地目录不是交付完成态。Phase 7 还必须根据 Phase 4/5 已确认的 publication plan 建立或连接 `<namespace>/<slot>-jarvis` 远端，形成可追溯的首次提交。远端创建、提交和推送是发布容器，不改变“客户业务事实必须由证据生长”的原则。
 
 ## 核心原则
 
@@ -23,6 +25,14 @@ Phase 7 的容器骨架本身不是完成态。以下规则保证容器内填入
 ### 已确认产品身份
 
 - 对于已确认的产品身份，任何正式 module/root/entry 文件中不得保留未解决的身份或对该身份的 `needs-owner-confirmation`。
+
+### 客户拥有的 Git 仓库
+
+- 仓库名必须是 `<slot>-jarvis`；namespace/group、VCS host、可见性和 default branch 必须来自 Phase 4 的确认结果。
+- 不得因为 `glab` 当前登录了某个用户，就默认把仓库建在该用户 namespace；不得默认 public/internal/private。
+- 远端不存在且 runtime agent 有获批的 create 权限时，使用已安装 provider CLI/API 创建；没有 create 权限时，向已记录 owner 请求预建仓库和 remote URL，然后通过 bootstrap resume 继续。
+- 空远端首次 seed 可以按客户批准策略直接推 default branch；既有远端或要求评审时，必须从确认的 default branch 建 bootstrap branch，并通过 MR/PR 合入。
+- push 前必须检查 staged diff、secret、raw source dump、reference-company 私有事实和未渲染 token。不得自动 force-push，不得覆盖已有 remote history。
 
 ### Source Scaffold 替换
 
@@ -175,10 +185,29 @@ Phase 14 只检查/登记这些 install-owned runtime 和 external skills 的状
 5. 渲染 runtime / agent bridge files（`AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`），它们随 base 子命令自动渲染，指向 canonical entry skill 和 runtime pre-read 规则。
 6. 用 Phase 6 repo-role/workflow/module evidence 填写 `references/jarvis-first-routing.md`、`references/canonical-repo-fleet.md` 和 `cross-cutting/module-interactions.md`。没有 peer product、版本索引或 company-specific tool 证据时，相关文件写明确未登记状态，不填示例数据。
 7. 在离开 Phase 7 前重新读取 root `README.md` 的“模块 / 数据源 / 工作流 / 仓库”四个 scope 索引：已创建的 durable 目录必须列出实际名称；暂时没有证据时只能写 `none-yet` 和下一步，不得保留 `BOOTSTRAP_REQUIRED`。后续 `module` / `source` / Phase 9 package 实例化后要再次同步这些索引。
+8. 在目标目录建立或检查 Git 身份：
+   - 如果目录不是 Git worktree，按已确认 default branch 执行 `git init -b <default-branch>`；
+   - 如果已经是 Git worktree，检查当前 root、现有 history、branch 和 remotes，不得重新初始化或覆盖；
+   - 校验 `git config user.name` / `user.email` 可用于本项目提交；缺失时请求客户确认项目级身份，不修改机器全局身份。
+9. 建立或连接客户远端：
+   - 远端已存在时，先用 provider metadata 或 `git ls-remote` 验证 project path、default branch 和访问权限，再添加或核对 `origin`；
+   - 远端不存在且已授权 runtime agent 创建时，使用 provider CLI/API 按确认的 host、namespace、`<slot>-jarvis`、visibility 和 default branch 创建。GitLab 示例：`GITLAB_HOST=<host> glab repo create <namespace>/<slot>-jarvis <visibility-flag> --defaultBranch <branch> --remoteName origin`；
+   - `origin` 已指向其他项目时立即停止，不修改 remote URL；
+   - 不使用 `--readme` 初始化远端，避免与本地确定性母版制造无关 history。
+10. 形成首次可审查提交：
+    - 执行 `git status --short`，只 stage 本次 company Jarvis 产物；
+    - 执行 `git diff --cached --check`，并检查 secret、raw source dump、私有 reference-company 内容、绝对测试机路径和未渲染 token；
+    - 使用说明性提交信息，例如 `chore: bootstrap <slot> Jarvis`；
+    - 记录 commit SHA、branch、remote URL 和实际执行的检查。
+11. 按 publication plan 发布：
+    - 获批的空仓库首次 seed：推送确认的 default branch 并设置 upstream；
+    - 要求评审或远端已有内容：推送 bootstrap branch，创建 MR/PR，不自动合并；
+    - policy 为 local-only/disabled 时，不推送，但 Phase 7 不能把“客户拥有的远端仓库”标为已完成；记录 blocker、owner 和恢复条件。
+12. 将 `company_repository` 的 host、project path、remote URL、visibility、default branch、publication policy、branch、commit SHA、MR/PR URL 或 blocker 写入 `bootstrap-state.json`，并在 `_bootstrap/jarvis-build-brief.md` 留下人可读摘要。不得写 token、credential 或本机 provider 配置路径。
 
 ## Phase 7 完成 = Phase 9 可进入的门
 
-Phase 7 `completed` 的含义：容器骨架和默认 skill 集合已就位，Phase 9 可以定制 starter workflows 并按 generation plan 实例化额外 packages。
+Phase 7 `completed` 的含义：容器骨架和默认 skill 集合已就位，客户拥有的 `<slot>-jarvis` Git 远端已经建立或连接，首次提交已按批准策略推送或进入 MR/PR，Phase 9 可以继续定制 starter workflows 并按 generation plan 实例化额外 packages。
 
 ## 停止条件
 
@@ -203,3 +232,9 @@ Phase 7 `completed` 的含义：容器骨架和默认 skill 集合已就位，Ph
 - company entry skill 没有落在 `skills/<slot>-jarvis/SKILL.md`。
 - 生成内容包含私有 reference-company material。
 - 把 install-owned 或 external reference skills 复制到了 company repo。
+- company repository 的 host、namespace/project path、visibility、default branch 或首次发布策略未确认。
+- 目标远端不是 `<namespace>/<slot>-jarvis`，或 `origin` 指向与确认结果不同的项目。
+- 无建仓权限、远端不可访问，或客户 owner 尚未完成约定的预建动作。
+- staged diff 含 secret、raw source dump、reference-company 私有事实、未渲染 token 或测试机绝对路径。
+- 需要 force-push、覆盖已有 history、绕过客户审批或直接合并 MR/PR 才能继续。
+- 没有可追溯的 commit/branch/remote 证据，却将 Phase 7 标记为 `completed`。

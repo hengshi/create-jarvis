@@ -54,6 +54,7 @@
 - Phase 12 中，缺 isolated replay agent 或 container/VM isolation runtime 只阻塞 replay 执行，不阻塞从 Git 历史创建 case 文件。只留下 candidate registry、没有 `cases/<case-id>/history-replay-case.md`，必须视为执行失败。Phase 12 completed 必须至少有一次运行在独立 container/VM 中的有效隔离 replay。
 - Phase 7 创建 root、canonical entry、baseline references、cross-cutting、modules、sources README、tools inventory、root runtime contracts，并由 `base` 确定性安装四个通用方法 skill 和三个 starter workflow 母版。不得自由生成其他 workflow/source-helper skills。
 - Phase 9 负责结合客户事实定制三个 starter workflow，并按 Phase 6 generation plan 实例化额外 workflow/source-helper package。额外 package 只能使用 `generic-workflow` / `generic-source` 母版，不能只生成统一 35 行 scaffold。
+- Phase 7 建立的 company repository publication branch/MR 是 Phase 9-14 的持续交付通道。后续 phase 修改 company repo 时沿用该通道并追加可审查提交；不得另建无人追踪的远端、把变化只留在本地，或在 Phase 14 完成时留下未提交/未推送的 bootstrap 产物。
 - `ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` 无条件存在。install-owned runtime skills（jarvis-box-doctor/init/monitor）不复制到 company repo；Phase 5/14 只调用、检查和登记其结果。
 - 模板提供固定方法语义直接复用并参数化，客户事实由证据填充；不以文件数量要求 module 成熟度。
 - evidence-inventory 中每条精确 endpoint/route/label/方法/字段/版本/数量/命令必须记录 observed fact + repo-relative pointer + retrieval/check。正式文件只能引用这些事实。无证据就省略精确值或标 `needs-verification`，禁止"按常见 REST 习惯补全"。
@@ -100,6 +101,8 @@
 - [ ] 如果 `JARVIS_SOURCE_SCOPE`、`JARVIS_WORKFLOW_SCOPE` 或 `JARVIS_MODULE_HINTS` 存在，它们是客户/operator 给 agent 的 confirmed scope facts；Phase 6 必须逐项覆盖到 generation plan，不能丢弃、重命名、改大小写、合并成泛化名称，除非同一个客户/operator 明确要求改名。
 - [ ] 收敛 owners / escalation path。
 - [ ] 收敛 writeback policy。
+- [ ] 收敛 company Jarvis 远端仓库策略：VCS host、namespace/group、`<slot>-jarvis` project path、visibility、default branch、create owner、首次 seed 或 MR/PR 审批方式。
+- [ ] 为每个 pilot repo 收敛 repo-local skills 写入方式：disabled、local-only、直接提交、branch + MR/PR 或 custom approval。
 - [ ] 记录 missing inputs、unresolved questions、blockers。
 - [ ] 记录 identity conflicts：客户声明身份、repo/docs 中识别出的产品/品牌名、两者是否已由 owner 确认。
 - [ ] 不扫描业务，不生成 module。
@@ -111,6 +114,7 @@
 - [ ] 缺 pilot repo 或 source scope。
 - [ ] `JARVIS_COMPANY_SLUG` 存在但输出 slug / entry skill / `jarvis.toml` / result paths 与它不一致。
 - [ ] 缺 owner / writeback policy 且无法继续。
+- [ ] company Jarvis project path、可见性、default branch、create owner 或首次发布策略缺失。
 
 ## Phase 5 - 就绪检查
 
@@ -123,6 +127,7 @@
 - [ ] 检查 source/repo 访问权限。
 - [ ] 检查 secret 边界，只记录 configured/unconfigured，不记录值。
 - [ ] 检查 writeback 是否允许。
+- [ ] 检查 company Jarvis 远端已存在且可访问，或当前身份具备已批准的建仓权限；需要 owner 预建时记录 owner 和 remote URL 交付条件。
 - [ ] 判断是否能进入 Phase 6。
 
 停止条件：
@@ -130,6 +135,7 @@
 - [ ] 缺少 first workflow 所需 source/repo access。
 - [ ] 继续会暴露 secret。
 - [ ] writeback 被要求但审批模型缺失。
+- [ ] company Jarvis remote/create 策略无法执行。
 
 ## Phase 6 - 业务发现和生成策略
 
@@ -193,6 +199,7 @@ Phase 7 创建 root、canonical company entry、完整 baseline references、cro
 - [ ] 先读取 `templates/company-jarvis/README.md`。
 - [ ] 运行 `python3 scripts/instantiate_company_jarvis.py base --state <bootstrap-state.json>` 创建完整 root files、17 references、canonical entry、cross-cutting、tools、evals、四个通用方法 skill 和三个 starter workflow。
 - [ ] Git 仓库名和 company entry skill 均使用 `<slot>-jarvis`；entry 位于 `skills/<slot>-jarvis/SKILL.md`，root `SKILL.md` 只能作为 runtime 兼容入口或转发副本。
+- [ ] 使用 Phase 4/5 确认的 VCS host、namespace/project path、visibility、default branch 和 publication policy；不得从当前 `glab` 用户或本地目录猜测。
 - [ ] 确认 `skills/ponytail/`、`skills/writing-durable-docs/`、`skills/jarvis-self-improve-skill/`、`skills/stop-slop/` 已完整创建。
 - [ ] 确认 `skills/<slot>-workflow-issue-post-check/`、`skills/<slot>-workflow-bugfix-loop/`、`skills/<slot>-workflow-feature-delivery/` 及其 companion files 已完整创建。
 - [ ] company entry skill 必须使用 confirmed slug，并与 `jarvis.toml`、`bootstrap-state.json`、`bootstrap-result.json.paths.entry_skill` 一致。
@@ -219,6 +226,12 @@ Phase 7 创建 root、canonical company entry、完整 baseline references、cro
 - [ ] 正式 durable 文件使用 runtime 变量/contract（如 bootstrap state 确认的 runtime root 或 `JARVIS_RUNTIME_ROOT`），不保留 E2E 测试机绝对路径。Runtime 命令从已安装 `jarvis-box --help`/`version`/`doctor`/`status` 观察，不发明脚本或命令。
 - [ ] 已确认产品身份的任何正式 module/root/entry 文件不得保留未解决的身份或对该身份的 `needs-owner-confirmation`。
 - [ ] 对每个可访问 source，将 source scaffold 替换为具体 route。`needs-evidence`、`REFERENCES_PATH` 和示例占位符在可访问 route 中是 phase blocker。
+- [ ] 目标目录不是 Git worktree 时按确认的 default branch 初始化；已经是 worktree 时检查并保留现有 history/remotes，不重复初始化。
+- [ ] 远端不存在且 runtime agent 获准建仓时，用 provider CLI/API 创建 `<namespace>/<slot>-jarvis`；无权限时请求 owner 预建并通过 `bootstrap --resume` 继续。
+- [ ] `origin`、provider project metadata 和确认的 project path 一致；不覆盖不一致的 remote。
+- [ ] 首次提交前只 stage company Jarvis 产物，运行 `git diff --cached --check` 并检查 secret、raw source dump、私有 reference-company 内容、测试机绝对路径和未渲染 token。
+- [ ] 按批准策略发布：空仓库首次 seed 可直接推确认的 default branch；要求评审或已有 history 时推 bootstrap branch 并创建 MR/PR，不自动合并。
+- [ ] 在 `bootstrap-state.json.company_repository` 和 jarvis build brief 记录 remote、branch、commit、MR/PR 或 blocker，不记录 credential。
 
 停止条件：
 
@@ -236,6 +249,7 @@ Phase 7 创建 root、canonical company entry、完整 baseline references、cro
 - [ ] Phase 7 自由生成了 workflow/source-helper skill 文件。
 - [ ] 生成内容包含 secret、raw source dump 或 reference company 私有事实。
 - [ ] durable customer-fact files 仍有 `BOOTSTRAP_REQUIRED`、`<repo>`、`<endpoint>`、`module-a`、`product-a` 等模板占位，或保留母版中的虚构示例事实。
+- [ ] company remote 未建立/不可访问、origin 不匹配、首次提交无证据，或发布需要 force-push/绕过审批。
 
 ## Phase 8 - 创建 repo-local skills
 
@@ -259,12 +273,16 @@ Phase 7 创建 root、canonical company entry、完整 baseline references、cro
 - [ ] copied template 中的“Phase 8 填充/替换”生成期旁白必须消失；保留的规则要改写成新 agent 可长期执行的 repo evidence contract。
 - [ ] 八个 package 必须根据各自 repo 证据有所不同。三个或以上归一化相同的 repo truth section 证明 Phase 8 被跳过。
 - [ ] 基础 skill 必须让新 agent 能路由、构建、测试和找到 source truth。专业历史衍生 reference 可后续生长。
+- [ ] 对每个 pilot repo 执行已确认的 writeback plan：保护无关未提交改动；按策略保留本地 diff、直接提交或创建 bootstrap branch + MR/PR。
+- [ ] push 前执行 `git diff --cached --check`、repo-local precheck 和已确认的必要检查；记录 branch、commit、MR/PR、checks 和 delivery status。
+- [ ] 区分初始 package 交付与 Phase 13 learning writeback；不得把 Phase 8 未交付推迟并伪装成 Phase 13 工作。
 
 停止条件：
 
 - [ ] repo path 不可访问。
 - [ ] repo-local package 无法写入。
 - [ ] precheck 不可执行且无法记录 blocker。
+- [ ] repo writeback approval/default branch 不明确，存在无关未提交改动且没有隔离 worktree，或需要 force-push/绕过保护分支。
 
 ## Phase 9 - 定制默认 workflow 并实例化额外 skills
 
@@ -282,6 +300,7 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] source skill 只写访问、检索、引用、边界和 writeback 限制。
 - [ ] workflow skill 写 trigger、non-trigger、evidence、routing gates、completion、END writeback。
 - [ ] 不创建 generation plan 之外的”以后可能用”的泛化 skills。
+- [ ] 将 Phase 9 变更提交到 Phase 7 记录的 publication branch，并推送或更新同一个 MR/PR；没有批准时记录当前 phase blocker，不把变更只留在未提交 worktree。
 - [ ] 运行 `python3 scripts/verify_bootstrap_output.py --stage phase-09 --jarvis-home <目标目录> --customer-repos-dir <repo副本根目录>`；Phase 3-9 blocker 清零后才能进入 Phase 10。
 - [ ] Phase 9 gate 前确认 root README scope 索引与 `modules/`、`sources/`、`skills/` 实际目录一致；可访问 source 不得残留 `BOOTSTRAP_REQUIRED` 或泛化 route。
 
@@ -301,6 +320,7 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] 汇总 confirmed facts、unresolved fields、missing inputs、blockers。
 - [ ] 汇总 identity reconciliation：company identity、confirmed product identity、source-detected identities、conflicts 和 owner confirmation 状态。
 - [ ] 汇总 first workflow、pilot repos、sources、owners、writeback policy。
+- [ ] 汇总 company Jarvis remote/branch/initial commit/MR 状态，以及每个 pilot repo 的 repo-local skill commit/MR 或 blocker。
 - [ ] 汇总 acceptance 自检结果。
 - [ ] 审计 Phase 6-9 语义就绪状态，不只重复文件数量。发现以下任一情况时发回所属 phase：可访问的 source route 仍为泛化状态、repo-local package 为泛化模板、模块身份未解决、reference 链接断开、仅靠间接证据 `included` 的模块。
 - [ ] 写 confirmation checklist。
@@ -462,6 +482,7 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] 在更新 Phase 14 状态前，执行跨产物一致性审查：`MAINTENANCE.md`、`references/runtime-governance.md`、`tools/README.md`、`_bootstrap/day2-operation.md`、`bootstrap-state.json`、`bootstrap-result.json`。
 - [ ] 不复制 install-owned 脚本到 company repo。
 - [ ] 记录 day-2 backlog。更新 `bootstrap-state.json` 和 `bootstrap-result.json`（引用通用规则中的 phase 状态传递规则，不复制大段 JSON state 字段逐项规则）。
+- [ ] 在最终状态写入后检查 company repo `git status`、当前 branch、HEAD 和 upstream；把 Phase 9-14 的最终变更提交并推送到 Phase 7 的 publication branch/MR，记录 final commit 和 remote sync 状态。
 - [ ] Phase 14 完成需要每个必要运营能力 readiness 为 `ready` 或 `ready-with-explicit-alternative`。`unverified` 必要能力导致不能 completed。
 
 停止条件：
@@ -472,6 +493,7 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] 重新生成 install-owned runtime 产品能力。
 - [ ] 跨产物一致性审查未通过（如 `MAINTENANCE.md` 与根 state 矛盾）。
 - [ ] 必要运营能力 readiness 为 `unverified` 或 `blocked`。
+- [ ] company repo 仍有未提交/未推送 bootstrap 产物，或 publication branch/MR 无法更新。
 
 ## 完成判定
 

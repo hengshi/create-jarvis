@@ -105,6 +105,11 @@ workflow skill 负责 START -> WORK -> VERIFY -> END 的跨 source/repo/team 闭
    - 删除所有 bootstrap-time 模板标记；只允许 task-time 参数占位。
 6. 确认没有创建 generation plan 之外的额外 skills，也没有复制 reference company 的 release、文档 API、CI job 或附件处理 skill。
 7. 对每个 package 逐文件检查：frontmatter name 与目录一致；company reference 链接可解析；companion files 存在并被入口引用；没有 reference-company 名称/路径；没有未经证据支持的产品 CLI、技术栈、endpoint 或默认值。
+8. 运行 Phase 9 gate 通过后，将本 phase 变更提交到 Phase 7 记录的 company repository publication branch：
+   - 复核 `origin`、branch、upstream 和 Phase 7 的 `company_repository` 记录一致；
+   - 只 stage Phase 9 生成/更新的 company Jarvis 文件，执行 `git diff --cached --check` 和 secret/private-content 检查；
+   - push 现有 publication branch，并更新同一个 MR/PR；首次 seed 直接进入 default branch 的场景，也必须按 Phase 4 批准的后续提交策略执行；
+   - 记录 commit SHA、push 状态和 MR/PR URL。没有批准或 push 失败时，本 phase 返回 `needs-input`/`blocked`，不得把变更只留在本地后进入 Phase 10。
 
 ## Phase 9 Gate
 
@@ -131,3 +136,4 @@ python3 scripts/verify_bootstrap_output.py \
 - package 仍有 `BOOTSTRAP_REQUIRED`、`[needs-evidence: ...]`、未渲染 token 或模板字段名。
 - source-helper 复制了 repo-local build/test/runtime/目录真相，或 workflow package 写入 evidence inventory 无法支持的命令、project、branch、label、version、endpoint、工具默认值。
 - 工具专用 package 没有可访问 source、已确认 CLI/API 和最小 first proof，却被标成可执行。
+- Phase 9 变更未提交、未按 publication plan 推送，或被推到与 Phase 7 记录不一致的 remote/branch/MR。

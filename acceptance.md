@@ -25,6 +25,7 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - 默认方法和 workflow：`ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` 必须存在；`<slot>-workflow-issue-post-check`、`<slot>-workflow-bugfix-loop`、`<slot>-workflow-feature-delivery` 必须存在并有各自的 START -> WORK -> VERIFY -> END 语义。额外 company workflow 命名为 `<slot>-workflow-<name>`，source/tool skill 命名为 `<slot>-<name>`。
 - repo-local skills：pilot repos 中有 repo-local skill package 或明确 blocker；repo execution truth 留在 repo 本地。
 - 交付确认：所有未确认事实、owner 问题、权限缺口、写回策略和下一步都明确记录。
+- 客户仓库归属：company Jarvis 位于客户确认的 `<namespace>/<slot>-jarvis` 远端，remote、default branch、initial commit 与 MR/PR 状态可追溯；repo-local skills 按每个业务仓库的审批策略提交或明确阻塞。
 - 演进机制：影子试跑、历史回放、`no_skill_gap` 判断和受控写回路径已经进入 checklist，并有固定产物路径或明确 `needs-input` / blocker。
 
 ## 必须失败的情况
@@ -58,6 +59,7 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - repo-local `precheck.sh` 在 bootstrap 阶段因为缺 JDK、Node、Go、Docker、kubectl 等目标技术栈工具而 hard fail，而不是输出 WARN/INFO 并把缺口写入 repo-local references。
 - 没有 first workflow，或 workflow 没有 START -> WORK -> VERIFY -> END。
 - 没有 source route、routing reference、workflow skill、owner 状态或 writeback policy。
+- 只有本地 `<slot>-jarvis` 目录，没有客户拥有的远端项目或可追溯的 commit/MR；或者 repo-local skills 只存在于临时 checkout，未按客户审批策略交付。
 - 客户/operator 已提供 confirmed product identity、source scope、workflow scope 或 module hints，但输出仍把这些事实写成 unresolved，或无声省略其中一部分。
 - 客户/operator 已提供 confirmed module/source/workflow 名称，但输出把 module/source 名称或 workflow 的 `<name>` 部分改名、改大小写、翻译、合并或泛化成 agent 自己的 taxonomy；workflow 只允许按命名合同增加 `<slot>-workflow-` 前缀。
 - confirmed workflow scope 中有多个 workflow，却被折叠成一个泛化 workflow skill，导致 START/VERIFY/END gate 不可区分。

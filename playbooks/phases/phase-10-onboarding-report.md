@@ -31,6 +31,8 @@ Phase 10 完成时：
 - blockers、warnings、missing inputs。
 - first workflow 和影子试跑计划。
 - writeback policy。
+- company Jarvis remote、branch、initial commit 和 MR/PR 状态。
+- 每个 pilot repo 的 repo-local skill branch、commit、MR/PR 或明确 blocker。
 - runtime link paths。
 - 第二天运营 owner/action。
 - `bootstrap-result.json` 的 runtime contract 字段：

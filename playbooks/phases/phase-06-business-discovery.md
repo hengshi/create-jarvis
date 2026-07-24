@@ -11,6 +11,38 @@ Phase 6 是同一个 Phase 内的两层扫描，不是两个独立 phase：
 
 ### 第零层：多 Agent 并发全生态扫描
 
+**这是 bootstrap 流程中的第一个重头戏。Phase 6 的全生态扫描会消耗大量 context、扫描多个仓库、启动多个并发 agent——禁止跟 bootstrap 主 session（Phase 3-5/7-9）挤在同一个 agent 进程里。**
+
+#### 分发机制
+
+bootstrap 主 agent 到达 Phase 6 时，不得自己启动扫描。必须走以下分发流程：
+
+**方式一（推荐）：平台支持时，bootstrap 主 agent 将 Phase 6 作为独立 sub-agent 派发。** 主 agent 准备 handoff packet（Phase 4 确认的 company identity、repo URLs、source scope、first workflow），派发给一个全新的 agent 实例独立执行。该 agent 完成后将结果写入 `_bootstrap/discovery/`，然后通知主 agent 继续。
+
+**方式二：平台不支持 sub-agent 时，bootstrap 主 agent 必须告知用户新开一个独立 session，并提供可直接粘贴的完整 prompt。** 主 agent 将以下 handoff packet 整理好，让用户复制到新 session：
+
+```text
+[Phase 6 独立 session handoff prompt]
+
+你正在执行 create-jarvis-skill Phase 6 的业务发现扫描。Phase 7 的模板骨架已经通过 scripts/instantiate_company_jarvis.py base 渲染好，在 <JARVIS_HOME>。<你的任务不是重建结构，而是用客户证据把骨架填成客户自己的 Jarvis。>
+
+## 客户信息
+- 公司名/ slot: <from Phase 4>
+- 已确认产品身份: <from Phase 4>
+- Docs 仓库地址: <from Phase 4>
+- Code 仓库地址: <from Phase 4>
+- First workflow: <from Phase 4>
+- Source scope: <from Phase 4>
+- Module hints (if any): <from Phase 4>
+
+## 执行
+严格按照 phase-06-business-discovery.md 中的 "第零层：多 Agent 并发全生态扫描" 执行。完成后将结果写入 <JARVIS_HOME>/_bootstrap/discovery/。写完后告知用户 "Phase 6 done，请回到 bootstrap 主 session 继续 Phase 7"，不要自己进入 Phase 7。
+```
+
+**Phase 6 独立 agent 完成后**，用户或 bootstrap 主 agent 在 `<JARVIS_HOME>/_bootstrap/discovery/` 中检查五个证据文件齐全后，继续 Phase 7。
+
+---
+
 当客户提供 docs 和 code 的 Git 仓库地址后，runtime agent 必须以并发多 agent 方式启动全生态扫描。Phase 7 的模板骨架已经通过 `scripts/instantiate_company_jarvis.py base` 渲染就绪——这一步的任务不是重建结构，而是用客户证据把骨架填成客户自己的 Jarvis。
 
 #### 并发扫描架构

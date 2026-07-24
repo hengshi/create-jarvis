@@ -194,6 +194,41 @@ runtime agent 必须实例化并完整填写模板的现有 sections/fields，�
 
 ### 批量 commit 组扫描与分组执行（Git 历史充足时优先使用）
 
+**这是 bootstrap 流程中的第二个重头戏。批量 commit 组回放会逐个组构造 eval case、隔离重放、oracle 对比——每组都是一次完整的 mini-loop，整体消耗远超单 episode。禁止跟 bootstrap 主 session（Phase 3-5/7-11）挤在同一个 agent 进程里。**
+
+#### 分发机制
+
+bootstrap 主 agent 到达 Phase 12 时，不得自己启动批量回放。必须走以下分发流程：
+
+**方式一（推荐）：平台支持时，bootstrap 主 agent 将 Phase 12 作为独立 sub-agent 派发。** 主 agent 准备 handoff packet（pilot repo、时间范围、当前 skills pointer、isolation config），派发给一个全新的 agent 实例独立执行。该 agent 完成后将 replay cases 和结果写入 `evals/history-replay/` 和 `_bootstrap/history-replay-runs/`，然后通知主 agent 继续 Phase 13。
+
+**方式二：平台不支持 sub-agent 时，bootstrap 主 agent 必须告知用户新开一个独立 session，并提供可直接粘贴的完整 prompt。** 主 agent 将以下 handoff packet 整理好，让用户复制到新 session：
+
+```text
+[Phase 12 独立 session handoff prompt]
+
+你正在执行 create-jarvis-skill Phase 12 的历史回放——批量 commit 组模式。company Jarvis 和 repo-local skills 已经在 <JARVIS_HOME> 就绪。
+
+## 回放目标
+- Pilot repo: <repo path>
+- 时间范围: <e.g. 最近一年>
+- 当前 skills pointer: <repo-local skill paths / company Jarvis skill paths>
+- Isolation config: <bridge/container/VM info>
+
+## 执行
+严格按照 phase-12-history-replay.md 中 "批量 commit 组扫描与分组执行" 的 mini-loop（commit 组 → eval case → 失败模式 → skill update）执行。每组的 skill gap 写回决策记录在 skill-update-decision.md 中，实际 skill 写回留给 Phase 13。完成后将结果写入 <JARVIS_HOME>/evals/history-replay/ 和 <JARVIS_HOME>/_bootstrap/history-replay-runs/。写完后告知用户 "Phase 12 done，请回到 bootstrap 主 session 继续 Phase 13"，不要自己执行 skill writeback。
+
+## 关键约束
+- 不把 hidden oracle 放进 replay prompt
+- 不因为一次性误差扩展 skill
+- 同一 issue/同一 root cause 的多个 commits → 一个 eval case
+- 记录 preconsumed_commits 避免重复处理
+```
+
+**Phase 12 独立 agent 完成后**，用户或 bootstrap 主 agent 检查 replay registry 和 case 文件齐全后，继续 Phase 13（受控写回）。
+
+---
+
 当 pilot repo 有充足的 Git 历史（如最近一年的 commits）时，不要等人手工挑选 episode。runtime agent 必须以 commit 组为单位主动执行批量回放闭环。每个 commit 组执行一个完整的 mini-loop：**commit 组 → eval case → 失败模式 → skill update**，而不是先把上千个 commits 全部分类再做循环。
 
 #### 第 0 步：commit 分流与分组

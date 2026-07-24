@@ -141,6 +141,8 @@
 
 详情：`playbooks/phases/phase-06-business-discovery.md`
 
+> **这是 bootstrap 流程中的第一个重头戏。Phase 6 的全生态并发扫描会消耗大量 context——禁止跟主 session 挤在同一个 agent 进程。** bootstrap 主 agent 到达 Phase 6 时必须走分发机制：平台支持时派发独立 sub-agent；不支持时告知用户新开 session 并输出可直接粘贴的 handoff prompt。详见 phase-06-business-discovery.md 的"第零层：多 Agent 并发全生态扫描 → 分发机制"。
+
 Phase 6 是同一 Phase 内的两层扫描：(1) 全生态拓扑扫描——覆盖所有已授权 repos/docs/tests/issues-or-history/CI/客户材料，识别 product surfaces、完整 module candidates、repo roles、sources、workflow scope；(2) 第一条 workflow 深挖——对 first workflow 的 modules/repos/sources 做足够深的 evidence extraction。
 
 - [ ] 第一层：全生态拓扑扫描——覆盖所有已授权材料，不要求把每个模块写成熟。
@@ -367,6 +369,8 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 ## Phase 12 — 历史回放
 
 详情：`playbooks/phases/phase-12-history-replay.md`
+
+> **这是 bootstrap 流程中的第二个重头戏。批量 commit 组回放会逐组构造 eval case、隔离重放、oracle 对比——每组都是一次完整的 mini-loop，整体消耗远超单 episode。禁止跟主 session 挤在同一个 agent 进程。** bootstrap 主 agent 到达 Phase 12 时必须走分发机制：平台支持时派发独立 sub-agent；不支持时告知用户新开 session 并输出可直接粘贴的 handoff prompt。详见 phase-12-history-replay.md 的"批量 commit 组扫描与分组执行 → 分发机制"。
 
 目标：从每个 pilot repo 及已授权历史来源的真实 episode 构造 eval case，用当前 skills 隔离重放，找失败模式，只把可复用、可验证的缺口交给 Phase 13。
 

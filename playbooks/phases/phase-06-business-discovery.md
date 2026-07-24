@@ -9,6 +9,59 @@ Phase 6 是同一个 Phase 内的两层扫描，不是两个独立 phase：
 
 ## 步骤
 
+### 第零层：多 Agent 并发全生态扫描
+
+当客户提供 docs 和 code 的 Git 仓库地址后，runtime agent 必须以并发多 agent 方式启动全生态扫描。Phase 7 的模板骨架已经通过 `scripts/instantiate_company_jarvis.py base` 渲染就绪——这一步的任务不是重建结构，而是用客户证据把骨架填成客户自己的 Jarvis。
+
+#### 并发扫描架构
+
+同时启动以下 agent 并行工作，不串行逐个读仓库：
+
+**Agent 1 — Docs 扫描（产品身份与领域词汇）：**
+- 扫描所有 docs 仓库的导航结构、产品文档、API 文档、wiki
+- 提取：产品名、模块名、业务概念、用户角色、业务 workflow 中的 gate/审批/发布节点
+- 提取 domain vocabulary：中文名、英文名、缩写、代码中对应的 package/namespace 变体
+- 提取 identity signals：文档中出现的 product/brand/company 名称
+- 输出到 `_bootstrap/discovery/docs-scan.md`
+
+**Agent 2 — Code 扫描（模块实现锚点与 repo role）：**
+- 扫描所有 code 仓库的目录结构、build files、CI 配置、测试入口、已有 agent guidance（AGENTS.md/CLAUDE.md）
+- 提取：模块边界和 repo 角色（这个仓库做什么、不做什么）
+- 为每个发现的模块找 `<repo-name>:<repo-relative-path>` 实现锚点（真实存在的路径，不能编造）
+- 提取：技术栈、build/test 命令、验证入口、已有 skill 和 guidance 资产清单
+- 输出到 `_bootstrap/discovery/code-scan.md`
+
+**Agent 3 — 历史扫描（issues/MRs/commits 模式）：**
+- 扫描 issue tracker、MR 历史、commit messages（最近一年）
+- 提取：常见失败模式和故障域、高频变更区域和跨模块交互证据
+- 提取：issue 分类法和 label 体系、实际 workflow 执行路径
+- 输出到 `_bootstrap/discovery/history-scan.md`
+
+**Agent 4 — 测试与 CI 扫描：**
+- 扫描测试目录、CI 配置、E2E 测试、验收测试
+- 提取：测试入口和覆盖率分布、CI pipeline 结构和质量门、可用的验证命令
+- 输出到 `_bootstrap/discovery/test-ci-scan.md`
+
+#### 并发完成后合并
+
+四个 agent 都完成后，runtime agent 读取所有发现文件，执行合并：
+
+1. **Identity reconciliation**：对比 docs-scan 中的 product/brand identity 与 Phase 4 已确认的公司身份，标记一致/冲突/待确认。代码里出现的品牌名不等于公司名，不能混写。更新 `bootstrap-state.json` 中的 identity 字段。
+2. **Module 合并与消歧**：合并来自不同 agent 的模块候选，消除同名异义（例如 `market` 可能是"云市场订阅"也可能是"应用模板市场"），形成统一的 module coverage matrix。每个 module 标注：`included` / `deferred-needs-evidence` / `needs-owner-confirmation`。
+3. **Repo role map**：每个 repo 在 first workflow 中的职责、技术边界、验证入口。
+4. **Cross-cutting 提取**：从 history-scan 和 code-scan 提取跨模块交互链路，填入 `cross-cutting/module-interactions.md`。
+5. **Workflow map**：first workflow 的 START → WORK → VERIFY → END，每一步用到的 module/source/repo。
+6. **Generation plan**：明确 Phase 7/8/9 要创建什么、哪些事实缺 owner 确认、哪些进入 backlog。
+
+#### 硬约束
+
+- **不做 raw source dump**：不把文档正文、源码、issue 内容复制进 Jarvis repo
+- **不用工程层当业务模块**：`backend`/`frontend`/`api`/`database`/`infra` 不能作为主要 module。模块必须反映客户产品域和业务能力
+- **每个 included module 需双锚点**：(a) 产品身份锚点——文档/UI/测试证明业务能力存在；(b) 实现锚点——`<repo>:<path>` 证明代码存在。路径存在或依赖声明本身不能单独证明业务含义
+- **不编造**：没有在客户材料中实际观测到的 endpoint、route、label、字段、owner、测试数量，写 `needs-verification`
+- **confirmed module/source 名称原样保留**：不翻译、不缩写、不改大小写
+- **负向搜索记录范围**：找不到时记录搜索了哪些 repo/path/alias，不写"不存在"
+
 ### 第一层：全生态拓扑扫描
 
 1. 明确允许读取的全部授权材料范围：docs、repos、tests、issues、tickets、wiki、CI 配置、客户产品材料。

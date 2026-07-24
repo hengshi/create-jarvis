@@ -191,7 +191,64 @@ runtime agent 必须实例化并完整填写模板的现有 sections/fields，�
 
 1. 创建或更新 `evals/history-replay/replay-case-registry.md`。
 2. 扫描每个 pilot repo 和已授权 issue/MR/ticket/incident 历史，记录命令/查询、时间或提交边界、候选和排除理由、停止原因。无固定数量或窗口。
-3. 为 episode 分配稳定 id，例如 `replay-YYYYMMDD-001`。
+
+### 批量 commit 组扫描与分组执行（Git 历史充足时优先使用）
+
+当 pilot repo 有充足的 Git 历史（如最近一年的 commits）时，不要等人手工挑选 episode。runtime agent 必须以 commit 组为单位主动执行批量回放闭环。每个 commit 组执行一个完整的 mini-loop：**commit 组 → eval case → 失败模式 → skill update**，而不是先把上千个 commits 全部分类再做循环。
+
+#### 第 0 步：commit 分流与分组
+
+1. 获取目标 repo 指定时间范围内的所有 commits（例如 `git log --since="1 year ago" --oneline --no-merges`）。
+2. 将 commits 按类型分流：
+   - `bugfix`：修复类提交
+   - `feature`：功能类提交
+   - `refactor`：重构类提交
+   - `tests`：测试类提交
+   - `docs`：文档类提交
+   - `release`：发布/版本号类提交
+   - `noise`：格式化、注释修正等噪音提交
+3. 对 `bugfix` 和 `feature` 类 commits，按 **issue/语义相关性** 进行分组，形成 commit 组（execution unit）。每个组内的 commits 解决同一个问题或实现同一个能力。记录 `preconsumed_commits` 避免重复处理。
+
+#### 对每个 commit 组执行 mini-loop
+
+对每个 commit 组，严格按照以下小循环闭环处理：
+
+**Step A — 构造 eval case：**
+- 从该组最早 commit 的 parent state 提取 visible START（当时可见的初始信号：issue 描述、错误日志、用户报告、当时已存在的代码和测试）
+- 从该组最终 commit 的 final diff 提取 hidden oracle（实际修复方案、changed files、root cause、verification）。若历史 root cause 或 verification 未记录，写 `unknown`
+- 按 `templates/replay/history-replay-case.md` 创建完整 outer case
+- 确保 START/oracle 分离：visible packet 不能包含任何 post-cutoff 信息。不把 final commit message、changed-file list、final diff、最终测试或修复原因放进 visible packet
+
+**Step B — 隔离重放：**
+- 在 cutoff snapshot（parent commit）上，使用当前版本的 repo-local skills 重放原任务
+- replay agent 只能读 visible packet、cutoff snapshot、当前 skills
+- 记录完整的执行轨迹、exit code、diff/输出
+
+**Step C — Oracle 对比与失败模式归因：**
+- 外层 agent 读取 replay 产出和 hidden oracle，按 Phase 12.D 各维度对比
+- 非通过时归因到：`skill_gap` / `instance_fact_gap` / `source_access_environment` / `execution_deviation` / `case_construction_leak` / `oracle_limitation`
+
+**Step D — skill update 决策（使用 skill-creator）：**
+- 只有确认为 `skill_gap`（现有 skills 存在可复用、可验证的缺口）时，才通过 `skill-creator` 写回
+- 写回规则必须满足：可复用、有证据、可验证、归属明确
+- 先写 primary home（repo-local skill），再考虑是否需要镜像到 company Jarvis 或 upstream
+- 写回后用同一 case 复跑验证修复效果。同一 case 复跑证明修复了该回归，不单独证明跨 episode 泛化
+
+#### 停止条件
+
+- 所有 commit 组已处理完毕，或
+- 连续 N 个 commit 组未发现新的 skill gap（dry-up）
+- 将候选写回和复跑交给 Phase 13；Phase 12 不直接修改被测 skills
+
+#### 关键约束
+
+- 不把 hidden oracle 放进 replay prompt
+- 不因为一次性误差扩展 skill
+- 不从未执行、泄漏或 outcome 不可验证的 case 推导 skill gap
+- Group 粒度：同一 issue/同一 root cause 的多个 commits → 一个 eval case；不相关的独立 commits → 各自独立 case
+- 此批量流程与单 episode 流程共享相同的隔离执行、oracle comparison、归因和禁止规则
+
+3. 为单 episode 或 commit 组分配稳定 case id，例如 `replay-YYYYMMDD-001`。
 4. 选择 START/oracle 可分离且能覆盖真实风险的 episode，为每个选中的 episode 创建完整 `evals/history-replay/cases/<case-id>/history-replay-case.md`。其余候选留在 registry backlog；不能只留候选而不创建任何可执行 case。
 5. 填写 visible START：initial signal、provenance（每个 fact 的来源和 pre-outcome 状态）、allowed sources/repos、available skills、known unknowns、replay prompt。把每条 visible-packet 事实和 narrowing instruction 逐条写入 Visible Packet Fact Closure 表，并回指 Visible Fact Provenance 的 Fact ID。
 6. 填写 hidden outcome oracle：必须用已记录的 exact command/pointer 读取完整真实 final diff/artifact，提取实际观察到的 outcome，禁止 `likely`/`probably`/猜测。记录 final commit/MR/decision pointer、actual owner/repo/source、actual changed surfaces、actual verification evidence、expected durable writeback。若历史 root cause 或 verification 未记录，写 `unknown`。填写 Hidden Facts Excluded From Visible Packet 表。

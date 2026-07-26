@@ -9,6 +9,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import stat
 import subprocess
@@ -23,7 +24,6 @@ CANONICAL_FILES = [
     "SKILL.md",
     "code-review/SKILL.md",
     "code-review/scripts/precheck.sh",
-    "eval-loop.md",
     "references/source-of-truth.md",
     "references/architecture-map.md",
     "references/test-entrypoints.md",
@@ -31,6 +31,74 @@ CANONICAL_FILES = [
     "references/history-replay-loop.md",
     "self-skills-improve/SKILL.md",
 ]
+
+# SHA-256 of the removed v1 eval-loop template.  Upgrades normalize only the
+# four known repository-name slots before comparing this digest; a global
+# replacement would corrupt ordinary prose when a repo is named "skill",
+# "repo", "eval", or another common word.
+LEGACY_EVAL_LOOP_TEMPLATE_SHA256 = (
+    "23566012819c825c94416f3c341cb1520bca3b32adda80db55cb08269d452b85"
+)
+
+
+def _normalize_legacy_eval_loop(content: str, repo_name: str) -> str | None:
+    """Restore only the known v1 placeholder slots, or fail closed."""
+    replacements = (
+        (
+            f"name: eval-loop-{repo_name}\n",
+            "name: eval-loop-{{REPO_NAME}}\n",
+        ),
+        (
+            f"  Eval-loop methodology for the {repo_name} repository. Defines how to\n",
+            "  Eval-loop methodology for the {{REPO_NAME}} repository. Defines how to\n",
+        ),
+        (
+            f"# {repo_name} — Eval Loop Methodology\n",
+            "# {{REPO_NAME}} — Eval Loop Methodology\n",
+        ),
+        (
+            f'  repo: "{repo_name}"\n',
+            '  repo: "{{REPO_NAME}}"\n',
+        ),
+    )
+    normalized = content
+    for rendered, placeholder in replacements:
+        if normalized.count(rendered) != 1:
+            return None
+        normalized = normalized.replace(rendered, placeholder, 1)
+    return normalized
+
+
+def _legacy_eval_loop_status(path: Path, repo_name: str) -> tuple[str, str]:
+    """Classify the removed v1 eval-loop file without mutating it."""
+    if path.is_symlink():
+        return "error", "legacy skills/eval-loop.md must not be a symlink"
+    if not path.exists():
+        return "absent", ""
+    if not path.is_file():
+        return "error", "legacy skills/eval-loop.md exists but is not a regular file"
+    try:
+        content = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        return "error", f"legacy skills/eval-loop.md is not readable UTF-8: {exc}"
+    normalized = _normalize_legacy_eval_loop(content, repo_name)
+    if normalized is None:
+        return (
+            "customized",
+            "legacy skills/eval-loop.md contains non-template content or does "
+            "not match the generated v1 slots; "
+            "review it, move reusable rules into the actual SKILL.md/focused "
+            "reference/script, then remove the legacy file before continuing",
+        )
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    if digest == LEGACY_EVAL_LOOP_TEMPLATE_SHA256:
+        return "generated", ""
+    return (
+        "customized",
+        "legacy skills/eval-loop.md contains non-template content; review it, "
+        "move reusable rules into the actual SKILL.md/focused reference/script, "
+        "then remove the legacy file before continuing",
+    )
 
 
 def _validate_name(name: str, label: str) -> str:
@@ -176,6 +244,13 @@ def _preflight(
         )
         return errors, {}
 
+    legacy_status, legacy_detail = _legacy_eval_loop_status(
+        target_skills / "eval-loop.md", repo_name
+    )
+    if legacy_status in {"customized", "error"}:
+        errors.append(legacy_detail)
+        return errors, {}
+
     for rel_path_str in CANONICAL_FILES:
         rel_path = Path(rel_path_str)
         src = template_dir / rel_path
@@ -243,7 +318,13 @@ def instantiate(repo_root: Path, repo_name: str) -> dict:
     source files are not re-read after preflight.
     """
     target_skills = repo_root / "skills"
-    result: dict = {"created": [], "preserved": [], "skipped": [], "errors": []}
+    result: dict = {
+        "created": [],
+        "preserved": [],
+        "skipped": [],
+        "removed_legacy": [],
+        "errors": [],
+    }
 
     preflight_errors, rendered_plan = _preflight(REPO_LOCAL_TEMPLATE, repo_root, repo_name)
     if preflight_errors:
@@ -264,6 +345,17 @@ def instantiate(repo_root: Path, repo_name: str) -> dict:
         else:
             dst.write_text(rendered, encoding="utf-8")
             result["created"].append(rel_path_str)
+
+    legacy_path = target_skills / "eval-loop.md"
+    legacy_status, legacy_detail = _legacy_eval_loop_status(legacy_path, repo_name)
+    if legacy_status == "generated":
+        try:
+            legacy_path.unlink()
+            result["removed_legacy"].append("eval-loop.md")
+        except OSError as exc:
+            result["errors"].append(f"could not remove generated legacy skills/eval-loop.md: {exc}")
+    elif legacy_status in {"customized", "error"}:
+        result["errors"].append(legacy_detail)
 
     # Ensure precheck is executable
     precheck = target_skills / "code-review" / "scripts" / "precheck.sh"
@@ -330,6 +422,9 @@ def main() -> int:
     print(f"skipped (identical): {len(result['skipped'])}")
     for f in result["skipped"]:
         print(f"  = {f}")
+    print(f"removed legacy generated files: {len(result['removed_legacy'])}")
+    for f in result["removed_legacy"]:
+        print(f"  - {f}")
     if result["errors"]:
         print(f"errors: {len(result['errors'])}")
         for e in result["errors"]:

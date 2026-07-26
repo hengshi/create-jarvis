@@ -1,6 +1,6 @@
 # Phase 13 — 受控写回
 
-目标：把 Phase 11/12 中验证过的学习写回正确位置。受控写回不是"把发现都写进 JARVIS"——它只处理可复用、可验证、归属明确的学习。
+目标：把 Phase 11 的 eligible learning 和 Phase 12 已进入累计 calibration baseline 的 ordered verified candidate set 写回正确 authoritative home。受控写回不是"把发现都写进 JARVIS"——它只处理可复用、可验证、归属明确的学习。
 
 ## 受控写回 vs jarvis-box Retry Writeback
 
@@ -23,7 +23,7 @@
 只消费 source gate 有效且 evidence contract 完整的 eligible learning signals：
 
 - Phase 11 pilot：END decision 有完整 START-WORK-VERIFY-END evidence；
-- Phase 12 replay：case validity 为 `valid`、case 为 `ready-for-replay`、execution gate 为 `executed`、oracle comparison 完整、changed-surface 逐项说明完整、outcome verification 足以支持 skill 判断。
+- Phase 12 replay：case validity 为 `valid`、Replay eligibility 为 `eligible-direct` / `eligible-reconstructed`、case Status 为 `replayed` / `closed`、execution gate 为 `executed`、oracle comparison 完整、changed-surface 逐项说明完整、outcome verification 足以支持判断。
 
 invalid / `replay-not-executed` / 泄漏 / oracle 未验证的 signal 可记录为 `deferred` / `not-evaluated`，但不得计为 `no_skill_gap`、`skill_gap`、`closed` 或 completed candidate。Phase 13 完成只计 eligible candidates。
 
@@ -58,7 +58,7 @@ invalid / `replay-not-executed` / 泄漏 / oracle 未验证的 signal 可记录�
 
 1. 收集 candidates（只收集 eligible signals——source gate 有效且 evidence contract 完整）：
    - Phase 11 pilot END decisions（完整 START-WORK-VERIFY-END evidence）；
-   - Phase 12 skill update decisions（仅限 `ready-for-replay` + `executed` + 完整 oracle comparison + 完整 changed-surface 说明的 case）；
+   - Phase 12 ordered verified candidate set（仅限 Replay eligibility `eligible-direct`/`eligible-reconstructed` + Status `replayed`/`closed` + `executed` + 完整 oracle comparison；`skill_gap` 还必须有 candidate diff、same-case rerun 和 cumulative-baseline promotion；stable-fact 还必须有当前权威来源验证）；
    - owner review 指出的 durable gap；
    - verifier/e2e 发现的 generic contract gap。
    
@@ -78,6 +78,7 @@ invalid / `replay-not-executed` / 泄漏 / oracle 未验证的 signal 可记录�
 5. 判断 mirror writeback：只有当另一层必须发现/执行该规则时才 mirror。
 6. 做 redaction：去除 secret、个人隐私、未经授权材料、raw source dump、长篇聊天/issue/MR 原文和 hidden oracle；客户实例保留必要的真实身份与稳定 repo-relative pointer，upstream 再做 company-neutral 化。
 7. 执行写回：
+   - 按 Phase 12 ordered candidate set 的顺序应用，先核对每个 diff 只修改 decision 指定的 primary home，且与 calibration snapshot 的 verified diff 一致；
    - 按目标 owner 的实际写入/审批政策执行，不预设 branch/MR/PR/CI；
    - 使用最小 patch，不重写无关文档；
    - 保留 evidence pointer；
@@ -89,7 +90,7 @@ invalid / `replay-not-executed` / 泄漏 / oracle 未验证的 signal 可记录�
    - company：重跑 routing/pilot trace；
    - workflow/source skill：重跑对应 START/route；
    - upstream create-jarvis-skill：跑 eval 或记录为什么暂不加 eval。
-9. skill 已更新时，用 Phase 12 的同一 visible START 隔离复跑，证明该回归改善或记录没有改善；同一 case 不单独证明泛化。更新对应 replay result、decision 和 registry。
+9. 全部 candidate 应用后，核对最终 authoritative diff/ref 与 Phase 12 累计 `calibration_skill_ref` 等价；再用最终累计 authoritative snapshot 对 ordered set 中每个受影响 case 做交付复验，确认后续 candidate 没有让较早 case 回归。这不是替代 Phase 12 的 candidate rerun，也不单独证明跨 episode 泛化。更新对应 replay result、decision 和 registry。
 10. 更新 `_bootstrap/controlled-writeback-log.md`。
 11. 只有治理规则本身变化时才更新 `references/writeback-governance.md`；不要每次写回都修改它。
 

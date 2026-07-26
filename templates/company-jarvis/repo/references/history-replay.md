@@ -35,9 +35,10 @@ Episode 是从真实历史中选取的一个事件，来源可以是 commit、is
 
 必须记录 cutoff、每条 visible fact 的 provenance 及其为何在 cutoff 前可见。由最终结果倒推的根因、文件、方法或修复方向不能伪装成初始信号。
 
-## 当前 Skills 是被测对象
+## 当前 Calibration Skills 是被测对象
 
-- replay 使用运行时当前安装的 company、repo-local、source 和 workflow skills，并在运行开始时记录各 entrypoint/version pointer。
+- 第一组从 authoritative company、repo-local、source 和 workflow skills 派生 writable calibration snapshot；之后每组使用上一组闭合后持久化的累计 `calibration_skill_ref`。
+- 每次运行记录实际 entrypoint/version pointer、baseline before/after 和 ordered verified candidate set；checkpoint 后不得退回旧 authoritative baseline。
 - 历史 checkout/source snapshot 冻结在 cutoff；skills 不回退到历史版本。
 - 构造者必须检查当前 skill 是否直接包含该 episode 的 case-specific hidden outcome。若包含，保留该 case 做更新后的回归验证可以，但不能把它当作发现新缺口或证明跨 episode 泛化的独立证据。
 - 从其他 episode 提炼出的通用规则可以参与当前 replay；这是检验复用价值的一部分。
@@ -78,14 +79,14 @@ Episode 是从真实历史中选取的一个事件，来源可以是 commit、is
 
 replay 失败时，先归因再决定是否修改 skill：
 
-1. **skill gap**：现有 guidance 缺少可复用且可验证的方法规则。
-2. **实例事实缺口**：company Jarvis 或 repo-local 内容缺少当时本应可取得的必要事实。
-3. **source / access / environment**：来源、权限、工具或执行环境阻断了任务。
-4. **执行偏差**：当前 guidance 已足够，但 agent 没有遵循。
-5. **case 构造缺陷**：visible START 不足、cutoff/provenance 不成立、oracle 不可验证或发生答案泄漏。
-6. **历史 outcome 局限**：oracle 本身不是完整或唯一正确解，不能据此判定 skill 失败。
+1. `skill_gap`：现有 guidance 缺少可复用且可验证的方法规则。
+2. `instance_fact_gap`：company Jarvis 或 repo-local 内容缺少当时本应可取得的必要事实。
+3. `source_access_environment`：来源、权限、工具或执行环境阻断了任务。
+4. `execution_deviation`：当前 guidance 已足够，但 agent 没有遵循。
+5. `case_construction_leak`：visible START 不足、cutoff/provenance 不成立或发生答案泄漏。
+6. `oracle_limitation`：历史 outcome 不完整或不是唯一正确解，不能据此判定 skill 失败。
 
-完成归因后再做 `no_skill_gap` 判断。只有第 1 类有充分证据时才进入 skill 写回；其他类别分别修实例事实、source/access/environment、执行过程或 eval case。replay 未实际执行或 oracle comparison 未完成时，只能记录未评估，不能得出 `no_skill_gap` 或 skill gap。
+完成归因后再做 `no_skill_gap` 判断。只有 `skill_gap` 有充分证据时才形成 skill candidate；其他类别分别修稳定实例事实、source/access/environment、执行过程或 eval case。replay 未实际执行或 oracle comparison 未完成时，Primary 只能 `not-evaluated`、Decision 只能 `defer`，不能得出 `no_skill_gap` 或 `skill_gap`。
 
 ## Writeback 条件
 
@@ -94,55 +95,47 @@ replay 失败时，先归因再决定是否修改 skill：
 - 同一 skill gap 在多个 episode 中复现
 - 单个 episode 影响足够高，且 gap 可复用、可写成可验证规则
 
-writeback 时先写入 primary home，再考虑是否需要镜像 pointer。
+Phase 12 只在 writable calibration snapshot 形成 candidate、完成同 case 验证并累计；Phase 13 才按 primary home 的政策应用到 authoritative home，再考虑是否需要镜像 pointer。
 
 不设 episode 数量或 case 数量的最低阈值。只要求 case 满足：真实、有足够初始信号、有可验证结果、有授权访问。
 
-## 执行流程
+## 按 Commit 组的执行流程
 
-### 1. 搜索并筛选真实 episode
+### 1. 建立轻量 cursor
 
-主动扫描已授权的 repo 历史、issue、MR、事故或交付记录。选择 START 与 outcome 可分离、初始信号足以开工且结果可验证的 episode；找不到时记录已扫描范围和缺口，不编造 case。
+先声明 `seed` 或 `full-range` mode，并记录 repo、请求边界、方向、owner、resume entry、`next_commit`、当前 `calibration_skill_ref`。不要先把整个时间范围分类。
 
-### 2. 构造 outer case
+### 2. 扩成最小相关组
 
-记录 episode pointer、cutoff、visible fact provenance 和 hidden oracle。逐项解释每条 visible fact 为什么在 cutoff 前可得；无法证明的内容移出 visible START。
+从 cursor seed 立即依据同一 issue/MR key、连续主题、高信号文件重叠、follow-up cleanup 和补充 tests/verification 扩组。记录 `group_commits`、cursor before/after 与非 seed 的 `preconsumed_commits`；跨非连续提交扩组时 cursor after 仍按 seed 的遍历顺序推进，preconsumed 成员只在以后 encounter 时跳过。refactor/tests/docs/release/noise 随 cursor encounter-and-skip，或并入其服务的 bugfix/feature 组。
 
-### 3. 构造 visible packet
+### 3. 构造 outer case 和 visible packet
 
-只放初始任务、允许的 source/repo、cutoff snapshot、已知约束和当前 skill entrypoints。对照 oracle 做泄漏检查；不合格时修 case 或更换 episode，不启动 replay。
+从组内最早 parent 与独立 pre-fix artifact 构造 visible START，记录 provenance 和 hidden oracle。完整 final subject、diff、changed paths、cause、fix、最终测试都属于 oracle；只有纯外部症状可谨慎标为 `reconstructed-from-outcome-subject` 投影。visible packet 只含初始任务、允许 source/repo、cutoff snapshot、约束和当前 calibration skill entrypoints。
 
-### 4. 建立隔离环境
+### 4. 建立隔离环境并执行原任务
 
-使用独立 container、VM 或等价文件系统边界。只挂载 visible packet、允许的 cutoff source snapshot、裁剪后的当前 Jarvis runtime 和独立输出目录。记录 agent CLI、挂载 allowlist、checkout identity 和 skill pointers。
+使用独立 container/VM 文件系统边界，只挂载 visible packet、cutoff source snapshot、裁剪后的当前 calibration runtime 和独立输出。replay agent 按实际 skills 完成路由、WORK、VERIFY 和 END；需要修改时在可写 cutoff snapshot 中真实修改和验证。
 
-### 5. 执行原任务
+### 5. 由外层 agent 比较 oracle
 
-replay agent 按当前 skills 完成路由、WORK、VERIFY 和 END。原任务需要修改时应在可写 snapshot 中真实修改并运行可用验证；原任务是分析或评审时，按其原始交付合同执行。
+outer coordinator 先读取 exact replay result 和完整 hidden oracle，再比较 route/owner、关键证据、fix boundary、行为结果、验证和 closure。结果为 `matched`、`partial`、`mismatched`、`blocked` 或 `invalid`；replay agent 不自评 oracle。
 
-### 6. 由外层 agent 比较 oracle
+### 6. Primary attribution 与 candidate
 
-按上述比较维度对比 replay 产出与 hidden oracle。结果分类：
+先用上述精确枚举归因。只有 `skill_gap` 才调用 `skill-creator` 修改实际 primary skill home 的候选副本；`instance_fact_gap` 只有当前权威来源可独立证明稳定事实时，才形成最小 fact-correction candidate。其他 attribution 记录 no-update/defer。不得创建 eval-loop skill，也不得把单个 commit 的答案写进 skill。
 
-- `matched`：关键维度正确，行为结果等价或更优
-- `partial`：已执行，但关键证据、边界、验证或闭合不完整
-- `mismatched`：已执行，但关键路由、事实或行为结果错误
-- `blocked`：在形成足够执行证据前被来源、权限、工具或环境阻断
-- `invalid`：case 泄漏、START/provenance 不成立或 oracle 不可用于比较
+### 7. Same-case rerun 与累计 baseline
 
-只有外层 agent 可以读取 hidden oracle 并做比较；replay agent 不自评 oracle。
+保持同一 START、cutoff、allowed sources 和 oracle 复跑 candidate。只有失败维度改善、正确维度无回归且验证成立才标 verified。verified skill/stable-fact candidate 先晋升为累计 calibration baseline，保存 baseline before/after、新 `calibration_skill_ref` 与 ordered candidate set；`no_skill_gap`/defer 保持 ref 不变。
 
-### 7. 归因并判断 no_skill_gap
+### 8. 持久化状态并关闭组
 
-对所有非 `matched` 结果执行上面的归因。读取实际 skill trace，判断是 skill 缺口、实例事实、环境、执行偏差还是 case/oracle 问题。
+保存 case、comparison、decision、candidate diff/rerun 和 cursor before/after。先持久化累计 ref，再推进 cursor。full-range 到请求边界前保持 `in-progress`；seed 可在至少一个有效组闭合后，把剩余范围连同 cursor/ref、owner 和 resume entry 交给 day-2，但不得宣称全范围完成。
 
-### 8. 受控写回与复跑
+### 9. Phase 13 受控应用
 
-确认为 skill gap 后，按 `writeback-governance.md` 选择主归属。写入最小可验证规则，再用同一 visible START 复跑；同 case 复跑证明修复了该回归，不单独证明跨 episode 泛化。
-
-### 9. 更新注册表
-
-记录运行 identity、结果、比较、归因、`no_skill_gap`/写回决定、复跑证据和下一步。未执行的维度不得标为通过。
+到达当前 scope completion boundary 后，Phase 13 按 ordered candidate set 应用到 authoritative primary homes，核对最终 authoritative ref 与累计 baseline 等价，并用最终累计 authoritative snapshot 复跑所有受影响 case，防止后续 candidate 让早期 case 回归。
 
 ## Case 最小语义
 
@@ -150,14 +143,15 @@ replay agent 按当前 skills 完成路由、WORK、VERIFY 和 END。原任务�
 
 - 唯一标识
 - 来源 episode 的指针（issue/MR/commit 链接）
+- group commits、cursor before/after、preconsumed commits
 - visible START 快照指针
 - hidden oracle 指针及其访问边界
 - cutoff 时刻和 provenance 说明
-- 当前被测 skill pointers，以及该 episode 是否曾影响这些 skills
+- 当前被测 skill pointers、calibration ref before/after，以及该 episode 是否曾影响这些 skills
 - 隔离方式和运行证据 pointer
 - replay 结果、oracle comparison、归因与写回决定
 
-记录格式为自由文本，不要求固定 YAML/JSON schema。
+产物可以是 Markdown，但必须完整实例化 create-jarvis-skill 的 canonical `history-replay-case.md`、`replay-failure-analysis.md`、`skill-update-decision.md` sections/fields，并按 `replay-case-registry.md` 维护 cursor；不得用缩减自由文本替代执行合同。
 
 ## 停止条件
 
@@ -165,7 +159,7 @@ replay agent 按当前 skills 完成路由、WORK、VERIFY 和 END。原任务�
 
 - `matched`，且比较与验证证据完整；
 - 非通过结果已完成归因，并已修正正确 owner、进入受控写回或记录真实 blocker；
-- skill 已更新时，同一 case 已复跑并记录改善或未改善。
+- candidate 存在时，同一 case 已复跑；verified candidate 已进入累计 baseline并持久化新 ref。
 
 以下情况立即停止该 case 的 replay，不产生 skill 结论：
 

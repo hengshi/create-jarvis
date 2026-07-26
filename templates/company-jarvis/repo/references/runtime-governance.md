@@ -55,9 +55,9 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 
 ### 3.3 配置与维护操作
 
-`agent set/enable/disable/order/unset`、`tasks reap/clean`、`bootstrap jarvis`、`setup gitlab`、`start/stop/restart` 会改变配置、保留期或服务状态，但不增加 Task 生命周期操作。执行前确认授权范围、操作目标和失败恢复方式。
+`agent set/enable/disable/order/unset`、`tasks reap/clean`、`setup gitlab`、`start/stop/restart` 会改变配置、保留期或服务状态，但不增加 Task 生命周期操作。执行前确认授权范围、操作目标和失败恢复方式。
 
-`tasks reconcile` 只生成 dry-run 计划，不执行计划中的 mutation。`bootstrap jarvis --resume` 只恢复 bootstrap 表单和已确认状态，不恢复 Task/Run。
+`tasks reconcile` 只生成 dry-run 计划，不执行计划中的 mutation。Company bootstrap 从根目录 state 继续，不恢复 Task/Run。
 
 ## 4. 密钥与凭据
 

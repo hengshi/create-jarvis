@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import importlib.util
 import io
 import os
@@ -64,8 +65,8 @@ class TestInstantiateRepoLocalSkill(unittest.TestCase):
 
     # ── CLI tests ─────────────────────────────────────────────────
 
-    def test_creates_canonical_10_files_with_repo_flag(self):
-        """Creates all 10 canonical files using --repo and explicit --repo-name."""
+    def test_creates_canonical_9_files_with_repo_flag(self):
+        """Creates all 9 canonical files using --repo and explicit --repo-name."""
         result = self._run("--repo", str(self.tmpdir), "--repo-name", "test-repo")
         self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
 
@@ -73,7 +74,6 @@ class TestInstantiateRepoLocalSkill(unittest.TestCase):
             "skills/SKILL.md",
             "skills/code-review/SKILL.md",
             "skills/code-review/scripts/precheck.sh",
-            "skills/eval-loop.md",
             "skills/references/source-of-truth.md",
             "skills/references/architecture-map.md",
             "skills/references/test-entrypoints.md",
@@ -84,6 +84,7 @@ class TestInstantiateRepoLocalSkill(unittest.TestCase):
         for rel in expected:
             path = self.tmpdir / rel
             self.assertTrue(path.is_file(), f"missing: {rel}")
+        self.assertFalse((self.tmpdir / "skills/eval-loop.md").exists())
 
     def test_template_exposes_semantic_execution_trace_contract(self):
         """The generated entry skill must demand a semantic execution trace."""
@@ -301,6 +302,74 @@ class TestInstantiateRepoLocalSkill(unittest.TestCase):
         # Content preserved
         current = skill_md.read_text(encoding="utf-8")
         self.assertEqual(current, modified)
+
+    def test_exact_generated_legacy_eval_loop_is_removed(self):
+        """An exact generated v1 file is safely removed during upgrade."""
+        mod = _load_module()
+        legacy = self.tmpdir / "skills" / "eval-loop.md"
+        legacy.parent.mkdir(parents=True, exist_ok=True)
+        template = (
+            "---\n"
+            "name: eval-loop-{{REPO_NAME}}\n"
+            "description: |\n"
+            "  Eval-loop methodology for the {{REPO_NAME}} repository. Defines how to\n"
+            "---\n"
+            "# {{REPO_NAME}} — Eval Loop Methodology\n"
+            "trigger:\n"
+            '  repo: "{{REPO_NAME}}"\n'
+        )
+        content = template.replace("{{REPO_NAME}}", "test-repo")
+        legacy.write_text(content, encoding="utf-8")
+        digest = hashlib.sha256(template.encode("utf-8")).hexdigest()
+        with unittest.mock.patch.object(
+            mod, "LEGACY_EVAL_LOOP_TEMPLATE_SHA256", digest
+        ):
+            result = mod.instantiate(self.tmpdir, "test-repo")
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["removed_legacy"], ["eval-loop.md"])
+        self.assertFalse(legacy.exists())
+
+    def test_legacy_normalization_does_not_replace_common_repo_name_in_prose(self):
+        """A repo called 'skill' must not corrupt ordinary legacy prose."""
+        mod = _load_module()
+        legacy = self.tmpdir / "skills" / "eval-loop.md"
+        legacy.parent.mkdir(parents=True, exist_ok=True)
+        template = (
+            "---\n"
+            "name: eval-loop-{{REPO_NAME}}\n"
+            "description: |\n"
+            "  Eval-loop methodology for the {{REPO_NAME}} repository. Defines how to\n"
+            "---\n"
+            "# {{REPO_NAME}} — Eval Loop Methodology\n"
+            "A skill update changes the actual skill; skill is ordinary prose here.\n"
+            "trigger:\n"
+            '  repo: "{{REPO_NAME}}"\n'
+        )
+        legacy.write_text(
+            template.replace("{{REPO_NAME}}", "skill"), encoding="utf-8"
+        )
+        digest = hashlib.sha256(template.encode("utf-8")).hexdigest()
+        with unittest.mock.patch.object(
+            mod, "LEGACY_EVAL_LOOP_TEMPLATE_SHA256", digest
+        ):
+            result = mod.instantiate(self.tmpdir, "skill")
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["removed_legacy"], ["eval-loop.md"])
+        self.assertFalse(legacy.exists())
+
+    def test_customized_legacy_eval_loop_blocks_without_deletion(self):
+        """Customized legacy content needs owner review and is never deleted."""
+        legacy = self.tmpdir / "skills" / "eval-loop.md"
+        legacy.parent.mkdir(parents=True, exist_ok=True)
+        content = "# Customer-maintained rules\nDo not delete this evidence.\n"
+        legacy.write_text(content, encoding="utf-8")
+
+        result = self._run("--repo", str(self.tmpdir), "--repo-name", "test-repo")
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("contains non-template content", result.stdout)
+        self.assertEqual(legacy.read_text(encoding="utf-8"), content)
+        self.assertFalse((self.tmpdir / "skills" / "SKILL.md").exists())
 
     def test_no_private_company_references(self):
         """No HENGSHI/hengshi/heglabs/etc in rendered content."""

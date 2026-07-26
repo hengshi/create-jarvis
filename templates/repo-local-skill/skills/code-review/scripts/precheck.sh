@@ -31,7 +31,6 @@ fi
 
 CANONICAL_FILES=(
   "skills/SKILL.md"
-  "skills/eval-loop.md"
   "skills/code-review/SKILL.md"
   "skills/code-review/scripts/precheck.sh"
   "skills/references/source-of-truth.md"
@@ -44,7 +43,6 @@ CANONICAL_FILES=(
 
 CONTENT_FILES=(
   "skills/SKILL.md"
-  "skills/eval-loop.md"
   "skills/code-review/SKILL.md"
   "skills/references/source-of-truth.md"
   "skills/references/architecture-map.md"

@@ -10,9 +10,11 @@
 python scripts/instantiate_repo_local_skill.py --repo <path>
 ```
 
-这会从 `templates/repo-local-skill/skills/` 复制 canonical 10-file package 并渲染 `{{REPO_NAME}}` token。precheck 自动设为 executable。
+这会从 `templates/repo-local-skill/skills/` 复制 canonical 9-file package 并渲染 `{{REPO_NAME}}` token。precheck 自动设为 executable。
 
-Phase 8 完成后，specialised skills 进入 Phase 12 演进（从真实 history replay 生长）。canonical 10 文件是起点，不是成熟度上限。
+升级已有 package 时，instantiator 只会自动移除内容仍与旧版生成模板完全一致的 `skills/eval-loop.md`。该文件若有客户编辑会 fail closed：先由 owner 审查，把仍可复用的规则迁入实际 primary `SKILL.md`、focused reference 或验证脚本，再删除 legacy 文件。不得盲删或静默保留。
+
+Phase 8 完成后，specialised skills 进入 Phase 12 演进（从真实 history replay 生长）。canonical 9 文件是起点，不是成熟度上限；eval loop 是 Phase 12 的控制流，不生成独立的 eval-loop skill/file。
 
 ## 判断顺序
 
@@ -41,11 +43,10 @@ skills/
 ├── references/test-entrypoints.md
 ├── references/runtime-and-testability.md
 ├── references/history-replay-loop.md
-├── eval-loop.md
 └── self-skills-improve/SKILL.md
 ```
 
-引导生成阶段不只是创建骨架。repo-local skill package 的确定性十文件创建完成后，必须立即检查每个可读 repo 并填入所有可直接观察的事实：
+引导生成阶段不只是创建骨架。repo-local skill package 的确定性九文件创建完成后，必须立即检查每个可读 repo 并填入所有可直接观察的事实：
 
 - 实际 default branch 和可由证据支持的分支策略；default branch 必须来自 remote HEAD 或 VCS project metadata，当前 checkout 分支只能作为补充观察，不能单独充当 default branch
 - repo 角色和边界
@@ -77,7 +78,7 @@ Owner 确认和历史回放用于模糊策略和成熟的失败模式，不用�
 
 ## 首个工作流的语义执行 trace
 
-canonical 十文件包只是文件形状，不代表 repo-local skill 已经具备执行能力。对 first workflow 需要在 `skills/SKILL.md` 中再填一张可审查的语义执行 trace；如果该 repo 不承担 first workflow，必须明确写 `not-applicable` 并记录判断依据。
+canonical 九文件包只是文件形状，不代表 repo-local skill 已经具备执行能力。对 first workflow 需要在 `skills/SKILL.md` 中再填一张可审查的语义执行 trace；如果该 repo 不承担 first workflow，必须明确写 `not-applicable` 并记录判断依据。
 
 当 first workflow 包含 issue/bugfix、回归或代码修改时，trace 至少必须包含：
 

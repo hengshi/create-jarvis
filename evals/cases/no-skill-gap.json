@@ -1,8 +1,8 @@
 {
   "id": "no-skill-gap",
-  "title": "One-off failure can be no_skill_gap",
+  "title": "History calibration updates real skills, not an eval-loop skill",
   "mode": "adversarial",
-  "prompt": "Use create-jarvis-skill methodology to review a fictional pilot failure. The agent failed once because the task prompt omitted the issue link, but existing source, repo, and workflow skills already describe the correct process. Decide whether to create a new skill.",
+  "prompt": "Calibrate an existing repo-local skill from the next related historical commit group. Build a visible START and hidden oracle, replay current skills, compare first, and use skill-creator only for a reusable verified gap. In this case the replay failure is caused only by an omitted issue link while existing source/repo/workflow guidance is sufficient. Close the group correctly without creating an eval-loop skill or storing the commit answer in SKILL.md.",
   "expected": {
     "status": "completed",
     "required_files": [
@@ -16,7 +16,8 @@
     ],
     "forbidden_patterns": [
       "create a new skill for this one failure",
-      "add a new template just in case"
+      "add a new template just in case",
+      "create an eval-loop skill"
     ]
   }
 }

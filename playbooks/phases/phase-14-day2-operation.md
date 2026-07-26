@@ -29,7 +29,7 @@ install-owned managed jobs 的事实来自：当前 release docs/安装产物、
   - `reconcile` 是 dry-run；
   - service restart 不自动恢复 Task；
   - `recover` 仅用于 recovery-required 状态；
-  - `bootstrap --resume` 只恢复表单/已确认状态，不是 task continue。
+  - bootstrap state 恢复不是 task continue。
 - `continue` 可以由 jarvis-box 使用已保存的 provider-native session handle 继续同一 agent 会话；该 handle 属于 runtime 私有状态。即使 Codex 输出 JSONL `thread.started` / `thread_id`，也不能把它复制到 company Jarvis、bootstrap artifact 或公开 handoff。
 - Task 的 `task_id`、`run_id`、workspace 和 session 状态只记录 jarvis-box 实际返回或公开暴露的值。UI/feed 对 lane display id 的解析是产品内部兼容行为，不允许 agent 根据目录名、lane 名或字符串拼接自行生成 Task/Run identity。
 - 对更新版本先读当前 help/release contract；如果语义发生变化，记录版本和差异，使用当前安装事实。
@@ -64,7 +64,7 @@ install-owned managed jobs 的事实来自：当前 release docs/安装产物、
 - 零 Task 意为 `unexercised`，不是 `not-applicable`。
 - 容器缺少 systemd 不使 service/jobs 变为 `not-applicable`：实际探测可用替代方案或标记 `unverified`/`blocked`。
 - 真正的外部/人工替代需要 exact mechanism、owner 和 executability evidence。
-- `bootstrap --resume` 只是 bootstrap state/form 恢复，绝不是 Jarvis maintenance authority。
+- 从 `bootstrap-state.json` 恢复 bootstrap，绝不是 Jarvis maintenance authority。
 
 ## Runtime Agent
 
@@ -135,7 +135,7 @@ Company bootstrap 负责明确以下内容：
 - 公共 `jarvis-box` 命令必须能由当前 help 证明；install-owned job 则从 release/install/scheduler/log 证据确认，不能把其内部脚本伪装成公共 CLI。
 - 前置 phase 未完成时根本不进入 Phase 14；Phase 14 保持 `pending`。
 - 不创建单独的 `_bootstrap/day2-runtime-checks.md`——所有 Phase 14 证据写入 `_bootstrap/day2-operation.md`。
-- 不把 `bootstrap --resume` 当作 Jarvis maintenance authority——它只是 bootstrap state/form 恢复。
+- 不把 bootstrap state 恢复当作 Jarvis maintenance authority。
 - 不用 artifact presence、public help、version output 或零活跃 Task 单独证明能力已配置/工作。
 - 不在跨产物一致性审查前更新 Phase 14 状态。
 - 不把最终 state/day-2 产物只留在本地，不新建第二条无人追踪的 publication branch，不自动合并 MR/PR。

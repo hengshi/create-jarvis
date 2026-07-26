@@ -30,6 +30,29 @@ def _touch_json(path: Path, obj: object) -> None:
     path.write_text(json.dumps(obj), encoding="utf-8")
 
 
+class LegacyEvalLoopSkillTests(unittest.TestCase):
+    def test_verifier_blocks_legacy_eval_loop_skill(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            home = root / "jarvis"
+            repo = root / "customer-repo"
+            _touch(
+                home / "bootstrap-result.json",
+                '{"status":"completed","paths":{},"summary":"","missing_inputs":[],"blockers":[]}',
+            )
+            _touch(home / "bootstrap-state.json", "{}")
+            (repo / ".git").mkdir(parents=True)
+            _touch(repo / "skills" / "eval-loop.md", "# legacy\n")
+
+            report = Verifier(home, [repo], run_precheck=False).verify()
+            codes = {
+                finding["code"]
+                for finding in report["findings"]
+                if finding["severity"] == "blocker"
+            }
+            self.assertIn("legacy_eval_loop_skill_present", codes)
+
+
 class DiscoveryArtifactsTests(unittest.TestCase):
     def test_missing_discovery_directory_is_blocker(self) -> None:
         with tempfile.TemporaryDirectory() as td:

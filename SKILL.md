@@ -1,13 +1,13 @@
 ---
 name: create-jarvis-skill
-description: Runtime agent instruction set for bootstrapping a customer-owned company Jarvis repo after jarvis-box install is complete. Use when `jarvis-box bootstrap jarvis` asks an agent to create or update company Jarvis, repo-local skills, skill packages, pilot/replay/writeback plans, or related bootstrap state.
+description: Agent-native instruction set for building or continuing a customer-owned company Jarvis repo after jarvis-box or a supported container has prepared the runtime. Use when a customer asks an authenticated Codex, Claude, or other runtime agent to discover the authorized company ecosystem, create company/repo-local skills, run pilot/history calibration, or resume from bootstrap state.
 ---
 
 # Create JARVIS Skill
 
-jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill 不负责安装。
+jarvis-box install 或受支持的 container 应已经准备好 runtime、可写 workspace 和 agent CLI；客户完成所选 agent 的登录。本 skill 不负责安装，但 Phase 3/5 必须验证这些能力和 UID/GID 权限合同，不能把安装缺口当成客户操作问题。
 
-本 skill 的任务只有一个：runtime agent 按 `playbooks/phase-checklist.md` 从 Phase 3 到 Phase 14 逐项执行，生成客户自己的 company Jarvis 生态。
+本 skill 的任务只有一个：当前 runtime agent 直接按 `playbooks/phase-checklist.md` 从 Phase 3 到 Phase 14 逐项执行，生成客户自己的 company Jarvis 生态。入口 prompt 见 `playbooks/prompts/agent-native-bootstrap.md`；不需要 bootstrap 表单命令。
 
 ## 必读顺序
 
@@ -15,7 +15,8 @@ jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill �
 2. `acceptance.md`
 3. `playbooks/phase-checklist.md`
 4. 当前 phase 详情：`playbooks/phases/phase-*.md`
-5. 需要生成文件时读取 `templates/`
+5. 需要执行专门任务时读取 `playbooks/prompts/`
+6. 需要生成文件时读取 `templates/`
 
 ## 模板分类
 
@@ -35,8 +36,11 @@ jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill �
 
 ## 执行规则
 
-- 从 Phase 3 开始；Phase 0-2 属于 jarvis-box install，不在本仓库重复描述。
-- 每次按 checklist 推进，当前 phase 必须写出 `completed`、`needs-input`、`blocked` 或 `failed`。
+- 从 Phase 3 开始；Phase 0-2 属于 jarvis-box/install image，不在本仓库重复实现。Phase 3 由客户已经打开的 runtime agent 直接进入，不等待另一层 CLI handoff。
+- 当前 agent 是 bootstrap 协调者。需要并发时自行派发 bounded lanes；并发不可用时顺序执行并通过 state 恢复，禁止要求客户新开 session、复制 prompt 或转发 agent 结果。
+- 先探测 live runtime、授权 source 和 VCS metadata，再询问无法安全推导的身份冲突、权限和不可逆写入审批。不要把所有 phase 字段变成首轮表单。
+- bootstrap workspace、customer checkout 和 target 必须对 selected agent 的有效 UID/GID 可读写；service-private state 与 agent-owned workspace 分离。权限不成立时把 exact blocker 归给 jarvis-box install/image，禁止用盲目提权或 world-writable 目录掩盖。
+- 每次按 checklist 推进，当前 phase 在执行/checkpoint 中写 `in-progress`，收口时写 `completed`、`needs-input`、`blocked` 或 `failed`；显式 full-range history 未到 cursor 边界时不能伪装成终态。
 - 先从授权 repo/source、Git/VCS metadata、文档、issues/MRs、测试与运行证据中寻找答案；只有可访问证据已穷尽后，才为仍缺失的客户事实、权限、owner、scope 或 writeback policy 向人请求输入。
 - company identity、客户确认的 product identity、source-detected product/brand identity 必须分开记录；未确认前不要混写成一个已确认主体。
 - 业务 modules 必须来自客户授权的 docs、repos、tests、issues/MRs、wiki 或 owner 确认。
@@ -51,7 +55,7 @@ jarvis-box install 已经完成机器安装和 agent 登录准备。本 skill �
 - 默认客户工作流固定为 `<slot>-workflow-issue-post-check`、`<slot>-workflow-bugfix-loop`、`<slot>-workflow-feature-delivery`，Phase 9 必须依据客户事实完成初次定制。
 - company 自有 source/tool skill 命名为 `<slot>-<name>`；repo-local skills 留在各代码仓库，不加 slot 前缀。
 - skill 扩展前先判断 `no_skill_gap`。
-- Phase 12 历史回放不能默认等待人工 episode；pilot repo 有 Git 历史时，必须先自动扫描 commits、读取候选 diff，并构造 visible START / hidden oracle 分离的 replay case。没有 isolated replay agent 只阻塞 replay 执行，不阻塞 case 文件创建。候选清单不是合格产物；有候选但没有 `evals/history-replay/cases/<case-id>/history-replay-case.md` 时，Phase 12 是执行失败，不是合格 `needs-input`。
+- Phase 12 历史回放不能默认等待人工 episode；pilot repo 有 Git 历史时，必须用轻量 cursor 逐组执行 `commit group → eval case → replay → oracle comparison → skill-creator decision → same-case rerun`。不得先把整个时间范围全量分类，也不得创建 eval-loop skill。没有 isolated replay agent 只阻塞 replay 执行，不阻塞 case 文件创建。候选清单不是合格产物；有候选但没有 `evals/history-replay/cases/<case-id>/history-replay-case.md` 时，Phase 12 是执行失败，不是合格 `needs-input`。
 - `bootstrap-result.json` 只报告 runtime 状态、路径、缺口和下一步，不输出复杂分层字段；其中 `missing_inputs`、`blockers`、`conflicting_inputs`、`unresolved_questions` 必须是字符串数组。
 - `bootstrap-result.json.paths` 只能是 string map，不能包含数组或对象；多个文件路径写入 `created_files` 字符串数组或 report 文件。
 - `bootstrap-result.json` 和 `bootstrap-state.json` 必须写在 company Jarvis repo 根目录，`_bootstrap/` 只能保存审计副本和过程证据。

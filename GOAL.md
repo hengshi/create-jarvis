@@ -2,7 +2,7 @@
 
 `create-jarvis-skill` 的真正目标不是生成一个通用目录骨架，而是指导 runtime agent 从 0 引导生成客户自己的公司 Jarvis 生态。
 
-客户完成 jarvis-box 安装后，runtime agent 必须依据本仓库的方法论、模板、phase checklist 和客户授权材料，创建一个客户自有的 company Jarvis repo。这个 repo 在角色和生态形态上应当等价于 `hengshi-jarvis`：它是该公司的 agent 入口、知识路由、workflow 编排、repo handoff、source 索引和持续演进中心。
+客户完成 jarvis-box 安装或一键启动受支持 container 后，直接在已登录 runtime agent 中使用本仓库。agent 必须依据方法论、模板、phase checklist 和客户授权材料，创建一个客户自有的 company Jarvis repo；不依赖 bootstrap 表单命令，也不让客户在多个 session 之间搬运 prompt。这个 repo 在角色和生态形态上应当等价于 `hengshi-jarvis`：它是该公司的 agent 入口、知识路由、workflow 编排、repo handoff、source 索引和持续演进中心。
 
 `hengshi-jarvis` 的“等价形态”不是任意公司知识库目录树，而是明确的仓库拓扑：root `README.md` / `MAINTENANCE.md` / `jarvis.toml`，长期知识在 `modules/`、`sources/`、`cross-cutting/`，路由和质量规则在 `references/`，入口和 workflow/helper skills 在 `skills/`，操作工具在 `tools/`，校准用例在 `evals/`。bootstrap 过程文件只能作为 runtime artifacts 或 `_bootstrap/` 辅助材料，不能变成顶层主骨架。
 
@@ -87,6 +87,8 @@ policy 完成初次定制。
 
 jarvis-box install 托管以下能力：runtime sync、Jarvis maintenance launcher、Jarvis session self-improvement、Task workspace cleanup、service lifecycle、agent registry/routing/failover、Task lifecycle。company bootstrap 只检查、登记和配置 company-specific policy，不重新实现这些能力。
 
+install/image 还必须提供 agent CLI、create-jarvis-skill 入口、Git/VCS 客户端和 selected agent 可写的 bootstrap workspace。service-private state 与 agent-owned workspace 分离；Linux owner/group/ACL 和 container host UID/GID mapping 必须能由 live probe 证明。权限合同不成立时由 install/image 修复，不能要求客户用递归提权命令兜底。
+
 bootstrap phase state（`bootstrap-state.json`、`bootstrap-result.json`）与 jarvis-box Target/Task/Run/AgentConversation/Workspace lifecycle 是两套状态。Phase 3-14 始终写 `bootstrap-state.json` 和 `bootstrap-result.json`；不得用 Task/Run status 替代 `phase_status`。
 
 只有 Phase 11 真正通过 jarvis-box Task 执行 shadow pilot 时才记录可选 Target/Task/Run/AgentConversation/Workspace pointer；直接受控 dry-run 不要求也不得编造 ID。Task/Run pointer 不是所有 bootstrap 的硬条件。
@@ -110,6 +112,7 @@ history replay 与 session self-improvement 是两个证据来源不同的循环
 - 不允许把 source-detected product/brand/company identity 与客户 company identity 混写成一个已确认主体；冲突时必须进入 `needs-input` 或 `blocked`。
 - 历史回放必须先尝试从 pilot repo 的真实 Git 历史自动构造 eval case；从当时可见的初始信号构造 START，再用隐藏 outcome 判断失败模式。不能跳过 Git 历史扫描直接等人提供 episode，也不能只停在 candidate registry，更不能用事后答案污染 START state。
 - skill 扩展必须先判断 `no_skill_gap`，只有可复用、可验证、归属明确的缺口才写回 repo-local、company Jarvis 或 create-jarvis-skill。
+- history replay 必须以轻量 cursor 逐个相关 commit 组闭合 case、comparison、skill-creator candidate 和 same-case rerun；不能先分类整个时间范围，也不能把控制循环生成为 eval-loop skill/file。
 
 ## 最终目标
 

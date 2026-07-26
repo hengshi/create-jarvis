@@ -1,6 +1,6 @@
 # Repo-Local Skill 模板
 
-规范的 10 文件 package，为单个仓库提供 agentic skill。每个文件有单一职责；合在一起构成完整的引导、验证和自我改进循环。
+规范的 9 文件 package，为单个仓库提供 agentic skill。每个文件有单一职责；合在一起构成完整的引导、验证和自我改进能力。Eval loop 是执行方式，不是一个额外 skill 文件。
 
 ## 规范结构
 
@@ -9,7 +9,6 @@ repo-local-skill/
   README.md                         ← 本文件
   skills/
     SKILL.md                        ← 仓库入口：任务路由、工作规则、边界
-    eval-loop.md                    ← 评估循环方法
     code-review/
       SKILL.md                      ← 仓库代码审查门
       scripts/
@@ -26,7 +25,11 @@ repo-local-skill/
 
 ## 使用方式
 
-canonical 10 文件是 Phase 8 的**确定性起点**，不是成熟度上限。Phase 8 必须立刻用每个 repo 的真实证据填充核心文件：将所有 `BOOTSTRAP_REQUIRED` sentinel 替换为可观察事实。占位符不是"完成"——Phase 8 必须填充，不可将 sentinel 视为长期状态。
+canonical 9 文件是 Phase 8 的**确定性起点**，不是成熟度上限。Phase 8 必须立刻用每个 repo 的真实证据填充核心文件：将所有 `BOOTSTRAP_REQUIRED` sentinel 替换为可观察事实。占位符不是"完成"——Phase 8 必须填充，不可将 sentinel 视为长期状态。
+
+`references/history-replay-loop.md` 说明如何用真实 episode 校准现有 skills。它必须把改动落到实际 entry/reference/script，而不是派生 `eval-loop.md` 或 eval-loop skill。
+
+升级旧 package 时，确定性 instantiator 只删除未修改的旧生成文件 `skills/eval-loop.md`；有定制内容时停止并要求 owner 把 durable rules 迁入正确 primary home。verifier 会阻止任何 legacy `skills/eval-loop.md` 进入完成状态。
 
 特别是 `skills/code-review/SKILL.md` 的“仓库特有检查”表：如果扫描代码、配置、CI、测试和历史后没有观察到额外 trigger，也必须替换 sentinel 为明确的 `not-observed` 记录，并写出实际扫描范围和 pointer；不能凭通用常识补造检查，也不能原样保留 sentinel。
 

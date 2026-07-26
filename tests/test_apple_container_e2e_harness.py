@@ -80,19 +80,21 @@ class OutputBindMountContract(unittest.TestCase):
 # ──────────────────────────────────────────────────────────────────
 
 class DynamicUIDContract(unittest.TestCase):
-    """Host passes current UID; run-in-container uses it for useradd."""
+    """Host passes current UID/GID; run-in-container uses both for useradd."""
 
     def test_host_passes_e2e_host_uid(self) -> None:
         text = HOST_DRIVER.read_text()
         self.assertIn('E2E_HOST_UID=$(id -u)', text)
+        self.assertIn('E2E_HOST_GID=$(id -g)', text)
 
     def test_run_in_container_reads_e2e_host_uid(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
         self.assertIn('e2e_host_uid="${E2E_HOST_UID:-}"', text)
+        self.assertIn('e2e_host_gid="${E2E_HOST_GID:-}"', text)
 
     def test_useradd_uses_e2e_host_uid_when_set(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        self.assertIn('useradd -u "$e2e_host_uid"', text)
+        self.assertIn('useradd -u "$e2e_host_uid" -g "$e2e_host_gid"', text)
 
     def test_no_hardcoded_uid_in_useradd(self) -> None:
         """useradd must not hardcode a numeric UID like 501."""
@@ -104,10 +106,10 @@ class DynamicUIDContract(unittest.TestCase):
                 self.assertNotRegex(line, r'-u\s+\d+',
                                     f"hardcoded UID found: {line.strip()}")
 
-    def test_fallback_useradd_without_uid(self) -> None:
+    def test_root_mapping_is_rejected(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        # Should have a fallback useradd without -u
-        self.assertIn("useradd -m -d /e2e/home", text)
+        self.assertIn('E2E_HOST_UID must be non-root', text)
+        self.assertIn('E2E_HOST_GID must be non-root', text)
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -119,80 +121,57 @@ class ChownExcludesOutput(unittest.TestCase):
 
     def test_chown_loop_exists(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        self.assertIn('chown -R e2e:e2e "$d"', text)
+        self.assertIn('chown -R "$e2e_host_uid:$e2e_host_gid" "$d"', text)
 
     def test_output_is_skipped_in_loop(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        self.assertIn('[ "$(basename "$d")" = "output" ] && continue', text)
+        self.assertIn('output|install-root) continue ;;', text)
 
     def test_no_bare_chown_on_e2e_root(self) -> None:
-        """Must not have 'chown -R e2e:e2e /e2e' without loop exclusion."""
+        """Must not recursively chown the whole /e2e tree."""
         text = RUN_IN_CONTAINER.read_text()
-        # The bare chown pattern should not exist (it's been replaced)
-        self.assertNotIn('chown -R e2e:e2e /e2e\n', text)
-        self.assertNotIn('chown -R e2e:e2e /e2e ', text)
+        self.assertNotIn('chown -R "$e2e_host_uid:$e2e_host_gid" /e2e', text)
 
-    def test_non_recursive_chown_on_e2e_root_exists(self) -> None:
-        """Non-recursive chown e2e:e2e /e2e must exist (enables file creation in /e2e)."""
+    def test_e2e_root_stays_root_owned_and_non_writable(self) -> None:
+        """The agent must not control the parent of service-private state."""
         text = RUN_IN_CONTAINER.read_text()
-        self.assertIn('chown e2e:e2e /e2e\n', text,
-                      "non-recursive chown e2e:e2e /e2e not found")
+        self.assertNotIn('chown "$e2e_host_uid:$e2e_host_gid" /e2e\n', text)
+        self.assertIn('chown 0:0 /e2e\n', text)
+        self.assertIn('chmod 0755 /e2e\n', text)
 
-    def test_non_recursive_chown_before_runuser(self) -> None:
-        """Non-recursive chown on /e2e must execute before the agent (runuser)."""
+    def test_service_root_cannot_be_renamed_or_replaced(self) -> None:
+        """Content permissions alone do not prevent a writable-parent swap."""
         text = RUN_IN_CONTAINER.read_text()
-        chown_idx = text.index('chown e2e:e2e /e2e\n')
-        runuser_idx = text.index('runuser -u e2e')
-        self.assertLess(chown_idx, runuser_idx,
-                        "non-recursive chown must appear before runuser (agent start)")
+        self.assertIn('install_root_replacement_probe="${install_root}.agent-replacement-probe"', text)
+        self.assertIn('runuser -u e2e -- mv -- "$install_root" "$install_root_replacement_probe"', text)
+        self.assertIn('runtime agent must not rename or replace service-private install root', text)
 
-    def test_non_recursive_chown_enables_write_functional(self) -> None:
-        """Functional: parent dir not writable by target user → chown → writable.
+    def test_wrapper_writes_only_inside_agent_owned_log_root(self) -> None:
+        text = RUN_IN_CONTAINER.read_text()
+        for name in (
+            "claude-bootstrap-prompt.md",
+            "claude-command.txt",
+            "claude-stdout.jsonl",
+            "claude-stderr.log",
+        ):
+            self.assertIn(f"/e2e/logs/{name}", text)
+            self.assertNotIn(f"/e2e/{name}", text.replace(f"/e2e/logs/{name}", ""))
+        self.assertIn(
+            "/e2e/customer-repos /e2e/output /e2e/work/bootstrap /e2e/logs",
+            text,
+        )
 
-        Simulates the /e2e root-owned scenario.  Tries real UID chown first;
-        falls back to same-user permission-model test when cross-platform
-        chown to another UID is not available.
-        """
-        td = tempfile.TemporaryDirectory()
-        try:
-            tmp = Path(td.name)
-            parent = tmp / "e2e"
-            parent.mkdir()
-            (parent / "output").mkdir()
-
-            test_file = parent / "test-create.md"
-
-            # Attempt 1: real cross-user chown
-            chown_uid_worked = False
-            try:
-                import pwd
-                # pick a non-root UID that is not the current user
-                nobody_uid = pwd.getpwnam("nobody").pw_uid
-                if nobody_uid != os.getuid():
-                    os.chown(str(parent), nobody_uid, -1)
-                    # current user (not nobody) should NOT be able to write
-                    with self.assertRaises(PermissionError):
-                        test_file.write_text("should fail")
-                    # now chown to current user (simulating the fix)
-                    os.chown(str(parent), os.getuid(), -1)
-                    test_file.write_text("can write after chown")
-                    self.assertTrue(test_file.exists())
-                    chown_uid_worked = True
-            except (PermissionError, OSError, KeyError):
-                pass
-
-            if not chown_uid_worked:
-                # cross-platform fallback: same-user permission model
-                # make parent non-writable → verify blocked → make writable → verify ok
-                test_file.unlink(missing_ok=True)
-                parent.chmod(0o555)
-                with self.assertRaises(PermissionError):
-                    test_file.write_text("should fail")
-                parent.chmod(0o755)
-                test_file.write_text("can write after chmod")
-                self.assertTrue(test_file.exists())
-        finally:
-            td.cleanup()
+    def test_verifier_report_files_are_precreated_for_mapped_user(self) -> None:
+        text = RUN_IN_CONTAINER.read_text()
+        self.assertIn("for report_file in \\", text)
+        self.assertIn("/e2e/bootstrap-verify-report.json \\", text)
+        self.assertIn("/e2e/bootstrap-verify-findings.md; do", text)
+        self.assertIn('chown "$e2e_host_uid:$e2e_host_gid" "$report_file"', text)
+        self.assertIn(
+            "for f in /e2e/bootstrap-verify-report.json /e2e/bootstrap-verify-findings.md; do",
+            text,
+        )
+        self.assertIn('test -r "$f" && test -w "$f"', text)
 
     def test_chown_loop_handles_output_exclusion_functionally(self) -> None:
         """Create a fake /e2e structure and verify the loop skips 'output'."""
@@ -200,7 +179,7 @@ class ChownExcludesOutput(unittest.TestCase):
         try:
             tmp = Path(td.name)
             e2e = tmp / "e2e"
-            dirs = ["bin", "config", "customer-repos", "logs", "output", "work", "home"]
+            dirs = ["bin", "config", "customer-repos", "install-root", "logs", "output", "work", "home"]
             for d in dirs:
                 (e2e / d).mkdir(parents=True)
                 (e2e / d / "marker").write_text(d)
@@ -210,7 +189,9 @@ class ChownExcludesOutput(unittest.TestCase):
             visited=()
             for d in {e2e}/* {e2e}/.[!.]* {e2e}/..?*; do
               [ -e "$d" ] || continue
-              [ "$(basename "$d")" = "output" ] && continue
+              case "$(basename "$d")" in
+                output|install-root) continue ;;
+              esac
               visited+=("$(basename "$d")")
             done
             printf '%s\\n' "${{visited[@]}}"
@@ -219,10 +200,18 @@ class ChownExcludesOutput(unittest.TestCase):
             visited = cp.stdout.strip().split()
             self.assertNotIn("output", visited,
                              f"output was NOT excluded from chown-equivalent loop: {visited}")
+            self.assertNotIn("install-root", visited,
+                             f"service-private install-root was not excluded: {visited}")
             self.assertIn("bin", visited)
             self.assertIn("customer-repos", visited)
         finally:
             td.cleanup()
+
+    def test_agent_workspace_and_service_state_probes_exist(self) -> None:
+        text = RUN_IN_CONTAINER.read_text()
+        self.assertIn('/e2e/work/bootstrap', text)
+        self.assertIn('runtime agent must not own service-private runtime state', text)
+        self.assertIn('service-private install root disappeared during isolation probe', text)
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -700,7 +689,7 @@ class ContinuationModeContract(unittest.TestCase):
         match = re.search(
             r'if \[ "\$continuation" = "1" \]; then\n'
             r'(?P<continuation>.*?)\nelse\n(?P<fresh>.*?)\nfi\n\n'
-            r'# ── bootstrap agent wrapper',
+            r'# ── direct runtime-agent wrapper',
             text,
             re.DOTALL,
         )
@@ -763,15 +752,13 @@ class ContinuationModeContract(unittest.TestCase):
         self.assertIn("rm -rf skills .agents/skills .codex/skills .claude/skills", fresh)
         self.assertIn("chore(e2e-fixture): remove pre-existing agent skills", fresh)
 
-    def test_resume_flag_is_added_only_for_continuation(self) -> None:
+    def test_continuation_uses_state_not_a_bootstrap_cli_flag(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        self.assertIn('bootstrap_args=(bootstrap jarvis --non-interactive)', text)
-        match = re.search(
-            r'if \[ "\$continuation" = "1" \]; then\n\s*bootstrap_args\+=\(--resume\)\nfi',
-            text,
-        )
-        self.assertIsNotNone(match, "--resume must be conditional on continuation mode")
-        self.assertEqual(text.count("bootstrap_args+=(--resume)"), 1)
+        self.assertNotIn("bootstrap_args=", text)
+        self.assertNotIn("--resume", text)
+        self.assertIn('E2E_CONTINUATION="$continuation"', text)
+        self.assertIn("/e2e/claude-bootstrap-agent", text)
+        self.assertIn("playbooks/prompts/agent-native-bootstrap.md", text)
 
     def test_continuation_prompt_requires_integrity_audit_and_earliest_phase(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
@@ -793,13 +780,13 @@ class RuntimeAgentFailureContract(unittest.TestCase):
 
     def test_runtime_agent_failure_exits_before_reading_bootstrap_result(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        failure_check = text.index(
-            'grep -Fq "ERROR: create-jarvis-skill runtime agent failed:"'
+        failure_check = text.index('if [ "$agent_rc" -ne 0 ]; then')
+        verify_section = text.index("# ── verify", failure_check)
+        self.assertLess(failure_check, verify_section)
+        self.assertNotIn(
+            'Path("/e2e/output/company-jarvis/bootstrap-result.json")',
+            text[failure_check:verify_section],
         )
-        stale_result_read = text.index(
-            'path = Path("/e2e/output/company-jarvis/bootstrap-result.json")'
-        )
-        self.assertLess(failure_check, stale_result_read)
 
     def test_runtime_agent_failure_skips_semantic_verifier(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
@@ -807,12 +794,10 @@ class RuntimeAgentFailureContract(unittest.TestCase):
             "runtime agent execution failed; preserving evidence and skipping semantic verifier",
             text,
         )
-        failure_check = text.index(
-            'grep -Fq "ERROR: create-jarvis-skill runtime agent failed:"'
-        )
+        failure_check = text.index('if [ "$agent_rc" -ne 0 ]; then')
         verify_section = text.index("# ── verify", failure_check)
         failure_branch = text[failure_check:verify_section]
-        self.assertIn('exit "$bootstrap_rc"', failure_branch)
+        self.assertIn('exit "$agent_rc"', failure_branch)
 
 
 class CustomerGitLabFactIsolation(unittest.TestCase):
@@ -862,13 +847,20 @@ class RuntimeFilePresence(unittest.TestCase):
         text = RUN_IN_CONTAINER.read_text()
         self.assertIn("/e2e/install-evidence.md", text)
 
-    def test_bootstrap_log_written_to_e2e(self) -> None:
+    def test_runtime_agent_log_written_to_e2e(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
-        self.assertIn("/e2e/bootstrap-jarvis.log", text)
+        self.assertIn("/e2e/runtime-agent.log", text)
 
     def test_verify_report_written_to_e2e(self) -> None:
         text = RUN_IN_CONTAINER.read_text()
         self.assertIn("/e2e/bootstrap-verify-report.json", text)
+
+    def test_host_prints_actual_synced_claude_log_paths(self) -> None:
+        text = HOST_DRIVER.read_text()
+        self.assertIn('"$run_dir/logs/claude-stdout.jsonl"', text)
+        self.assertIn('"$run_dir/logs/claude-stderr.log"', text)
+        self.assertNotIn('"$run_dir/claude-stdout.jsonl"', text)
+        self.assertNotIn('"$run_dir/claude-stderr.log"', text)
 
 
 # ──────────────────────────────────────────────────────────────────

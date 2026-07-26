@@ -217,8 +217,11 @@ REQUIRED_REPO_SKILL_FILES = [
     "skills/references/test-entrypoints.md",
     "skills/references/runtime-and-testability.md",
     "skills/references/history-replay-loop.md",
-    "skills/eval-loop.md",
     "skills/self-skills-improve/SKILL.md",
+]
+
+FORBIDDEN_REPO_SKILL_FILES = [
+    "skills/eval-loop.md",
 ]
 
 TEXT_SUFFIXES = {
@@ -1274,6 +1277,15 @@ class Verifier:
                     self.add("blocker", "repo_skill_file_missing", f"{repo_name}: required repo-local skill file missing: {rel_path}")
                 elif not path.is_file():
                     self.add("blocker", "repo_skill_file_not_file", f"{repo_name}: required repo-local skill path is not a file: {rel_path}")
+            for rel_path in FORBIDDEN_REPO_SKILL_FILES:
+                path = repo / rel_path
+                if path.exists() or path.is_symlink():
+                    self.add(
+                        "blocker",
+                        "legacy_eval_loop_skill_present",
+                        f"{repo_name}: legacy repo-local skill must be reviewed and removed: {rel_path}; "
+                        "move reusable rules into the actual primary SKILL.md/reference/script",
+                    )
             if self.run_precheck:
                 self.verify_precheck(repo)
 

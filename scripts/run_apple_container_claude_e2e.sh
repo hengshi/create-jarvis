@@ -9,11 +9,11 @@ Usage:
   JARVIS_BOX_DIST_DIR=/path/to/jarvis-box/dist \
   scripts/run_apple_container_claude_e2e.sh
 
-E2E flow: release install.sh -> jarvis-box bootstrap -> host-isolated replay -> verify.
+E2E flow: release install.sh -> direct runtime agent -> host-isolated replay -> verify.
 
 1. Builds the Apple container image with Claude CLI and replay entrypoint.
-2. Starts an outer bootstrap container (detached) that runs the real jarvis-box
-   install.sh from the release artifact and then bootstraps a company Jarvis repo.
+2. Starts an outer container (detached) that runs the real jarvis-box install.sh
+   from the release artifact, then invokes Claude directly with create-jarvis-skill.
 3. The outer container may create replay bridge requests under
    <run_dir>/replay-bridge/<case-id>/READY.
 4. The host monitor picks up each READY, launches an independent replay container
@@ -208,6 +208,7 @@ outer_args=(
   -e "E2E_REPLAY_BRIDGE_POLL_SECONDS=${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}"
   -e "REPLAY_BRIDGE_TIMEOUT_SECONDS=${REPLAY_BRIDGE_TIMEOUT_SECONDS:-1800}"
   -e "E2E_HOST_UID=$(id -u)"
+  -e "E2E_HOST_GID=$(id -g)"
   -v "$repo_root":/create-jarvis-skill:ro
   -v "$dist_dir":/dist:ro
   -v "$run_dir":/host-e2e
@@ -471,8 +472,8 @@ printf '  run_dir=%s\n' "$run_dir"
 printf '  company_jarvis=%s\n' "$run_dir/output/company-jarvis"
 printf '  customer_repos=%s\n' "$run_dir/customer-repos"
 printf '  verification=%s\n' "$run_dir/bootstrap-verify-report.json"
-printf '  claude_stdout=%s\n' "$run_dir/claude-stdout.jsonl"
-printf '  claude_stderr=%s\n' "$run_dir/claude-stderr.log"
+printf '  claude_stdout=%s\n' "$run_dir/logs/claude-stdout.jsonl"
+printf '  claude_stderr=%s\n' "$run_dir/logs/claude-stderr.log"
 printf '  outer_container_log=%s\n' "$run_dir/outer-container.log"
 printf '  install_log=%s\n' "$run_dir/install.log"
 printf '  install_evidence=%s\n' "$run_dir/install-evidence.md"

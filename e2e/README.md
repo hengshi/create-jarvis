@@ -2,7 +2,7 @@
 
 这份 runbook 用于验证从空 runtime 到 company Jarvis repo、再到 repo-local skills 的主链路。
 
-它验证的是产品化契约，不验证某个真实 provider 的账号登录。空容器中 Codex / Claude / Copilot 通常会保持 `auth-pending`；真实客户现场需要 operator 在本机完成 selected bootstrap agent 的登录和命令行对话。
+它验证的是产品化契约，不验证某个真实 provider 的账号登录。空容器中 Codex / Claude / Copilot 通常会保持 `auth-pending`；真实客户现场需要 operator 在本机完成 selected runtime agent 的登录，然后直接在该 agent 中执行 create-jarvis-skill。
 
 ## 覆盖范围
 
@@ -11,7 +11,8 @@
 - 挂载当前 `create-jarvis-skill` 工作树作为 method repo。
 - 从调用方提供的 repo cache 或 Git URL 克隆客户 repo 测试副本。
 - 删除测试副本中的 repo-local skill 目录。
-- 通过真实 `jarvis-box bootstrap jarvis --non-interactive` 调起受控 bootstrap agent。
+- 创建与 host UID/GID 对齐、且不同于 `jarvis-box` service user 的 runtime agent user，直接调用受控 agent并传入 canonical agent-native prompt；不经过 bootstrap CLI 表单。
+- 正向探测 agent-owned workspace/checkout/target 可写，负向确认 service-private state 对 agent 不可写。
 - 生成 company Jarvis repo。
 - 为每个测试 repo 重新生成最小 `skills/` 目录包。
 - 用 `scripts/verify_bootstrap_output.py` 校验 company Jarvis、repo-local skills、precheck、source dump 边界和 secret 边界。
@@ -32,6 +33,7 @@
 - `JARVIS_BOX_SRC_DIR`：jarvis-box 源码目录，必须包含 `install.sh`。
 - `JARVIS_BOX_DIST_DIR`：jarvis-box release artifact 目录，必须包含 `SHA256SUMS` 和 linux tarball。
 - `E2E_REPO_SPECS`：逗号分隔的 repo specs，格式为 `name=container-visible-git-source`。
+- `E2E_AGENT_UID` / `E2E_AGENT_GID`：默认当前 host UID/GID，必须是非 root，并映射到 container 内独立 agent user。
 
 如果使用本地 bare repo cache，把 host cache 目录挂载为 `/repo-cache`：
 
@@ -65,8 +67,8 @@ scripts/run_customer_bootstrap_e2e.sh
 - company Jarvis 具有 `modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/` 这些 `hengshi-jarvis` 风格核心目录；
 - company Jarvis 不包含顶层 `repos/`、`workflows/`、`pilot/`、`writeback/`、`rollout/`、`scheduled-jobs/`；
 - `output/company-jarvis/bootstrap-result.json` 的 status 是 `completed`、`needs-input`、`blocked` 或 `failed` 中的合法值；受控 e2e 通常是 `needs-input`，因为它不做 owner 确认和影子试跑；
-- 当 `jarvis-box bootstrap jarvis --non-interactive` 因 `needs-input` 或 `blocked` 返回非零时，e2e 继续运行 verifier；只有 result contract 不可解析、verifier fail 或状态非法时才算 e2e 失败；
-- 每个 `customer-repos/<repo>/skills/` 包含 10 个核心文件；
+- 受控 agent 非零退出时 e2e fail closed；agent 正常返回但 result status 为 `needs-input` / `blocked` 时仍运行 verifier；
+- 每个 `customer-repos/<repo>/skills/` 包含 9 个核心文件；history replay loop 更新真实 skill/reference/script，不生成 eval-loop skill/file；
 - 每个 `customer-repos/<repo>/skills/code-review/scripts/precheck.sh` 可执行，并能定位到 repo root；
 - company Jarvis repo 不包含客户源码目录、源码文件精确副本、明显 secret 或 bearer token；
 - `jarvis-box-doctor.txt` 包含 `summary=ok`。
@@ -76,14 +78,14 @@ scripts/run_customer_bootstrap_e2e.sh
 该 e2e 通过时，说明：
 
 - 大步骤一的安装主链路可运行；
-- jarvis-box 能把 bootstrap 调用交给 runtime agent；
-- create-jarvis-skill 的机器输出契约可以被 jarvis-box 接受；
+- install 后的 runtime user 能直接执行 agent-native bootstrap prompt；
+- create-jarvis-skill 的输出契约能在已安装 jarvis-box 的环境中通过统一 verifier；本路径不声称 jarvis-box CLI 消费了该输出；
 - company Jarvis repo 与 repo-local skill bootstrap 可以串起来。
 - 缺 owner 确认、identity reconciliation、shadow pilot 时，bootstrap 结果会诚实停在 `needs-input`。
 
 该 e2e 不能证明：
 
-- selected bootstrap agent 已在客户现场完成真实登录；
+- selected runtime agent 已在客户现场完成真实登录；
 - 生成物已经达到 `acceptance.md`；
 - modules 已经从客户产品/业务证据中正确提炼；
 - first workflow 已经完成 START -> WORK -> VERIFY -> END 语义闭环；
@@ -102,15 +104,15 @@ scripts/run_customer_bootstrap_e2e.sh
 - 不复制 Claude home / local auth state 到 e2e 产物；
 - 挂载当前 `create-jarvis-skill` 工作树为只读 method repo；
 - 使用本地 jarvis-box Linux artifact；
-- 调用真实 `jarvis-box bootstrap jarvis --non-interactive`；
-- `JARVIS_BOOTSTRAP_AGENT_CMD` 指向 Claude wrapper；
+- 以 host UID 映射的 `e2e` 用户直接调用真实 Claude wrapper，并把 canonical agent-native prompt 传给它；
+- continuation 从已有 root state 和产物完整性审计恢复，不使用额外 CLI resume flag；
 - 复用 `scripts/verify_bootstrap_output.py` 验收 company Jarvis repo 和 repo-local skills。
 
 示例：
 
 ```bash
 E2E_REPO_SPECS="lhotse=/repo-cache/lhotse.git,everest=/repo-cache/everest.git" \
-E2E_REPO_CACHE_DIR=/Users/thomaschan/.hengshi/repo-cache \
+E2E_REPO_CACHE_DIR=/path/to/repo-cache \
 JARVIS_BOX_DIST_DIR=/tmp/jarvis-box-install-e2e/dist \
 scripts/run_apple_container_claude_e2e.sh
 ```

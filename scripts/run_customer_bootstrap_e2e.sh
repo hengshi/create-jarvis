@@ -21,6 +21,8 @@ Optional:
   E2E_CONTAINER_NAME   default: create-jarvis-skill-customer-e2e
   E2E_CONTAINER_IMAGE  default: jarvis-box-install-e2e:ubuntu-24.04-systemd
   E2E_KEEP_CONTAINER   default: 1
+  E2E_AGENT_UID        runtime agent UID, default current host UID (must be non-root)
+  E2E_AGENT_GID        runtime agent GID, default current host GID (must be non-root)
   JARVIS_VERSION       inferred from dist when omitted
   JARVIS_COMPANY_SLUG  default: acme-e2e
   JARVIS_COMPANY_NAME  default: Acme Analytics
@@ -60,6 +62,8 @@ first_loop="${JARVIS_FIRST_LOOP:-issue intake -> triage -> repo fix -> regressio
 owners="${JARVIS_OWNERS:-platform-owner}"
 writeback_strategy="${JARVIS_WRITEBACK_STRATEGY:-local-only}"
 keep_container="${E2E_KEEP_CONTAINER:-1}"
+agent_uid="${E2E_AGENT_UID:-$(id -u)}"
+agent_gid="${E2E_AGENT_GID:-$(id -g)}"
 
 [ -n "$repo_specs" ] || die "E2E_REPO_SPECS is required"
 [ -n "$jarvis_box_src" ] || die "JARVIS_BOX_SRC_DIR is required"
@@ -67,6 +71,11 @@ keep_container="${E2E_KEEP_CONTAINER:-1}"
 [ -f "$jarvis_box_src/install.sh" ] || die "install.sh not found in JARVIS_BOX_SRC_DIR: $jarvis_box_src"
 [ -d "$dist_dir" ] || die "JARVIS_BOX_DIST_DIR not found: $dist_dir"
 [ -f "$dist_dir/SHA256SUMS" ] || die "SHA256SUMS not found in JARVIS_BOX_DIST_DIR: $dist_dir"
+case "$agent_uid:$agent_gid" in
+  *[!0-9:]*|:*|*:) die "E2E_AGENT_UID/GID must be numeric: $agent_uid:$agent_gid" ;;
+esac
+[ "$agent_uid" -ne 0 ] || die "E2E_AGENT_UID must be non-root"
+[ "$agent_gid" -ne 0 ] || die "E2E_AGENT_GID must be non-root"
 
 require_cmd docker
 
@@ -142,8 +151,10 @@ docker exec "$container_name" bash -lc "
 log "preparing customer repo copies"
 docker exec "$container_name" bash -lc "
   set -euo pipefail
-  rm -rf /e2e/customer-repos /e2e/output /e2e/work
-  mkdir -p /e2e/customer-repos /e2e/output /e2e/work
+  runtime_agent_user=\"\$(bash /create-jarvis-skill/scripts/resolve_e2e_agent_user.sh \
+    '$agent_uid' '$agent_gid' jarvis-box e2e-agent)\"
+  rm -rf /e2e/customer-repos /e2e/output /e2e/work /e2e/home
+  mkdir -p /e2e/customer-repos /e2e/output /e2e/work/bootstrap /e2e/home
   IFS=',' read -r -a specs <<< '$repo_specs'
   for spec in \"\${specs[@]}\"; do
     name=\"\${spec%%=*}\"
@@ -161,7 +172,23 @@ docker exec "$container_name" bash -lc "
     git clone \"\$source\" \"/e2e/customer-repos/\$name\" >/tmp/clone-\"\$name\".log 2>&1
     rm -rf \"/e2e/customer-repos/\$name/skills\" \"/e2e/customer-repos/\$name/.agents/skills\" \"/e2e/customer-repos/\$name/.codex/skills\"
   done
-  chmod -R a+rwx /e2e
+  chown -R '$agent_uid:$agent_gid' /e2e/customer-repos /e2e/output /e2e/work /e2e/home
+  chmod 0750 /e2e/customer-repos /e2e/output /e2e/work /e2e/work/bootstrap /e2e/home
+  printf '%s\n' \"\$runtime_agent_user\" > /e2e/runtime-agent-user
+  chown 0:0 /e2e/runtime-agent-user
+  chmod 0644 /e2e/runtime-agent-user
+  runuser -u \"\$runtime_agent_user\" -- sh -c '
+    set -eu
+    for d in /e2e/customer-repos /e2e/output /e2e/work/bootstrap; do
+      test -r \"\$d\" && test -w \"\$d\" && test -x \"\$d\"
+      : > \"\$d/.agent-write-probe\"
+      rm -f \"\$d/.agent-write-probe\"
+    done
+  '
+  if runuser -u \"\$runtime_agent_user\" -- test -w /var/lib/jarvis-box; then
+    echo 'agent user must not own service-private /var/lib/jarvis-box' >&2
+    exit 2
+  fi
 "
 
 log "installing controlled bootstrap agent"
@@ -172,7 +199,7 @@ set -euo pipefail
 target=\"\${JARVIS_TARGET_HOME:?JARVIS_TARGET_HOME required}\"
 repo_root=\"\${E2E_CUSTOMER_REPOS:-/e2e/customer-repos}\"
 method_root=\"\${E2E_METHOD_REPO:-/create-jarvis-skill}\"
-prompt_file=\"\${JARVIS_BOOTSTRAP_PROMPT_FILE:-}\"
+prompt_file=\"\${CREATE_JARVIS_SKILL_PROMPT_FILE:-}\"
 generated_at=\"\$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
 company=\"\${JARVIS_COMPANY_NAME:-Acme Analytics}\"
 first_loop=\"\${JARVIS_FIRST_LOOP:-issue intake -> triage -> repo fix -> regression}\"
@@ -489,7 +516,6 @@ This skill owns execution guidance for the \$repo repository only.
 - skills/references/test-entrypoints.md: verification entrypoints.
 - skills/references/runtime-and-testability.md: runtime and observability notes.
 - skills/references/history-replay-loop.md: replay discipline for skill growth.
-- skills/eval-loop.md: repo-local replay update loop.
 - skills/self-skills-improve/SKILL.md: repo-local skill improvement route.
 
 ## Boundaries
@@ -624,23 +650,16 @@ Status: generated-needs-owner-confirmation
 
 Use this reference to turn historical repo work into replay cases.
 
-1. Capture the visible START signal only.
-2. Keep the final commit, owner corrections, and real outcome as hidden oracle.
-3. Run current repo-local and company skills against the START state.
-4. Classify the failure.
-5. Decide no_skill_gap, repo-local update, workflow update, company Jarvis update, or upstream method change.
-6. Verify the update against the replay.
+1. Use a lightweight cursor; expand the next seed into one related bugfix/feature commit group and record cursor before/after plus preconsumed commits. Do not classify the full range first.
+2. Capture only the visible START; keep final commits, changed paths, cause, fix, owner corrections, and outcome as hidden oracle.
+3. Replay the current cumulative calibration skill ref in isolation, then let the outer coordinator compare the complete oracle.
+4. Attribute with the canonical Phase 12 enums before deciding no_skill_gap or a candidate home.
+5. For a reusable verified skill_gap, use skill-creator in a writable calibration snapshot to change the actual primary skill/reference/script; do not create an eval-loop skill.
+6. Re-run the same case, promote a verified candidate to the cumulative calibration ref, persist it, then advance the cursor.
+7. At the scope boundary, Phase 13 applies the ordered candidate set to authoritative homes and replays every affected case against the final cumulative snapshot.
 
 Do not expose hidden outcome facts to the replay agent.
-EOF
-  cat > \"\$repo_path/skills/eval-loop.md\" <<EOF
-# Eval Loop
-
-Use this loop for repo-local skill changes:
-
-visible START signal -> current skill run -> hidden oracle comparison -> failure analysis -> no_skill_gap or minimal repo-local update -> replay verification
-
-A change is not complete until the replay that justified it is improved or the decision is explicitly no_skill_gap.
+The replay loop updates an actual repo-local entry, focused reference, or validation script. It does not create a separate eval-loop skill/file.
 EOF
   cat > \"\$repo_path/skills/self-skills-improve/SKILL.md\" <<EOF
 # \$repo Skill Improvement
@@ -649,11 +668,11 @@ Improve this repository's local skills from owner-confirmed failures, shadow pil
 
 ## Decision Order
 
-1. Check no_skill_gap.
-2. Identify the correct writeback home.
+1. Check no_skill_gap after real execution and oracle comparison.
+2. Identify the canonical attribution and primary home.
 3. Keep repo-local truth in this repo.
-4. Update the smallest reference or sub skill that fixes the replay.
-5. Re-run the replay or precheck.
+4. During history replay, form the smallest candidate only in a writable calibration snapshot; skill_gap uses skill-creator.
+5. Re-run the same case, promote verified candidates to the cumulative ref, then let Phase 13 apply the ordered set to authoritative homes.
 
 ## Forbidden
 
@@ -675,7 +694,7 @@ EOF
     printf -- '- detected stack: `%s`\n' \"\$stack\"
     printf -- '- head: `%s`\n' \"\$head_sha\"
   } >> \"\$target/modules/\$module_slug/overview.md\"
-  created_files=\"\$created_files, \\\"\$repo_path/skills/SKILL.md\\\", \\\"\$repo_path/skills/code-review/SKILL.md\\\", \\\"\$repo_path/skills/code-review/scripts/precheck.sh\\\", \\\"\$repo_path/skills/references/source-of-truth.md\\\", \\\"\$repo_path/skills/references/architecture-map.md\\\", \\\"\$repo_path/skills/references/test-entrypoints.md\\\", \\\"\$repo_path/skills/references/runtime-and-testability.md\\\", \\\"\$repo_path/skills/references/history-replay-loop.md\\\", \\\"\$repo_path/skills/eval-loop.md\\\", \\\"\$repo_path/skills/self-skills-improve/SKILL.md\\\"\"
+  created_files=\"\$created_files, \\\"\$repo_path/skills/SKILL.md\\\", \\\"\$repo_path/skills/code-review/SKILL.md\\\", \\\"\$repo_path/skills/code-review/scripts/precheck.sh\\\", \\\"\$repo_path/skills/references/source-of-truth.md\\\", \\\"\$repo_path/skills/references/architecture-map.md\\\", \\\"\$repo_path/skills/references/test-entrypoints.md\\\", \\\"\$repo_path/skills/references/runtime-and-testability.md\\\", \\\"\$repo_path/skills/references/history-replay-loop.md\\\", \\\"\$repo_path/skills/self-skills-improve/SKILL.md\\\"\"
 done
 
 cat > \"\$target/bootstrap-state.json\" <<EOF
@@ -814,16 +833,17 @@ EOF
 AGENT
 chmod +x /e2e/bootstrap-agent"
 
-log "running jarvis-box bootstrap jarvis"
+log "running controlled runtime agent directly"
 docker exec "$container_name" bash -lc "
-  set -uo pipefail
-  set +e
-  runuser -u jarvis-box -- env \
-    HOME=/var/lib/jarvis-box \
+  set -euo pipefail
+  runtime_agent_user=\"\$(cat /e2e/runtime-agent-user)\"
+  runuser -u \"\$runtime_agent_user\" -- env \
+    HOME=/e2e/home \
     PATH=/usr/local/bin:/usr/bin:/bin \
+    JARVIS_WORKSPACE_ROOT=/e2e/work/bootstrap \
+    JARVIS_BOX_HOME=/var/lib/jarvis-box \
     JARVIS_COMPANY_SLUG='$company_slug' \
-    JARVIS_BOOTSTRAP_AGENT_CMD=/e2e/bootstrap-agent \
-    JARVIS_BOOTSTRAP_WORKDIR=/e2e/work/bootstrap \
+    CREATE_JARVIS_SKILL_PROMPT_FILE=/create-jarvis-skill/playbooks/prompts/agent-native-bootstrap.md \
     CREATE_JARVIS_SKILL_REPO_URL=file:///create-jarvis-skill \
     E2E_METHOD_REPO=/create-jarvis-skill \
     E2E_CUSTOMER_REPOS=/e2e/customer-repos \
@@ -835,33 +855,7 @@ docker exec "$container_name" bash -lc "
     JARVIS_OWNERS='$owners' \
     JARVIS_WRITEBACK_STRATEGY='$writeback_strategy' \
     JARVIS_TARGET_HOME=/e2e/output/company-jarvis \
-    jarvis-box bootstrap jarvis --non-interactive
-  bootstrap_rc=\$?
-  set -e
-  if [ \"\$bootstrap_rc\" -ne 0 ]; then
-    bootstrap_status=\$(python3 - <<'PY'
-import json
-from pathlib import Path
-
-path = Path('/e2e/output/company-jarvis/bootstrap-result.json')
-if not path.exists():
-    print('')
-else:
-    try:
-        print(json.loads(path.read_text(encoding='utf-8')).get('status', ''))
-    except Exception:
-        print('')
-PY
-)
-    case \"\$bootstrap_status\" in
-      needs-input|blocked)
-        printf '[customer-bootstrap-e2e] jarvis-box returned rc=%s with bootstrap status=%s; continuing to verifier\n' \"\$bootstrap_rc\" \"\$bootstrap_status\"
-        ;;
-      *)
-        exit \"\$bootstrap_rc\"
-        ;;
-    esac
-  fi
+    /e2e/bootstrap-agent
 "
 
 log "verifying generated artifacts"
@@ -877,6 +871,10 @@ docker exec "$container_name" bash -lc "
 "
 
 log "outputs:"
+[ -r "$run_dir/output/company-jarvis/bootstrap-result.json" ] \
+  || die "host user cannot read container output; UID/GID mapping contract failed"
+[ -w "$run_dir" ] \
+  || die "host run directory is not writable after container execution"
 printf '  run_dir=%s\n' "$run_dir"
 printf '  company_jarvis=%s\n' "$run_dir/output/company-jarvis"
 printf '  customer_repos=%s\n' "$run_dir/customer-repos"

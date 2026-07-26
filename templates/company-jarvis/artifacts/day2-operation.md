@@ -53,7 +53,7 @@
 - 零 Task 意为 `unexercised`，不是 `not-applicable`。
 - 容器缺少 systemd 不使 service/jobs 变为 `not-applicable`：实际探测可用替代方案或标记 `unverified`/`blocked`。
 - 真正的外部/人工替代需要 exact mechanism、owner 和 executability evidence。
-- `bootstrap --resume` 只是 bootstrap state/form 恢复，绝不是 Jarvis maintenance authority。
+- 从 `bootstrap-state.json` 恢复 bootstrap，绝不是 Jarvis maintenance authority。
 
 ## Managed Jobs
 

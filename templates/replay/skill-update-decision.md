@@ -1,6 +1,6 @@
 # Skill Update Decision
 
-> **Phase 12 只提决定，Phase 13 才执行写回和复跑。** 未执行/invalid → Decision: `defer`，Status: `deferred`，不能写 `no_skill_gap` 或 `closed`。
+> **Phase 12 先在 calibration snapshot 形成 candidate，并完成 same-case rerun；Phase 13 才把 verified candidate 应用到 authoritative home。** 未执行/invalid → Decision: `defer`，Status: `deferred`，不能写 `no_skill_gap` 或 `closed`。
 
 ## Decision Summary
 
@@ -32,6 +32,33 @@
 
 - **Evidence**: `<pilot-id / replay-case-id / run-id>`
 
+## Phase 12 Candidate Update
+
+- **Calibration snapshot**: `<writable snapshot pointer>`
+- **Calibration skill ref before**: `<snapshot ref/digest>`
+- **Candidate type**: `method/skill` / `stable-fact` / `none`
+- **skill-creator invocation / trace**: `<pointer / not-applicable-stable-fact / not-applicable-no-update>`
+- **Candidate patch**: `<diff pointer>`
+- **Candidate primary home**: `<actual SKILL.md / focused reference / validation script / fact owner>`
+- **Stable-fact authority and verification**: `<current authoritative source pointer + check / not-applicable>`
+- **Case-specific facts excluded**: `<what was intentionally not written>`
+
+## Phase 12 Same-Case Rerun
+
+保持同一 visible START、cutoff、allowed sources 和 hidden oracle，只替换 skill snapshot。
+
+- **Rerun ID**: `<run-id>`
+- **Candidate skill refs**: `<refs>`
+- **Result**: `improved` / `no-improvement` / `partial` / `blocked` / `not-required-no-skill-gap`
+- **Regression check**: `<previously correct dimensions preserved?>`
+- **Evidence**: `<pointer>`
+- **Candidate verification**: `verified` / `rejected` / `not-applicable`
+- **Promoted to cumulative baseline**: `yes` / `no` / `not-applicable`
+- **Calibration skill ref after**: `<new cumulative ref, or unchanged ref for no-update>`
+- **Ordered candidate set after promotion**: `<ordered decision/candidate ids>`
+
+同一个 case 证明 candidate 修复了该回归，不单独证明跨 episode 泛化。
+
 ## Phase 13 Approval
 
 - **Owner approval**: `approved` / `needs-owner-confirmation` / `blocked`
@@ -42,13 +69,15 @@
 - **Writeback ID**: `<wb-id>`（对应 `controlled-writeback-log.md`）
 - **Patch evidence**: `<pointer or summary>`
 - **Target**: `<path or skill>`
+- **Ordered candidate position**: `<n/total>`
+- **Final authoritative ref matches cumulative calibration ref**: `yes` / `no` / `blocked`
 
-## Phase 13 Rerun
+## Phase 13 Delivery Revalidation
 
-用 Phase 12 同一 visible START 隔离复跑，证明该回归改善。
+ordered candidate set 全部应用后，用最终累计 authoritative snapshot 对 Phase 12 同一 visible START 做交付复验，确认应用过程或后续 candidate 没有改变已验证行为。
 
 - **Rerun ID**: `<run-id>`
-- **Result**: `improved` / `no-improvement` / `partial` / `blocked`
+- **Result**: `preserved` / `regressed` / `partial` / `blocked`
 - **Evidence**: `<pointer>`
 - **同一个 case 不单独证明泛化**
 

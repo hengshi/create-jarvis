@@ -34,11 +34,11 @@ pilot 产生了可定位的行为证据和期望结果。只有“感觉不清�
     ├── 现有技能充分 → 记录，不写回
     └── 存在 gap →
           ├── durable/reusable/verifiable? → 选择唯一 primary writeback home
-          ├── under-specified / ineligible case? → eval-case-gap / defer
+          ├── under-specified / ineligible case? → not-evaluated / defer
           └── 不满足写回条件 → defer
 ```
 
-优先 `no_skill_gap`。under-specified / ineligible case 只能 `eval-case-gap` / `defer`，不能写 skill。
+优先 `no_skill_gap`。under-specified / ineligible case 必须写 Primary `not-evaluated`、Decision `defer`，不能写 skill。
 
 ## Attribution：区分改进归属
 
@@ -54,12 +54,25 @@ pilot 产生了可定位的行为证据和期望结果。只有“感觉不清�
 
 mirror 只在另一个层必须新增最小路由/边界指针才能到达 primary home 时使用；不得把 primary 内容复制一份。
 
-## Gap Classification
+上表只决定 owner，不自动授权立即写 authoritative home。history replay 中，Phase 12 只在 writable calibration snapshot 形成 candidate：`skill_gap` 调用 `skill-creator` 修改实际 primary home 的候选副本；有当前权威来源证据的 stable `instance_fact_gap` 可形成 fact correction，但仍留在 snapshot。Phase 13 才按 ordered candidate set 应用 authoritative homes。真实 task/pilot 若已有独立 writeback approval，可走其受控 owner policy，但不能借此绕过 history replay 的 Phase 12/13 边界。
 
-使用 Phase 12 统一分类：
+## Primary Attribution
+
+执行证据和 oracle comparison 完成后，先区分偏差究竟是不是 skill gap：
 
 | Class | Meaning |
 |-------|---------|
+| `skill_gap` | 现有 skills 存在可复用、可验证且归属明确的缺口 |
+| `instance_fact_gap` | 缺少本次实例事实或 source/repo 信息 |
+| `source_access_environment` | source、access、runtime 或 environment 问题 |
+| `execution_deviation` | agent 未遵循已有且足够的 guidance |
+| `case_construction_leak` | eval case 构造或 START/oracle 隔离无效 |
+| `oracle_limitation` | outcome/oracle 不足以支持 skill 判断 |
+
+只有 primary attribution 为 `skill_gap` 时，才选择具体的 skill failure dimension：
+
+| Dimension | Meaning |
+|-----------|---------|
 | `routing_failure` | 技能未能将 agent 路由到正确子 skill 或 reference |
 | `truth_failure` | 技能中事实错误或缺失导致判断错误 |
 | `boundary_failure` | repo-local 与 company Jarvis 边界不清导致越界或遗漏 |
@@ -68,8 +81,8 @@ mirror 只在另一个层必须新增最小路由/边界指针才能到达 prima
 | `bloat_failure` | 技能包含不必要的通用内容 |
 | `promotion_failure` | repo-local 事实被错误提升到 company Jarvis |
 | `verification_failure` | 验证步骤无法检测实际错误 |
-| `no_skill_gap` | 现有技能充分，偏差来自外部因素 |
-| `eval-case-gap` | gap 只来自 under-specified / ineligible case |
+
+`no_skill_gap` 是 valid + executed + oracle-compared 后的 writeback decision，不是 failure class。under-specified / ineligible case 必须 `not-evaluated` / `defer`。
 
 ## What's Forbidden
 
@@ -106,7 +119,7 @@ signal:
 
 ### Step 3: Classify the Gap
 
-History replay 使用 Phase 12 taxonomy；必须实际执行后才做 skill failure 分类，未执行是 `not-evaluated`。真实 task/pilot 若尚未形成等价的执行与 oracle 证据，只能作为 candidate。
+History replay 使用 Phase 12 primary attribution；必须实际执行并完成 oracle comparison 后才判断 `skill_gap`，再选择 skill failure dimension。未执行是 `not-evaluated`。真实 task/pilot 若尚未形成等价的执行与 oracle 证据，只能作为 candidate。
 
 ### Step 4: Select Primary Writeback Home
 
@@ -114,7 +127,7 @@ History replay 使用 Phase 12 taxonomy；必须实际执行后才做 skill fail
 
 ### Step 5: Apply the Fix
 
-1. 编辑对应文件。
+1. history replay 只编辑 writable calibration snapshot；真实 task/pilot 按其已批准的 owner policy 编辑对应文件。
 2. 如果添加新子 skill，更新 `skills/SKILL.md` 路由。
 3. 在 company Jarvis 的 skill update decision 中记录变更目标、证据和不写入的内容。
 4. 运行 `precheck.sh` 确认 package 合同；它不证明内容正确或产品测试通过。
@@ -129,3 +142,5 @@ History replay 使用 Phase 12 taxonomy；必须实际执行后才做 skill fail
 
 1. 把 rerun 证据和 oracle comparison 写回原 case 的固定产物。
 2. 只有满足同 case 验收时才把 update 标为 verified；否则保持 proposed/deferred 并记录下一步。
+3. history calibration 中，verified candidate 必须先晋升为累计 calibration baseline，记录 baseline before/after 和新 ref，再推进 cursor；后续 case 使用累计 ref。
+4. 到达 scope boundary 后由 Phase 13 按 ordered set 应用 authoritative homes，并用最终累计 authoritative snapshot 复跑所有受影响 case，防止后续 candidate 让早期 case 回归。

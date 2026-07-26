@@ -106,6 +106,7 @@ raw_source_policy="${JARVIS_RAW_SOURCE_POLICY:-no-raw-copy}"
 owners="${JARVIS_OWNERS:-platform-owner}"
 writeback_strategy="${JARVIS_WRITEBACK_STRATEGY:-local-only}"
 e2e_host_uid="${E2E_HOST_UID:-}"
+e2e_host_gid="${E2E_HOST_GID:-}"
 continuation="${E2E_CONTINUATION:-0}"
 replay_bridge_poll_seconds="${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}"
 
@@ -114,6 +115,11 @@ replay_bridge_poll_seconds="${E2E_REPLAY_BRIDGE_POLL_SECONDS:-600}"
 [ -f "$dist_dir/SHA256SUMS" ] || die "SHA256SUMS not found in container: $dist_dir"
 [ -d /create-jarvis-skill ] || die "/create-jarvis-skill mount missing"
 [ -f /create-jarvis-skill/scripts/verify_bootstrap_output.py ] || die "verify_bootstrap_output.py missing"
+case "$e2e_host_uid:$e2e_host_gid" in
+  *[!0-9:]*|:*|*:) die "E2E_HOST_UID/GID must be numeric: $e2e_host_uid:$e2e_host_gid" ;;
+esac
+[ "$e2e_host_uid" -ne 0 ] || die "E2E_HOST_UID must be non-root"
+[ "$e2e_host_gid" -ne 0 ] || die "E2E_HOST_GID must be non-root"
 case "$continuation" in
   0) ;;
   1)
@@ -326,8 +332,8 @@ else
   done
 fi
 
-# ── bootstrap agent wrapper ─────────────────────────────────────
-log "installing claude bootstrap wrapper"
+# ── direct runtime-agent wrapper ────────────────────────────────
+log "installing direct Claude runtime wrapper"
 cat > /e2e/claude-bootstrap-agent <<'AGENT'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -337,7 +343,7 @@ prompt="$(cat)"
 {
   printf '%s\n' "$prompt"
   printf '\n%s\n' 'Runtime allowlist facts for create-jarvis-skill Phase 4:'
-  printf '%s\n' 'These values are customer/operator confirmed bootstrap facts. If they conflict with the generic jarvis-box prompt fields, use these JARVIS_* values for create-jarvis-skill discovery and output contracts.'
+  printf '%s\n' 'These values are customer/operator confirmed bootstrap facts. If they conflict with inferred values, use these JARVIS_* values for create-jarvis-skill discovery and output contracts.'
   printf 'JARVIS_CONFIRMED_PRODUCT_IDENTITY=%s\n' "${JARVIS_CONFIRMED_PRODUCT_IDENTITY:-}"
   printf 'JARVIS_SOURCE_SCOPE=%s\n' "${JARVIS_SOURCE_SCOPE:-}"
   printf 'JARVIS_WORKFLOW_SCOPE=%s\n' "${JARVIS_WORKFLOW_SCOPE:-}"
@@ -355,7 +361,7 @@ prompt="$(cat)"
   printf '%s\n' '    /e2e/work                     — work directory'
   printf '%s\n' '    /e2e/jarvis-box-help.txt      — jarvis-box --help output'
   printf '%s\n' '    /e2e/install-evidence.md      — install evidence'
-  printf '%s\n' '- Phase 7 deterministic scripts — invoke each form separately:'
+  printf '%s\n' '- Phase 7 deterministic scripts — invoke each subcommand separately:'
   printf '%s\n' '    python3 /create-jarvis-skill/scripts/instantiate_company_jarvis.py base --state <bootstrap-state.json>'
   printf '%s\n' '    python3 /create-jarvis-skill/scripts/instantiate_company_jarvis.py module --state <bootstrap-state.json>'
   printf '%s\n' '    python3 /create-jarvis-skill/scripts/instantiate_company_jarvis.py source --state <bootstrap-state.json>'
@@ -393,7 +399,7 @@ prompt="$(cat)"
   printf '%s\n' '- A confirmed source that is not required by the first workflow may be marked deferred-needs-access when no local access exists. That deferred route is not a missing input or bootstrap blocker; only missing access required by the first workflow blocks.'
   printf '%s\n' '- The test-root systemd is intentionally NOT active (container environment). Container day-2 operations use external scheduler / human operator fallback. owner=platform-owner. This is operator-confirmed E2E policy — do not report systemd inactive as a defect.'
   printf '%s\n' '- Fixture commit boundary: each customer repo under /e2e/customer-repos contains a harness commit with subject "chore(e2e-fixture): remove pre-existing agent skills". This commit is NOT a real product commit — it must never be selected as a Phase 11 shadow pilot candidate or Phase 12 history-replay candidate. Phase 6 and Phase 8 must not read deleted skill content from commits before this fixture commit as bootstrap facts, templates, or evidence. The create-jarvis-skill template is the sole authority for repo-local skill generation. Product code, docs, and tests in the current HEAD tree are readable and usable for discovery. Pre-fixture product commit history (before this fixture commit) is available for Phase 11 and Phase 12. When traversing pre-fixture history, skip any content under skills/, .agents/skills/, .codex/skills/, or .claude/skills/. The fixture commit itself must never be selected as a candidate.'
-} > /e2e/claude-bootstrap-prompt.md
+} > /e2e/logs/claude-bootstrap-prompt.md
 
 if [ "${E2E_CONTINUATION:-0}" = "1" ]; then
   {
@@ -403,7 +409,7 @@ if [ "${E2E_CONTINUATION:-0}" = "1" ]; then
     printf '%s\n' '- Preserve existing user-authored files. Map every current failure to its earliest owning phase, repair from that earliest failed phase, reset later phases to pending as required, and then proceed sequentially through Phase 14.'
     printf '%s\n' '- The old state.phase is not a forced starting point. Do not jump directly to Phase 11-14 merely because the prior state named a later phase.'
     printf '%s\n' '- For every history-replay case, cross-check replay-agent-cli-checks.md against host-isolation-evidence.json, exit-code, and actual replay-agent.jsonl/replay-result.md. A stale, contradictory, or missing CLI report is a Phase 12 failure: regenerate the report or re-execute the case before accepting completion.'
-  } >> /e2e/claude-bootstrap-prompt.md
+  } >> /e2e/logs/claude-bootstrap-prompt.md
 fi
 
 claude_args=(
@@ -418,38 +424,77 @@ claude_args=(
   --add-dir /e2e/work
 )
 
-printf '%s\n' "claude ${claude_args[*]//${ANTHROPIC_AUTH_TOKEN:-__NO_TOKEN__}/[redacted]}" > /e2e/claude-command.txt
-cat /e2e/claude-bootstrap-prompt.md \
+printf '%s\n' "claude ${claude_args[*]//${ANTHROPIC_AUTH_TOKEN:-__NO_TOKEN__}/[redacted]}" > /e2e/logs/claude-command.txt
+cat /e2e/logs/claude-bootstrap-prompt.md \
   | claude "${claude_args[@]}" \
-    > >(tee /e2e/claude-stdout.jsonl) \
-    2> >(tee /e2e/claude-stderr.log >&2)
+    > >(tee /e2e/logs/claude-stdout.jsonl) \
+    2> >(tee /e2e/logs/claude-stderr.log >&2)
 AGENT
 chmod +x /e2e/claude-bootstrap-agent
 
 # ── bootstrap user setup ────────────────────────────────────────
-if ! id -u e2e >/dev/null 2>&1; then
-  if [ -n "$e2e_host_uid" ]; then
-    useradd -u "$e2e_host_uid" -m -d /e2e/home -s /bin/bash e2e
-  else
-    useradd -m -d /e2e/home -s /bin/bash e2e
-  fi
+if id -u e2e >/dev/null 2>&1; then
+  [ "$(id -u e2e)" = "$e2e_host_uid" ] && [ "$(id -g e2e)" = "$e2e_host_gid" ] \
+    || die "existing e2e user does not match host UID/GID mapping"
+else
+  getent passwd "$e2e_host_uid" >/dev/null \
+    && die "E2E_HOST_UID already belongs to another container user"
+  getent group "$e2e_host_gid" >/dev/null || groupadd -g "$e2e_host_gid" e2e
+  useradd -u "$e2e_host_uid" -g "$e2e_host_gid" -M -d /e2e/home -s /bin/bash e2e
 fi
 
-# Non-recursive chown on /e2e itself so the e2e user can create files
-# directly under /e2e (e.g. /e2e/claude-bootstrap-prompt.md).
-# The e2e user's UID matches the host UID, but /e2e is root:root 755
-# until this point.
-chown e2e:e2e /e2e
+# Keep the common parent root-owned and non-writable by the runtime agent.
+# Otherwise the agent could rename service-private install-root and replace the
+# directory entry even when it cannot write install-root itself.
+chown 0:0 /e2e
+chmod 0755 /e2e
 
 # Adjust ownership of /e2e internal directories.
-# Explicitly skip /e2e/output — it is a host bind mount; chown on
-# bind mounts fails with "Operation not permitted" on Apple container.
-# The e2e user (created with host UID) already owns /e2e/output natively.
+# Explicitly skip /e2e/output (host bind mount) and /e2e/install-root
+# (service-private state). The mapped e2e user owns /e2e/output natively.
 for d in /e2e/* /e2e/.[!.]* /e2e/..?*; do
   [ -e "$d" ] || continue
-  [ "$(basename "$d")" = "output" ] && continue
-  chown -R e2e:e2e "$d" 2>/dev/null || true
+  case "$(basename "$d")" in
+    output|install-root) continue ;;
+  esac
+  chown -R "$e2e_host_uid:$e2e_host_gid" "$d"
 done
+
+# The verifier runs as the mapped agent and opens these paths itself. Create
+# only the named report files while privileged; /e2e remains non-writable so
+# the service-private install-root entry cannot be swapped.
+for report_file in \
+  /e2e/bootstrap-verify-report.json \
+  /e2e/bootstrap-verify-findings.md; do
+  : > "$report_file"
+  chown "$e2e_host_uid:$e2e_host_gid" "$report_file"
+  chmod 0644 "$report_file"
+done
+
+runuser -u e2e -- sh -c '
+  set -eu
+  for d in /e2e/customer-repos /e2e/output /e2e/work/bootstrap /e2e/logs; do
+    test -r "$d" && test -w "$d" && test -x "$d"
+    : > "$d/.agent-write-probe"
+    rm -f "$d/.agent-write-probe"
+  done
+  for f in /e2e/bootstrap-verify-report.json /e2e/bootstrap-verify-findings.md; do
+    test -r "$f" && test -w "$f"
+    : > "$f"
+  done
+'
+if runuser -u e2e -- test -w "$runtime_state_root"; then
+  die "runtime agent must not own service-private runtime state: $runtime_state_root"
+fi
+install_root_replacement_probe="${install_root}.agent-replacement-probe"
+if runuser -u e2e -- mv -- "$install_root" "$install_root_replacement_probe" 2>/dev/null; then
+  mv -- "$install_root_replacement_probe" "$install_root"
+  die "runtime agent must not rename or replace service-private install root: $install_root"
+fi
+[ -d "$install_root" ] \
+  || die "service-private install root disappeared during isolation probe: $install_root"
+[ ! -e "$install_root_replacement_probe" ] \
+  || die "unexpected service-private replacement probe remains: $install_root_replacement_probe"
 
 agent_env=()
 while IFS='=' read -r name value; do
@@ -460,16 +505,13 @@ while IFS='=' read -r name value; do
   esac
 done < <(env)
 
-log "running jarvis-box bootstrap jarvis with real Claude"
-bootstrap_args=(bootstrap jarvis --non-interactive)
-if [ "$continuation" = "1" ]; then
-  bootstrap_args+=(--resume)
-fi
+log "running real Claude directly with create-jarvis-skill"
 set +e
 runuser -u e2e -- env \
   "${agent_env[@]}" \
   PATH="/e2e/install-root/usr/local/bin:/e2e/bin:/usr/local/bin:/usr/bin:/bin" \
   HOME=/e2e/home \
+  JARVIS_WORKSPACE_ROOT=/e2e/work/bootstrap \
   JARVIS_CONFIG_DIR=/e2e/install-root/etc/jarvis-box \
   JARVIS_STATE_DIR="$runtime_state_root" \
   JARVIS_LOG_DIR=/e2e/logs \
@@ -478,8 +520,6 @@ runuser -u e2e -- env \
   CLAUDE_CMD=claude \
   JARVIS_COMPANY_SLUG="$company_slug" \
   JARVIS_CONFIRMED_PRODUCT_IDENTITY="$confirmed_product_identity" \
-  JARVIS_BOOTSTRAP_AGENT_CMD=/e2e/claude-bootstrap-agent \
-  JARVIS_BOOTSTRAP_WORKDIR=/e2e/work/bootstrap \
   CREATE_JARVIS_SKILL_REPO_URL=file:///create-jarvis-skill \
   JARVIS_COMPANY_NAME="$company_name" \
   JARVIS_FIRST_LOOP="$first_loop" \
@@ -498,45 +538,16 @@ runuser -u e2e -- env \
   JARVIS_ENV_FILE="$runtime_env_file" \
   E2E_CONTINUATION="$continuation" \
   REPLAY_BRIDGE_POLL_SECONDS="$replay_bridge_poll_seconds" \
-  "$jarvis_box_bin" "${bootstrap_args[@]}" \
-  >/e2e/bootstrap-jarvis.log 2>&1
-bootstrap_rc=$?
+  /e2e/claude-bootstrap-agent \
+  </create-jarvis-skill/playbooks/prompts/agent-native-bootstrap.md \
+  >/e2e/runtime-agent.log 2>&1
+agent_rc=$?
 set -e
 
-if [ "$bootstrap_rc" -ne 0 ]; then
-  if grep -Fq "ERROR: create-jarvis-skill runtime agent failed:" /e2e/bootstrap-jarvis.log; then
-    log "runtime agent execution failed; preserving evidence and skipping semantic verifier"
-    tail -n 80 /e2e/bootstrap-jarvis.log >&2 || true
-    exit "$bootstrap_rc"
-  fi
-  bootstrap_status="$(python3 - <<'PY'
-import json
-from pathlib import Path
-
-path = Path("/e2e/output/company-jarvis/bootstrap-result.json")
-if not path.exists():
-    print("")
-else:
-    try:
-        print(json.loads(path.read_text(encoding="utf-8")).get("status", ""))
-    except Exception:
-        print("")
-PY
-)"
-  case "$bootstrap_status" in
-    needs-input|blocked)
-      log "jarvis-box returned rc=$bootstrap_rc with bootstrap status=$bootstrap_status; continuing to verifier"
-      ;;
-    *)
-      if [ -d /e2e/output/company-jarvis ]; then
-        log "jarvis-box returned rc=$bootstrap_rc with partial output; continuing to verifier"
-      else
-        log "jarvis-box returned rc=$bootstrap_rc; see /e2e/bootstrap-jarvis.log"
-        tail -n 80 /e2e/bootstrap-jarvis.log >&2 || true
-        exit "$bootstrap_rc"
-      fi
-      ;;
-  esac
+if [ "$agent_rc" -ne 0 ]; then
+  log "runtime agent execution failed; preserving evidence and skipping semantic verifier"
+  tail -n 80 /e2e/runtime-agent.log >&2 || true
+  exit "$agent_rc"
 fi
 
 # ── verify ──────────────────────────────────────────────────────

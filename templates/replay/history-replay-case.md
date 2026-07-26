@@ -7,10 +7,16 @@
 - **Case ID**: `<case-id>`
 - **Source episode type**: `commit` / `MR` / `issue` / `incident` / `support-ticket` / `task`
 - **Source episode pointer**: `<commit / MR / issue / incident URL 或 redacted pointer>`
+- **Group commits**: `<ordered commit list or artifact pointers>`
+- **Cursor seed**: `<commit selected before group expansion>`
+- **Cursor after group**: `<next commit in the requested traversal after advancing from the seed; non-contiguous group members do not move this implicitly>`
+- **Preconsumed commits**: `<non-seed commits consumed by this group and skipped if encountered later>`
+- **Calibration skill ref before**: `<authoritative-derived or cumulative snapshot ref>`
+- **Calibration skill ref after**: `<same ref for no-update, or promoted cumulative ref>`
 - **Repo**: `<repo name or source>`
 - **Cutoff ref**: `<parent commit / pre-fix timestamp>`
 - **START construction**: `direct-pre-fix` / `parent-observed` / `reconstructed-from-outcome-subject`
-- **Replay eligibility**: `eligible-direct` / `eligible-reconstructed` / `ineligible-leaky` / `needs-better-start` / `ready-for-replay`
+- **Replay eligibility**: `eligible-direct` / `eligible-reconstructed` / `ineligible-leaky` / `needs-better-start`
 - **Status**: `draft` / `ready-for-replay` / `replayed` / `closed` / `needs-better-start`
 
 ## Source Search & Selection
@@ -21,6 +27,7 @@
 - **为什么可执行**: <目标明确、初始信号足够、outcome 可验证、START/oracle 可分离>
 - **搜索边界**: <时间或提交范围>
 - **候选排除理由**: <why other candidates were excluded>
+- **分组证据**: <same issue/MR key / consecutive topic / high-signal file overlap / follow-up cleanup / tests-verification>
 
 ## Visible START State
 
@@ -40,7 +47,7 @@
 
 ### Current Skills
 
-被测对象是运行时当前版本的 company / repo-local / source / workflow skills，不回退成历史 skill。历史 repo/source snapshot 冻结在 cutoff。
+被测对象是当前 calibration baseline 的 company / repo-local / source / workflow skills，不回退成历史 skill。第一组从 authoritative snapshot 派生；后续组使用 registry 的累计 ref。历史 repo/source snapshot 冻结在 cutoff。
 
 | Skill | Version / Pointer | Expected Role |
 |---|---|---|

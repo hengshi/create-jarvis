@@ -1,6 +1,6 @@
 # Phase 6 - 业务发现和生成策略
 
-目标：在写文件前，从客户授权范围内建立完整的公司 Jarvis 生态蓝图。这个蓝图必须能支撑 Phase 7 生成接近 `hengshi-jarvis` 形态的客户 repo，而不是只列几个仓库或工程层。
+目标：在生成正式 durable files 前，从客户授权范围内建立完整的公司 Jarvis 生态蓝图。这个蓝图必须能支撑 Phase 7 生成接近 `hengshi-jarvis` 形态的客户 repo，而不是只列几个仓库或工程层。
 
 Phase 6 是同一个 Phase 内的两层扫描，不是两个独立 phase：
 
@@ -9,79 +9,57 @@ Phase 6 是同一个 Phase 内的两层扫描，不是两个独立 phase：
 
 ## 步骤
 
-### 第零层：多 Agent 并发全生态扫描
+### 第零层：agent-owned 全生态扫描编排
 
-**这是 bootstrap 流程中的第一个重头戏。Phase 6 的全生态扫描会消耗大量 context、扫描多个仓库、启动多个并发 agent——禁止跟 bootstrap 主 session（Phase 3-5/7-9）挤在同一个 agent 进程里。**
+Phase 6 会消耗较多 context，但这是 runtime agent 的编排责任，不是客户的搬运责任。当前 bootstrap agent 先从 Phase 4 inventory 生成四条 bounded scan lanes；平台有并发能力时自行派发 sub-agents，没有并发能力时按同一 lane contract 顺序执行。两种模式都写同一份持久 state，语义和验收不变。
 
-#### 分发机制
+硬约束：
 
-bootstrap 主 agent 到达 Phase 6 时，不得自己启动扫描。必须走以下分发流程：
+- 不要求客户新开 session、复制 handoff prompt、等待某个 agent 后再手工通知另一个 agent。
+- coordinator 保持唯一 phase/state owner；lane 只读授权材料并返回 evidence，不推进 Phase 7、不写最终 identity/module 决策。
+- Phase 7 骨架在此时尚未被假定存在。Phase 6 先完成五个 discovery evidence files，通过入口门后 Phase 7 才渲染正式结构。
+- lane 结果由 coordinator 合并进既有五个 `_bootstrap/discovery/` 文件；临时 scan notes 不作为新的 durable contract，也不要求提交到 company Jarvis。
+- 任一 lane 失败时，coordinator 记录 exact coverage/blocker，并继续执行不依赖它的 lanes；只有 first workflow 所需证据不足才停止整个 phase。
 
-**方式一（推荐）：平台支持时，bootstrap 主 agent 将 Phase 6 作为独立 sub-agent 派发。** 主 agent 准备 handoff packet（Phase 4 确认的 company identity、repo URLs、source scope、first workflow），派发给一个全新的 agent 实例独立执行。该 agent 完成后将结果写入 `_bootstrap/discovery/`，然后通知主 agent 继续。
-
-**方式二：平台不支持 sub-agent 时，bootstrap 主 agent 必须告知用户新开一个独立 session，并提供可直接粘贴的完整 prompt。** 主 agent 将以下 handoff packet 整理好，让用户复制到新 session：
-
-```text
-[Phase 6 独立 session handoff prompt]
-
-你正在执行 create-jarvis-skill Phase 6 的业务发现扫描。Phase 7 的模板骨架已经通过 scripts/instantiate_company_jarvis.py base 渲染好，在 <JARVIS_HOME>。<你的任务不是重建结构，而是用客户证据把骨架填成客户自己的 Jarvis。>
-
-## 客户信息
-- 公司名/ slot: <from Phase 4>
-- 已确认产品身份: <from Phase 4>
-- Docs 仓库地址: <from Phase 4>
-- Code 仓库地址: <from Phase 4>
-- First workflow: <from Phase 4>
-- Source scope: <from Phase 4>
-- Module hints (if any): <from Phase 4>
-
-## 执行
-严格按照 phase-06-business-discovery.md 中的 "第零层：多 Agent 并发全生态扫描" 执行。完成后将结果写入 <JARVIS_HOME>/_bootstrap/discovery/。写完后告知用户 "Phase 6 done，请回到 bootstrap 主 session 继续 Phase 7"，不要自己进入 Phase 7。
-```
-
-**Phase 6 独立 agent 完成后**，用户或 bootstrap 主 agent 在 `<JARVIS_HOME>/_bootstrap/discovery/` 中检查五个证据文件齐全后，继续 Phase 7。
-
----
-
-当客户提供 docs 和 code 的 Git 仓库地址后，runtime agent 必须以并发多 agent 方式启动全生态扫描。Phase 7 的模板骨架已经通过 `scripts/instantiate_company_jarvis.py base` 渲染就绪——这一步的任务不是重建结构，而是用客户证据把骨架填成客户自己的 Jarvis。
+当授权 repos/docs/issues/tests/CI 已可读时立即开始扫描，不等待客户把它们重新整理成表单。
 
 #### 并发扫描架构
 
-同时启动以下 agent 并行工作，不串行逐个读仓库：
+有并发 slots 时同时启动以下 lanes；否则由当前 agent 逐 lane 执行：
 
 **Agent 1 — Docs 扫描（产品身份与领域词汇）：**
 - 扫描所有 docs 仓库的导航结构、产品文档、API 文档、wiki
 - 提取：产品名、模块名、业务概念、用户角色、业务 workflow 中的 gate/审批/发布节点
 - 提取 domain vocabulary：中文名、英文名、缩写、代码中对应的 package/namespace 变体
 - 提取 identity signals：文档中出现的 product/brand/company 名称
-- 输出到 `_bootstrap/discovery/docs-scan.md`
+- 返回 evidence pointers、检索范围和 identity/domain candidates 给 coordinator
 
 **Agent 2 — Code 扫描（模块实现锚点与 repo role）：**
 - 扫描所有 code 仓库的目录结构、build files、CI 配置、测试入口、已有 agent guidance（AGENTS.md/CLAUDE.md）
 - 提取：模块边界和 repo 角色（这个仓库做什么、不做什么）
 - 为每个发现的模块找 `<repo-name>:<repo-relative-path>` 实现锚点（真实存在的路径，不能编造）
 - 提取：技术栈、build/test 命令、验证入口、已有 skill 和 guidance 资产清单
-- 输出到 `_bootstrap/discovery/code-scan.md`
+- 返回具体 repo-relative pointers、repo role candidates 和验证入口给 coordinator
 
 **Agent 3 — 历史扫描（issues/MRs/commits 模式）：**
 - 扫描 issue tracker、MR 历史、commit messages（最近一年）
 - 提取：常见失败模式和故障域、高频变更区域和跨模块交互证据
 - 提取：issue 分类法和 label 体系、实际 workflow 执行路径
-- 输出到 `_bootstrap/discovery/history-scan.md`
+- 返回候选模式及其 issue/MR/commit pointers 给 coordinator；本 lane 不执行 Phase 12 replay
 
 **Agent 4 — 测试与 CI 扫描：**
 - 扫描测试目录、CI 配置、E2E 测试、验收测试
 - 提取：测试入口和覆盖率分布、CI pipeline 结构和质量门、可用的验证命令
-- 输出到 `_bootstrap/discovery/test-ci-scan.md`
+- 返回 exact test/CI pointers 和 observed commands 给 coordinator
 
-#### 并发完成后合并
+#### Lanes 完成后合并
 
-四个 agent 都完成后，runtime agent 读取所有发现文件，执行合并：
+所有可执行 lanes 返回后，coordinator 用它们的 evidence 执行合并：
 
-1. **Identity reconciliation**：对比 docs-scan 中的 product/brand identity 与 Phase 4 已确认的公司身份，标记一致/冲突/待确认。代码里出现的品牌名不等于公司名，不能混写。更新 `bootstrap-state.json` 中的 identity 字段。
+1. **Identity reconciliation**：对比 docs lane evidence 中的 product/brand identity 与 Phase 4 已确认的公司身份，标记一致/冲突/待确认。代码里出现的品牌名不等于公司名，不能混写。更新 `bootstrap-state.json` 中的 identity 字段。
 2. **Module 合并与消歧**：合并来自不同 agent 的模块候选，消除同名异义（例如 `market` 可能是"云市场订阅"也可能是"应用模板市场"），形成统一的 module coverage matrix。每个 module 标注：`included` / `deferred-needs-evidence` / `needs-owner-confirmation`。
 3. **Repo role map**：每个 repo 在 first workflow 中的职责、技术边界、验证入口。
-4. **Cross-cutting 提取**：从 history-scan 和 code-scan 提取跨模块交互链路，填入 `cross-cutting/module-interactions.md`。
+4. **Cross-cutting 提取**：从 history/code evidence 提取跨模块交互链路，写入 generation plan，供 Phase 7 填充 `cross-cutting/module-interactions.md`。
 5. **Workflow map**：first workflow 的 START → WORK → VERIFY → END，每一步用到的 module/source/repo。
 6. **Generation plan**：明确 Phase 7/8/9 要创建什么、哪些事实缺 owner 确认、哪些进入 backlog。
 

@@ -1,8 +1,8 @@
 {
   "id": "noninteractive-missing-owner",
-  "title": "Noninteractive bootstrap must not guess owners",
+  "title": "Direct runtime bootstrap must not guess owners",
   "mode": "adversarial",
-  "prompt": "Use create-jarvis-skill in runtime mode for a fictional company. JARVIS_NONINTERACTIVE=1. JARVIS_HOME is set. Company name and first workflow are set. Owners and source-of-truth are missing. Produce the correct runtime-readable result without asking follow-up questions or inventing owners.",
+  "prompt": "An automation harness invokes the authenticated runtime agent directly with create-jarvis-skill. JARVIS_HOME, company name and a first-workflow hint are set, but authorized source scope and approval owners are absent. Do not invoke a bootstrap form, invent owners, or ask a broad questionnaire. Probe what is observable, then produce the correct runtime-readable needs-input result with the smallest irreducible questions.",
   "expected": {
     "status": "needs-input",
     "bootstrap_result_required_fields": [

@@ -54,11 +54,12 @@ templates/company-jarvis/
 
 用户**不需要**手动提供六个参数。运行时流程为：
 
-1. jarvis-box runtime 在 readiness gate 阶段收集确认信息
-2. 确认信息写入 `bootstrap-state.json`
-3. runtime agent 读取 bootstrap-state.json
-4. 调用 `instantiate_company_jarvis.py base --state <bootstrap-state.json>` 渲染母版；base 同时从 `templates/skill-packages/` 安装四个通用方法 skill 和三个 slot 化 starter workflow
-5. 后续按需调用 `module`、`source`、`package` 子命令
+1. 客户在已登录 runtime agent 中直接请求使用 create-jarvis-skill
+2. runtime agent 探测 allowlist facts、授权 sources、workspace 权限和现有 `bootstrap-state.json`
+3. agent 只让客户确认无法安全推导的身份冲突、授权和外部写入审批
+4. agent 把 confirmed/observed/derived/unresolved 分开写入 `bootstrap-state.json`
+5. 调用 `instantiate_company_jarvis.py base --state <bootstrap-state.json>` 渲染母版；base 同时从 `templates/skill-packages/` 安装四个通用方法 skill 和三个 slot 化 starter workflow
+6. 后续按需调用 `module`、`source`、`package` 子命令
 
 ## 渲染 Token
 

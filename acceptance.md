@@ -16,6 +16,8 @@
 
 bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 company Jarvis repo。它必须具备：
 
+- Agent-native 入口：客户从已登录 runtime agent 直接开始或继续；agent 自己探测环境、编排 scan/replay lanes，并只询问不可推导的授权、身份冲突和外部写入审批。
+- Runtime ownership 合同：bootstrap workspace、客户 checkout 和 target 对 selected agent 的 effective UID/GID 可读写；service-private state 与 agent-owned workspace 分离，Linux/container ownership 或 volume mapping 有 live probe 证据。
 - 公司级入口 skill：能识别真实 artifact，并路由到 module、workflow、source 或 repo-local skill。
 - 仓库命名与形态：Git 仓库名为 `<slot>-jarvis`，company entry skill 位于 `skills/<slot>-jarvis/SKILL.md`；仓库拓扑必须接近 `hengshi-jarvis`：`README.md`、`MAINTENANCE.md`、`jarvis.toml`、`AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`、`modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/`。
 - 身份边界：客户 company identity、客户确认的 product identity、source 中识别出的 product/brand identity 必须分开记录。source 里出现的品牌或产品名只能作为 evidence-backed detected identity，不能在 owner 确认前并入 company identity。
@@ -78,7 +80,7 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - Phase 10 被写成 Bootstrap Complete / 最终交付，runtime agent 在没有实际进入 Phase 11 的情况下返回。
 - `bootstrap-state.json.phase` 仍停在 Phase 10，却把 Phase 11-14 预判为 `needs-input` / `blocked` / `failed`；尚未进入的未来 phase 必须保持 `pending`。
 - Phase 10 checkpoint 把顶层 status 写成最终 `needs-input` / `completed`，而不是保持 `in-progress` 并在同一次 invocation 立即进入 Phase 11。
-- `bootstrap --resume` 盲信旧 state 的 `completed`，没有按当前 checklist/verifier 找到最早失效 phase，因而跳过已不合格的 Phase 6/8/9 产物。
+- 恢复执行盲信旧 state 的 `completed`，没有按当前 checklist/verifier 找到最早失效 phase，因而跳过已不合格的 Phase 6/8/9 产物。
 - Phase 12 在 pilot repo 有 Git 历史时，没有先自动扫描真实 commits 并尝试构造 replay case，就直接写”等待客户提供历史 episode”。
 - Phase 11 只运行固定浅窗口（如 `git log -3/-5/-N`）或只检查一个 pilot repo，就声称没有 `historical-shadow` artifact。
 - Phase 12 已经识别 replay candidates，但没有创建任何 `evals/history-replay/cases/<case-id>/history-replay-case.md`。
@@ -88,15 +90,15 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - replay bridge 调用前未完成 Case Readiness Gate（visible fact 表不完整、packet fact-closure 未审查、声称排除的事实出现在 packet 中、hidden oracle 非从真实 artifact 完整提取、缺 exact evidence command/pointer）。
 - `invalid`/`not-ready` case 实际启动了 replay。
 - replay case 明确承认 commit title `partially leaks` / 提供 fix directional hint，却仍标 high-confidence 或 `ready-for-replay`。
-- `ineligible-leaky` / `low-confidence` / `needs-better-start` case 实际启动了 replay。
-- `ineligible-leaky` / `low-confidence` / `needs-better-start` case 被用来得出 `no_skill_gap`、关闭 skill decision 或证明现有 skill 已充分。
+- `ineligible-leaky` / `needs-better-start` case 实际启动了 replay。
+- `ineligible-leaky` / `needs-better-start` case 被用来得出 `no_skill_gap`、关闭 skill decision 或证明现有 skill 已充分。
 - visible packet 中出现最终 commit message、changed-file list、final diff、修复原因、fix 动作描述或从 outcome 推导的实现标识符。
 - replay prompt 没有要求 replay agent 在可写 parent snapshot 中完成真实 WORK（诊断后实施候选修复/文档变更并运行可用验证），而是只要求提出方案或分析报告；除非原任务本身就是分析/评审/调研类。
 - hidden oracle 使用 `likely`、`probably` 或经验猜测替代从完整真实 final diff/artifact 提取的实际观察 outcome。
 - oracle comparison 未先读取 exact replay final output 和 exact 历史 final outcome，或未记录 command/pointer 和完整 changed surfaces。
 - 替代 replay 方案在无独立行为验证时被称为等价/更优。
 - Phase 12 completed 但没有 eligible case、隔离 evidence、非空 trace/result、oracle comparison、failure analysis、skill decision 中的任一项。
-- 某个 skill gap 只来自一个 under-specified / ineligible case，却被写成了 skill 而不是 eval-case-gap / defer。
+- 某个 skill gap 只来自一个 under-specified / ineligible case，却被写成了 skill，而不是 Primary `not-evaluated` / Decision `defer`。
 - replay 完成后先写了 failure analysis 或 skill decision，再做 oracle comparison。
 - oracle comparison 没有读取完整 final diff / 等价受控 oracle artifact，却把 replay 漏掉的 changed surface 猜成 cosmetic、supporting 或不重要。
 - 泄漏/invalid/未验证 case 产生 `no_skill_gap` 或 skill gap 结论（只能为 `not-evaluated`）。
@@ -108,7 +110,13 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - Phase 14 把零 Task 写为 `not-applicable` 而非 `unexercised`，或把容器缺少 systemd 当作 service/jobs 的 `not-applicable`。
 - Phase 14 声称 `ready-with-explicit-alternative` 但未提供 exact mechanism、owner 和 executability evidence。
 - Phase 14 未对至少一个 runtime agent 做真实 prompt probe。
-- Phase 14 把 `bootstrap --resume` 当作 Jarvis maintenance authority。
+- Phase 14 把 bootstrap state 恢复当作 Jarvis maintenance authority。
+- 要求客户先填写一份包含 module、repo role、owner、branch、visibility、workflow 等可由 agent 探测字段的长表单。
+- Phase 6/12 在没有并发能力时要求客户新开 session、复制 prompt 或人工搬运 agent 结果，而不是由 coordinator 顺序执行并从 state 恢复。
+- selected agent 对 workspace/target 不可写，却把递归 `chmod`/`chown`、world-writable 目录或客户手工修权限当作标准方案。
+- Phase 12 先把整个时间范围的 commits 全量分类，再开始第一个 group loop；或把 history calibration 的产物做成 `eval-loop.md` / eval-loop skill，而不是更新真实 primary skill home。
+- 显式 full-range history calibration 在 cursor 尚未越过请求边界时标 `completed`，或因 context/预算自动降级成 seed；seed completed 却没有剩余 cursor、累计 calibration ref、owner 和 resume entry。
+- 下一 commit 组重新加载旧 authoritative skills，而不是上一组 verified 后的累计 `calibration_skill_ref`；或 cursor 在累计 ref 持久化前推进。
 - Phase 14 创建了单独的 `_bootstrap/day2-runtime-checks.md`，而非将所有证据统一写入 `_bootstrap/day2-operation.md`。
 - Phase 14 未在更新状态前执行跨产物一致性审查（`MAINTENANCE.md`、`references/runtime-governance.md`、`tools/README.md`、`_bootstrap/day2-operation.md`、`bootstrap-state.json`、`bootstrap-result.json`）。
 - Phase 14 在 `unverified` 必要运营能力存在时标 `completed`。
@@ -140,7 +148,7 @@ bootstrap 完成时，客户应当获得一个可以被 agent 直接使用的 co
 - pilot/shadow artifact 中作者/提交者邮箱未脱敏。
 - Phase 12 case 的 provenance 写 "inferred from fix/outcome/final diff/commit context" 等 outcome-derived 来源。
 - Phase 12 preflight 未把 hidden changed surfaces 中出现的 exact file/class/interface/method/field/constant 标识符与完整 visible START + visible packet 做交叉检查。语义 provenance 审查属于 runtime agent；确定性检查只抓 exact/structural 矛盾。
-- 泄漏 case（ineligible-leaky/low-confidence/needs-better-start）实际启动了 replay bridge；或 replay 结果得出 no_skill_gap、durable skill gap、repo-local/company/upstream writeback 或 closed 等非法 decision。
+- 泄漏/证据不足 case（ineligible-leaky/needs-better-start）实际启动了 replay bridge；或 replay 结果得出 no_skill_gap、durable skill gap、repo-local/company/upstream writeback 或 closed 等非法 decision。
 - Phase 12 已有至少一个有效 eligible replay 闭环，仍把"再补更多 case"写成 missing input。
 - `bootstrap-result` 与 `bootstrap-state` 的同名 phase 状态不一致；顶层 status 不一致；任一前置 phase 未 completed 时 summary 宣称 "complete through Phase N"。
 - Phase 14 的 doctor/init 输出引用另一套 runtime root 而不是 `bootstrap-state.paths.runtime_root` / `jarvis_box_home` 的已确认值，或把另一套 root 的缺 env/runs 写成 missing input。

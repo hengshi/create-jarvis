@@ -1,6 +1,6 @@
 # Phase 12 — 历史回放
 
-目标：从每个 pilot repo 及相关已授权历史来源的真实历史 episode 中，以“当时可见初始信号”构造 eval case，使用当前 skills 隔离重放，找到失败模式，只把可复用、可验证的缺口交给 Phase 13。
+目标：从每个 pilot repo 及相关已授权历史来源的真实历史 episode 中，以“当时可见初始信号”构造 eval case，使用当前 calibration skill baseline 隔离重放，并逐组完成归因、skill-creator candidate update 和 same-case rerun。每个 verified candidate 先进入累计 calibration baseline，供下一组继续检验；Phase 13 只负责把最终累计 verified candidate set 受控应用到 authoritative home 并交付。
 
 ## A. Episode 搜索
 
@@ -45,7 +45,7 @@ visible START 只含 cutoff 时已可见或按当时权限可合理取得的事�
 
 1. **直接 pre-fix artifact**：issue、ticket、log、failing test output、alert、用户描述——在修复前已存在且独立于修复。
 2. **Parent state 可独立复现的信号**：从 parent commit 的代码、测试、日志中可直接观测到的症状，不依赖对最终 diff 的了解。
-3. **从 commit subject 重建**：最终 commit subject 主要用于找候选；只有其中可独立成立的外部症状/请求可谨慎投影到 START。原因、修复方向、changed paths、方法/字段等未来答案不能投影。无法安全分离的候选标 `needs-better-start` / `rejected-leaky`。
+3. **从 commit subject 重建**：最终 commit subject 主要用于找候选；只有其中可独立成立的外部症状/请求可谨慎投影到 START。原因、修复方向、changed paths、方法/字段等未来答案不能投影。证据不足标 `needs-better-start`；发生泄漏标 `ineligible-leaky`。
 
 ### Hidden Oracle（隐藏答案）
 
@@ -71,8 +71,8 @@ hidden oracle 含 cutoff 后发生的事实：
 
 ### 当前 Skills
 
-- 历史 repo/source snapshot 冻结在 cutoff；被测对象是运行时“当前版本”的 company/repo-local/source/workflow skills，不回退成历史 skill。
-- 记录当前 skill pointers，并检查该 episode 是否曾直接写入当前 skill。若 skill 已包含 case-specific hidden outcome，此 case 只能做回归，不能独立证明发现新 gap 或泛化。
+- 历史 repo/source snapshot 冻结在 cutoff；被测对象是当前 calibration baseline 的 company/repo-local/source/workflow skills，不回退成历史 skill。第一组从 authoritative snapshot 派生，后续组使用 registry 持久化的累计 `calibration_skill_ref`。
+- 记录当前 skill pointers、baseline ref，并检查该 episode 是否曾直接写入当前 skill。若 skill 已包含 case-specific hidden outcome，此 case 只能做回归，不能独立证明发现新 gap 或泛化。
 
 ## C. 隔离与执行
 
@@ -137,13 +137,15 @@ preflight 做明显的泄漏/结构检查。runtime agent 对语义负责；不�
 
 未执行/invalid 不能判断 skill。
 
-### no_skill_gap → Phase 13
+### Skill candidate → Phase 13
 
 `no_skill_gap` 需要：已执行（`executed`）+ 有效 case + 完整 comparison + 充分 outcome 验证。泄漏/invalid/未验证 case 均为 `not-evaluated`。
 
 按 `references/writeback-governance.md` 做 `no_skill_gap` 决策。skill gap 需要可复用、有证据、可验证、归属明确。重复 episode 或高影响单例都可，但必须解释复用性。
 
-Phase 13 执行 skill 更新后，用同一 case 复跑证明该回归改善；同一 case 不单独证明泛化。
+确认 `skill_gap` 后，Phase 12 在 writable calibration snapshot 中调用 `skill-creator` 修改实际 primary skill home 的候选副本，并用同一 case 复跑。通过后把 candidate 晋升为该 snapshot 的累计 baseline，记录 baseline before/after、稳定 `calibration_skill_ref` 和 ordered verified candidate set；下一组从 after ref 开始。Phase 13 审查并把累计 verified set 应用到 authoritative worktree；不在 Phase 12 push/merge。`no_skill_gap` 只记录决策，baseline ref 不变。
+
+`instance_fact_gap` 只有在当前权威来源能独立证明稳定事实时，才在 calibration snapshot 的事实 owner 形成最小 fact-correction candidate，并做 source verification；不调用 `skill-creator`，也不把单个历史 outcome 当成当前事实。verified stable-fact candidate 同样进入累计 baseline。其他 attribution 记录 no-update/defer，不修改 baseline。
 
 ## E. 产物和状态
 
@@ -182,7 +184,8 @@ runtime agent 必须实例化并完整填写模板的现有 sections/fields，�
 
 ### 状态判定
 
-- `completed`：至少一个真实 ready case 在有效隔离中实际执行，外层完成 oracle comparison、归因和 writeback decision。更多候选可进 backlog，不作为缺输入。Phase 12 不修改 skills；写回和复跑由 Phase 13 执行。
+- `completed` 分两种事先声明的 scope：`seed` 至少闭合一个真实 ready group，并把剩余范围连同 cursor、累计 calibration ref、owner 和 resume entry 交给 day-2；`full-range` 必须等 cursor 越过请求边界，所有遇到的组均已闭合或有证据地排除。两者都要求有效隔离、oracle comparison、归因和 decision；`skill_gap` 还必须 candidate update + same-case rerun + 累计 baseline 晋升。Phase 12 不提交 authoritative skill。
+- `in-progress`：当前 scope 尚未达到其 completion boundary，且 coordinator 正在执行或已持久化安全 checkpoint。显式 `full-range` 不能因上下文/预算改写成 `seed completed`。
 - `needs-input`：没有合格 episode、缺授权/真实 outcome/隔离 runtime/可用 agent 等。必须写已完成的搜索和下一步。已识别候选但没有创建 case 文件时不是合格 `needs-input`，而是执行不完整。
 - `blocked`：source/repo/history 权限不可用，或 visible/hidden 无法安全分离。
 - `failed`：泄漏 oracle 后仍执行并据此下 skill 结论、secret 泄漏、越权写入等。
@@ -192,96 +195,58 @@ runtime agent 必须实例化并完整填写模板的现有 sections/fields，�
 1. 创建或更新 `evals/history-replay/replay-case-registry.md`。
 2. 扫描每个 pilot repo 和已授权 issue/MR/ticket/incident 历史，记录命令/查询、时间或提交边界、候选和排除理由、停止原因。无固定数量或窗口。
 
-### 批量 commit 组扫描与分组执行（Git 历史充足时优先使用）
+### 按 commit 组持续校准（Git 历史充足时优先使用）
 
-**这是 bootstrap 流程中的第二个重头戏。批量 commit 组回放会逐个组构造 eval case、隔离重放、oracle 对比——每组都是一次完整的 mini-loop，整体消耗远超单 episode。禁止跟 bootstrap 主 session（Phase 3-5/7-11）挤在同一个 agent 进程里。**
+History replay 是控制循环，不是一个待生成的 skill。长期产物是被真实 episode 压实的 repo-local/workflow/source/company skills；不得创建名为 `eval-loop` 的 skill 或把 commit 摘要堆进主 SKILL 文本。可直接复用 `playbooks/prompts/history-calibration.md`。
 
-#### 分发机制
+当前 bootstrap agent 是 coordinator。可并发时自行派发 bounded replay worker；不可并发时顺序执行。两种模式都由 coordinator 持有 oracle、cursor 和 phase state，不要求客户新开 session 或搬运结果。
 
-bootstrap 主 agent 到达 Phase 12 时，不得自己启动批量回放。必须走以下分发流程：
+#### 轻量 cursor，而非全年预分类
 
-**方式一（推荐）：平台支持时，bootstrap 主 agent 将 Phase 12 作为独立 sub-agent 派发。** 主 agent 准备 handoff packet（pilot repo、时间范围、当前 skills pointer、isolation config），派发给一个全新的 agent 实例独立执行。该 agent 完成后将 replay cases 和结果写入 `evals/history-replay/` 和 `_bootstrap/history-replay-runs/`，然后通知主 agent 继续 Phase 13。
+1. 记录目标 repo、`seed` / `full-range` mode、时间/commit 边界、排序方向、owner、resume entry、`next_commit` 和当前 `calibration_skill_ref`。commit 列表只用于导航和避免遗漏。
+2. 从 cursor 取下一个未处理 commit，立即用最小证据扩成相关组：同一 issue/MR key、连续同主题提交、重叠的高信号 files、紧随其后的 cleanup、补充 tests/verification。
+3. 记录 `cursor_before`（seed）、`cursor_after`（按遍历顺序从 seed 推进后的下一枚）、`group_commits` 和非 seed 的 `preconsumed_commits`。跨非连续提交扩组时不能把 cursor 直接跳到组内最老提交；这些成员只在以后 encounter 时跳过。
+4. `refactor` / `tests` / `docs` / `release` / `noise` 在 cursor 前进时 encounter-and-skip 或并入其所服务的 bugfix/feature 组；禁止先把整个时间范围分流完，再开始第一个 eval case。
 
-**方式二：平台不支持 sub-agent 时，bootstrap 主 agent 必须告知用户新开一个独立 session，并提供可直接粘贴的完整 prompt。** 主 agent 将以下 handoff packet 整理好，让用户复制到新 session：
+#### 每组必须闭合的小循环
 
-```text
-[Phase 12 独立 session handoff prompt]
+**Step A — 构造 case：**
 
-你正在执行 create-jarvis-skill Phase 12 的历史回放——批量 commit 组模式。company Jarvis 和 repo-local skills 已经在 <JARVIS_HOME> 就绪。
+- 从组内最早 commit 的 parent 和独立 pre-fix artifact 提取 visible START。
+- 从完整 final diff/outcome 提取 hidden oracle；未记录的 root cause/verification 写 `unknown`。
+- 按规范模板创建 outer case，完成 provenance 和 leakage gate。无法安全分离就记录排除理由并推进 cursor。
 
-## 回放目标
-- Pilot repo: <repo path>
-- 时间范围: <e.g. 最近一年>
-- 当前 skills pointer: <repo-local skill paths / company Jarvis skill paths>
-- Isolation config: <bridge/container/VM info>
+**Step B — 用当前 skills 隔离重放：**
 
-## 执行
-严格按照 phase-12-history-replay.md 中 "批量 commit 组扫描与分组执行" 的 mini-loop（commit 组 → eval case → 失败模式 → skill update）执行。每组的 skill gap 写回决策记录在 skill-update-decision.md 中，实际 skill 写回留给 Phase 13。完成后将结果写入 <JARVIS_HOME>/evals/history-replay/ 和 <JARVIS_HOME>/_bootstrap/history-replay-runs/。写完后告知用户 "Phase 12 done，请回到 bootstrap 主 session 继续 Phase 13"，不要自己执行 skill writeback。
+- 冻结 cutoff snapshot，记录本次实际使用的 current skill refs。第一组从 authoritative snapshot 派生；后续组必须使用 registry 记录的累计 `calibration_skill_ref`。
+- replay agent 只读 visible packet、cutoff snapshot 和 current skills，真实执行原任务及可用验证。
+- 首个有效 action 前失败时标 `replay-not-executed`，不能判断 skill。
 
-## 关键约束
-- 不把 hidden oracle 放进 replay prompt
-- 不因为一次性误差扩展 skill
-- 同一 issue/同一 root cause 的多个 commits → 一个 eval case
-- 记录 preconsumed_commits 避免重复处理
-```
+**Step C — Oracle comparison 和归因：**
 
-**Phase 12 独立 agent 完成后**，用户或 bootstrap 主 agent 检查 replay registry 和 case 文件齐全后，继续 Phase 13（受控写回）。
+- outer coordinator 先读取 exact replay result 和完整 oracle，再比较 route/owner、证据、fix boundary、行为、verification 和 END closure。
+- 先区分 `skill_gap`、`instance_fact_gap`、`source_access_environment`、`execution_deviation`、`case_construction_leak`、`oracle_limitation`；不能把所有偏差都归给 skill。
 
----
+**Step D — candidate update：**
 
-当 pilot repo 有充足的 Git 历史（如最近一年的 commits）时，不要等人手工挑选 episode。runtime agent 必须以 commit 组为单位主动执行批量回放闭环。每个 commit 组执行一个完整的 mini-loop：**commit 组 → eval case → 失败模式 → skill update**，而不是先把上千个 commits 全部分类再做循环。
+- 只有 `skill_gap` 同时满足可复用、有证据、可验证、归属明确时，才在 writable calibration snapshot 中调用 `skill-creator`。
+- 修改实际 primary home 的候选副本：优先现有 repo-local `SKILL.md`、一个 focused reference 或验证脚本；只有跨 repo/workflow/company 的 durable gap 才选择更高层 owner。
+- `instance_fact_gap` 只在当前 authoritative source 能独立验证稳定事实时形成 fact-correction candidate；写入事实 owner，不调用 `skill-creator`。一次性历史事实或无法验证的候选记录 `defer`。
+- 不为单个 commit 固化答案，不创建 history/eval-loop 方法 skill；现有 guidance 已足够时记录 `no_skill_gap`。
 
-#### 第 0 步：commit 分流与分组
+**Step E — same-case rerun 并关闭组：**
 
-1. 获取目标 repo 指定时间范围内的所有 commits（例如 `git log --since="1 year ago" --oneline --no-merges`）。
-2. 将 commits 按类型分流：
-   - `bugfix`：修复类提交
-   - `feature`：功能类提交
-   - `refactor`：重构类提交
-   - `tests`：测试类提交
-   - `docs`：文档类提交
-   - `release`：发布/版本号类提交
-   - `noise`：格式化、注释修正等噪音提交
-3. 对 `bugfix` 和 `feature` 类 commits，按 **issue/语义相关性** 进行分组，形成 commit 组（execution unit）。每个组内的 commits 解决同一个问题或实现同一个能力。记录 `preconsumed_commits` 避免重复处理。
+- 保持同一 visible START、cutoff、allowed sources 和 oracle，使用 candidate skill snapshot 复跑。
+- 只有失败维度改善、原有正确维度无回归且验证成立，candidate 才是 `verified`。
+- verified skill candidate 或 stable-fact correction 先晋升为 writable calibration snapshot 的累计 baseline，保存 baseline before/after、ordered candidate set 和新的稳定 `calibration_skill_ref`。后续组从这个 ref 开始；`no_skill_gap` / `defer` 保持 ref 不变。
+- 保存 case、comparison、decision、candidate diff 和 rerun 结果。一个组只有以“verified candidate 已进入累计 baseline”或有证据的 no-update/defer decision 收口后才算 closed；先持久化 baseline ref，再推进 cursor。
 
-#### 对每个 commit 组执行 mini-loop
+#### 范围与暂停
 
-对每个 commit 组，严格按照以下小循环闭环处理：
-
-**Step A — 构造 eval case：**
-- 从该组最早 commit 的 parent state 提取 visible START（当时可见的初始信号：issue 描述、错误日志、用户报告、当时已存在的代码和测试）
-- 从该组最终 commit 的 final diff 提取 hidden oracle（实际修复方案、changed files、root cause、verification）。若历史 root cause 或 verification 未记录，写 `unknown`
-- 按 `templates/replay/history-replay-case.md` 创建完整 outer case
-- 确保 START/oracle 分离：visible packet 不能包含任何 post-cutoff 信息。不把 final commit message、changed-file list、final diff、最终测试或修复原因放进 visible packet
-
-**Step B — 隔离重放：**
-- 在 cutoff snapshot（parent commit）上，使用当前版本的 repo-local skills 重放原任务
-- replay agent 只能读 visible packet、cutoff snapshot、当前 skills
-- 记录完整的执行轨迹、exit code、diff/输出
-
-**Step C — Oracle 对比与失败模式归因：**
-- 外层 agent 读取 replay 产出和 hidden oracle，按 Phase 12.D 各维度对比
-- 非通过时归因到：`skill_gap` / `instance_fact_gap` / `source_access_environment` / `execution_deviation` / `case_construction_leak` / `oracle_limitation`
-
-**Step D — skill update 决策（使用 skill-creator）：**
-- 只有确认为 `skill_gap`（现有 skills 存在可复用、可验证的缺口）时，才通过 `skill-creator` 写回
-- 写回规则必须满足：可复用、有证据、可验证、归属明确
-- 先写 primary home（repo-local skill），再考虑是否需要镜像到 company Jarvis 或 upstream
-- 写回后用同一 case 复跑验证修复效果。同一 case 复跑证明修复了该回归，不单独证明跨 episode 泛化
-
-#### 停止条件
-
-- 所有 commit 组已处理完毕，或
-- 连续 N 个 commit 组未发现新的 skill gap（dry-up）
-- 将候选写回和复跑交给 Phase 13；Phase 12 不直接修改被测 skills
-
-#### 关键约束
-
-- 不把 hidden oracle 放进 replay prompt
-- 不因为一次性误差扩展 skill
-- 不从未执行、泄漏或 outcome 不可验证的 case 推导 skill gap
-- Group 粒度：同一 issue/同一 root cause 的多个 commits → 一个 eval case；不相关的独立 commits → 各自独立 case
-- 此批量流程与单 episode 流程共享相同的隔离执行、oracle comparison、归因和禁止规则
+- 进入 Phase 12 时先记录 scope mode。用户要求完整时间范围时使用 `full-range`，cursor 越过边界前保持 `in-progress`；context/执行预算 checkpoint 必须同时持久化 cursor、`calibration_skill_ref` 和 ordered candidate set，不得伪装完成或自动降级。
+- 只有明确选择 `seed` 的初次 bootstrap，才可在至少一个有效组闭合后把剩余组交给有 cursor、累计 ref、owner 和恢复入口的 day-2 continuation，并明确没有处理完整范围。
+- 不使用未定义的“连续 N 组没有 gap”作为完成条件。范围耗尽、明确的 seed-calibration contract 或外部授权边界才决定停止。
+- Phase 12 不 push/merge authoritative skills。Phase 13 复核 verified candidate 并执行受控写回。
 
 3. 为单 episode 或 commit 组分配稳定 case id，例如 `replay-YYYYMMDD-001`。
 4. 选择 START/oracle 可分离且能覆盖真实风险的 episode，为每个选中的 episode 创建完整 `evals/history-replay/cases/<case-id>/history-replay-case.md`。其余候选留在 registry backlog；不能只留候选而不创建任何可执行 case。
@@ -303,8 +268,8 @@ bootstrap 主 agent 到达 Phase 12 时，不得自己启动批量回放。必�
 13. replay 完成后，bootstrap agent 先读取 exact replay final output 和 exact 历史 final outcome，记录 command/pointer 和完整 changed surfaces 或等价非代码 artifact。
 14. 创建 `replay-failure-analysis.md`：必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。对比 replay result 和 hidden oracle，分维度判断（routing、truth boundary、repo-local boundary、verification、END writeback），分类 failure mode，先做 `no_skill_gap` check。
 15. 创建 `skill-update-decision.md`：必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。按 `references/writeback-governance.md` 决定 no_skill_gap / primary home / mirror / verification plan。
-16. 将候选写回和复跑交给 Phase 13；Phase 12 不直接修改被测 skills。
-17. 更新 registry status 和相关 state 文件。
+16. 对 `skill_gap` 在 calibration snapshot 中调用 `skill-creator` 形成 candidate diff 并 same-case rerun；对有独立当前 source 证据的 `instance_fact_gap` 形成最小 fact correction 并验证。verified 后先晋升累计 baseline，持久化 baseline before/after、ordered candidate set 和新 `calibration_skill_ref`。
+17. 先更新 registry/state 的累计 ref，再推进 cursor；Phase 13 只接收已持久化的 ordered verified candidate set。
 
 ## Oracle Comparison 必须在决策之前
 

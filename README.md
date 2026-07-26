@@ -1,10 +1,16 @@
 # Create JARVIS Skill
 
-`create-jarvis-skill` 是 runtime agent 在 `jarvis-box bootstrap jarvis` 之后使用的说明书和模板库。
+`create-jarvis-skill` 是客户直接交给已登录 Codex、Claude 或其他 runtime agent 使用的说明书和模板库。
 
-jarvis-box install 已经完成「把客户机器装成可运行 agent 的 runtime」这一步。本仓库不再描述安装步骤，不负责 Codex / Claude / Copilot 登录，不负责 jarvis-box 服务、凭证、webhook、日志或任务队列。
+jarvis-box install 或受支持的 Docker / Apple container 的目标合同，是把环境准备成可运行 agent 的 runtime：agent CLI、Git/VCS 工具、方法入口、明确且可写的 workspace，以及正确的 UID/GID 或 volume mapping。客户只完成 agent 的一次性登录。当前 image 缺少任一项时，Phase 3/5 报告 exact capability blocker，不能假装已经预装。本仓库不负责服务、凭证、webhook、日志或任务队列，但会验证这些前置能力，避免把安装权限缺陷留给客户处理。
 
-本仓库只负责一件事：让 runtime agent 按 `playbooks/phase-checklist.md` 从 Phase 3 到 Phase 14 一项一项执行，生成客户自己的 `<slot>-jarvis` repo、repo-local skills、skill packages、试点计划、历史回放校准和受控写回路径。
+本仓库只负责一件事：让当前 runtime agent 直接按 `playbooks/phase-checklist.md` 从 Phase 3 到 Phase 14 执行，生成客户自己的 `<slot>-jarvis` repo、repo-local skills、skill packages、试点计划、历史回放校准和受控写回路径。它不依赖一份 bootstrap CLI 表单，也不要求客户在多个 agent session 之间搬运 prompt。
+
+## 直接开始
+
+在已登录且能访问客户授权材料的 runtime agent 中，粘贴 `playbooks/prompts/agent-native-bootstrap.md` 的短 prompt；可选地追加公司名和 repo/docs URL。agent 应先自行发现可观测事实，只就授权、身份冲突、凭据和不可逆写入审批向人提问。
+
+针对已有 repo-local skills 的历史压实，使用 `playbooks/prompts/history-calibration.md`。该 prompt 明确把 eval loop 定义为逐 commit 组的控制循环，长期产物是实际 skill delta，不是一个新建的 eval-loop skill。
 
 ## Runtime Agent 读取顺序
 
@@ -13,7 +19,8 @@ jarvis-box install 已经完成「把客户机器装成可运行 agent 的 runti
 3. `acceptance.md`
 4. `playbooks/phase-checklist.md`
 5. 当前 phase 详情：`playbooks/phases/phase-*.md`
-6. 需要生成文件时读取 `templates/`
+6. 需要执行专门任务时读取 `playbooks/prompts/`
+7. 需要生成文件时读取 `templates/`
 
 ## 目录职责
 
@@ -24,7 +31,8 @@ create-jarvis-skill/
 ├── acceptance.md           # 唯一验收标准
 ├── playbooks/
 │   ├── phase-checklist.md  # 主说明书，Phase 3-14
-│   └── phases/             # 每个 phase 的细节
+│   ├── phases/             # 每个 phase 的细节
+│   └── prompts/            # agent-native 入口与历史校准 prompt
 ├── templates/              # 模板素材
 │   ├── company-jarvis/     # company JARVIS 仓库母版（repo/module/source/artifacts）
 │   ├── repo-local-skill/   # repo-local skill canonical package 母版

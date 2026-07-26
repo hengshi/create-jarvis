@@ -41,7 +41,6 @@ jarvis-box 是 agent 任务的运行时环境。产品负责：
 | `jarvis-box monitor` | 近期活动摘要 |
 | `jarvis-box agent` | agent 配置（current/list/set/enable/disable/order/unset/doctor/smoke） |
 | `jarvis-box tasks` | Task 管理（list/show/events/logs/verify/diagnose/reconcile/start/continue/stop/recover/retry-writeback/reap/clean） |
-| `jarvis-box bootstrap jarvis` | 创建或连接 company Jarvis context |
 | `jarvis-box logs` | 服务日志查看 |
 | `jarvis-box start/stop/restart` | 服务生命周期 |
 
@@ -49,9 +48,9 @@ Task 只有 `start`、`continue`、`stop`、`recover`、`retry-writeback` 五个
 
 当前 CLI 和 `--help` 是 command shape 的权威。install-owned managed jobs 的权威来自当前 release 文档/安装产物、host scheduler、`/server` crons 和 job logs。company Jarvis 不重新实现这些能力。
 
-`bootstrap jarvis --resume` 只恢复 bootstrap 表单进度和已确认状态，不是 Task continue/recover，也不复用旧 Run。
+Company Jarvis bootstrap 由用户在已登录 runtime agent 中直接启动；agent 使用 create-jarvis-skill 和根目录 `bootstrap-state.json` 开始或继续。它不是 Task continue/recover，也不复用旧 Run。
 
-jarvis-box 调用外部 runtime agent，但不替 agent vendor 安装登录凭据。Phase 3 能启动 selected agent 之前，至少一个 agent CLI 必须已由用户完成认证并通过受控 prompt probe。
+jarvis-box/install image 应提供 runtime agent CLI、可写 agent workspace 和正确 UID/GID/volume mapping，但不保存 agent vendor 登录凭据。Phase 3 继续之前，至少一个 agent CLI 必须已由用户完成认证并通过受控 prompt probe。
 
 ## 环境变量
 

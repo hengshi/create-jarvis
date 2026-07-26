@@ -6,11 +6,22 @@
   "evals": [
     {
       "id": "bootstrap-happy-path",
-      "failure_mode": "runtime_contract"
+      "failure_mode": "runtime_contract",
+      "assertions": [
+        "direct runtime-agent entry without a bootstrap form CLI",
+        "UID/GID and writable-workspace preflight",
+        "only irreducible human questions",
+        "agent-owned scan orchestration"
+      ]
     },
     {
       "id": "noninteractive-missing-owner",
-      "failure_mode": "truth_boundary"
+      "failure_mode": "truth_boundary",
+      "assertions": [
+        "probe observable facts before needs-input",
+        "do not invent owner or authorization",
+        "compress questions to the missing approval boundary"
+      ]
     },
     {
       "id": "repo-local-boundary",
@@ -22,7 +33,12 @@
     },
     {
       "id": "no-skill-gap",
-      "failure_mode": "no_skill_gap"
+      "failure_mode": "no_skill_gap",
+      "assertions": [
+        "per-group case and oracle comparison before decision",
+        "no eval-loop skill or commit-answer dump",
+        "no_skill_gap when existing guidance is sufficient"
+      ]
     }
   ]
 }

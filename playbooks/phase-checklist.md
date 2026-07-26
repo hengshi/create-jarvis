@@ -2,7 +2,7 @@
 
 这份文件是 runtime agent 的主说明书。
 
-前提：jarvis-box install 已完成，客户机器已经可以通过所选 agent 发起命令行对话。Phase 0-2 属于 jarvis-box install，不在本仓库执行。
+前提：jarvis-box install 或受支持的 container 已准备 runtime，客户已经在所选 agent 中完成登录并可直接发起对话。Phase 0-2 属于 install/image，不在本仓库执行。
 
 目标：从 Phase 3 到 Phase 14 按顺序执行，生成客户自己的 company Jarvis repo。最终产物必须满足 `acceptance.md`。
 
@@ -17,20 +17,22 @@
 
 ## 通用规则
 
-- 已进入的当前 phase 必须得到一个状态：`completed`、`needs-input`、`blocked` 或 `failed`。尚未进入的未来 phase 一律保持 `pending`，不得根据预测提前写成 `needs-input` / `blocked` / `failed`。
+- 已进入的当前 phase 必须得到一个状态：执行/checkpoint 中为 `in-progress`，收口时为 `completed`、`needs-input`、`blocked` 或 `failed`。尚未进入的未来 phase 一律保持 `pending`，不得根据预测提前写成 `needs-input` / `blocked` / `failed`。
 - 当前 phase 未完成时，不跳到后续 phase。
 - `needs-input` / `blocked` 只能来自当前 phase 已实际执行的 checklist 和停止条件。不能在 Phase 10 预判 Phase 11-14 缺什么，也不能把一个当前 phase 的状态复制给尚未进入的后续 phase。
 - 当前 phase 为 `completed` 时，在同一次 runtime-agent invocation 中立即进入下一 phase；Phase 10 onboarding report 只是检查点，不是 bootstrap 终点。除非当前 phase 的真实停止条件成立，否则 runtime agent 不得总结返回。
 - bootstrap phase state（`bootstrap-state.json`、`bootstrap-result.json`）和 jarvis-box Task lifecycle（Target、Task、Run、AgentConversation、Workspace）是两套不同状态。Phase 3-14 始终写 `bootstrap-state.json` 和 `bootstrap-result.json`；不得用 Task/Run 状态替代 `phase_status`。
-- `bootstrap --resume` 只恢复 bootstrap answers 和 `bootstrap-state.json`，不继续旧 Run、不是 jarvis-box 的 Continue With Agent，也不是 Recover Lost Run。不得把 resume 写成 task continue/recover。
-- resume 时，旧 `phase_status=completed` 只是上次 runtime agent 的声明，不是当前方法论下的验收证明。新 agent 必须先读取现有 state/result、当前产物和用户改动，再运行当前适用的确定性 gates，找到最早不满足 checklist/acceptance 的 phase；从该 phase 修复，所有更晚 phase 恢复为 `pending`。不得因为旧 state 指向 Phase 10/11 就跳过已经失效的 Phase 6/8 证据。
+- 继续 bootstrap 时，用户直接再次要求 runtime agent 使用 create-jarvis-skill；agent 从根目录 `bootstrap-state.json` 恢复。它不继续旧 Run，也不是 jarvis-box 的 Continue With Agent 或 Recover Lost Run。
+- 恢复时，旧 `phase_status=completed` 只是上次 runtime agent 的声明，不是当前方法论下的验收证明。新 agent 必须先读取现有 state/result、当前产物和用户改动，再运行当前适用的确定性 gates，找到最早不满足 checklist/acceptance 的 phase；从该 phase 修复，所有更晚 phase 恢复为 `pending`。不得因为旧 state 指向 Phase 10/11 就跳过已经失效的 Phase 6/8 证据。
 - 只有 Phase 11 确实通过 jarvis-box provider loop 或手动 Task 执行 shadow pilot 时，Target/Task/Run/Workspace pointer 才是可选运行证据；没有走 Task 时不得编造 ID。
 - Task Workspace、同一主机 fresh CLI、`--add-dir` 都不能单独证明 Phase 12 隔离。有效 replay 必须运行在独立文件系统边界中（独立 container 或 VM），且 replay 环境只能挂载或复制 visible packet、parent commit checkout/worktree、经过裁剪的 company Jarvis runtime 副本。
 - install-owned 边界：runtime sync、maintenance launcher、session self-improve scheduler、workspace cleanup、service lifecycle、agent registry/routing/failover、Task lifecycle 由 jarvis-box install 托管。company bootstrap 只检查和登记状态、owner、观测入口和恢复动作，不重新实现这些能力。
+- agent-owned bootstrap 边界：当前 runtime agent 是唯一 coordinator。平台支持时自行派发 bounded lanes；不支持时顺序执行并持久化 state。不得要求客户新开 session、复制 prompt 或在 agents 之间搬运结果。
+- 权限边界：service-private state 与 agent-owned workspace 分离；bootstrap workspace、customer checkout 和 target 必须对 selected agent 的有效 UID/GID 可读写。Linux install/container UID mapping 不成立时记录 exact path/owner/mode 并归给 install/image，禁止用盲目提权或 world-writable 目录绕过。
 - history replay 和 session self-improvement 是两个证据来源不同的循环：history replay 从 repo Git 历史构造 visible START 和 hidden oracle，用于 bootstrap 校准；session self-improvement 从真实 agent sessions 发现重复操作失败，用于持续改进。不得合并或互相替代。
 - 只要本地授权 source / repo 已存在，能由 runtime agent 自己执行的检查、扫描、生成、pilot 或 replay 不能写成“等待客户输入”；`needs-input` 只用于外部 owner 确认、凭证、权限、人工审批或本地无法取得的 artifact。
 - 如果为了便于恢复而预先创建了后续 phase 的交接文件，也不能认为已经进入该 phase。当前 phase 停在 `needs-input`、`blocked` 或 `failed` 时，尚未进入的后续 phase 保持 `pending`，并在 `next_action` 写清从当前 phase 哪里恢复。
-- 非交互模式缺必填输入时，返回 `needs-input`，不要编造。
+- 无人值守 harness 缺不可推导的必填输入时，返回 `needs-input`，不要编造。
 - 任何 truth-bearing 字段都必须有来源：客户证据、owner 确认、pilot、history replay，或标记为 unresolved。
 - company identity、客户确认的 product identity、source-detected product/brand identity 必须分开记录；未确认前不能混写成一个事实。
 - `bootstrap-result.json` 是 jarvis-box runtime contract；`paths` 必须是 value 全部为字符串的 object，`missing_inputs`、`blockers`、`conflicting_inputs`、`unresolved_questions` 必须是字符串数组，结构化说明写进 report/rollout 文件。
@@ -39,7 +41,7 @@
 - `bootstrap-result.json.paths` 至少包含字符串字段：`jarvis_home`、`jarvis_target_home`、`entry_skill`。即使 `jarvis_home` 和 `jarvis_target_home` 相同，也必须同时写出。
 - `bootstrap-state.json` 必须保留稳定顶层字段：`schema_version`、`phase`、`status`、`paths`、`inputs`、`confirmed_answers`、`identity_reconciliation`、`method_repo`、`phase_status`。可以额外写嵌套结构，但不能用嵌套结构替代这些顶层字段。
 - `bootstrap-result.json` 和 `bootstrap-state.json` 是 company Jarvis repo 根目录下的 runtime contract 文件；不能只放在 `_bootstrap/`。`_bootstrap/` 只能保存审计副本、pilot/replay 过程证据和交接说明。
-- runtime agent 尚在 Phase 3-13 或 Phase 14 未完成时，checkpoint 的 `bootstrap-result.json.status` 和 `bootstrap-state.json.status` 使用 `in-progress`；只有 runtime agent 准备返回 jarvis-box 时才写最终 `completed` / `needs-input` / `blocked` / `failed`。最终 verifier 必须拒绝遗留的 `in-progress`。
+- runtime agent 尚在 Phase 3-13 或 Phase 14 未完成时，checkpoint 的 `bootstrap-result.json.status` 和 `bootstrap-state.json.status` 使用 `in-progress`；只有当前直接 agent invocation 真正收口时才写最终 `completed` / `needs-input` / `blocked` / `failed`。最终 acceptance verifier 必须拒绝把遗留 `in-progress` 当成完成；可恢复 checkpoint 本身仍可保留该状态。
 - 客户/operator 确认的 module/source 名称和 workflow 的 `<name>` 部分必须逐字节保留，包括大小写、连字符和缩写；例如 `HQL` 必须生成 `modules/HQL/`，workflow `deploy-loop` 必须生成 `skills/<slot>-workflow-deploy-loop/`。
 - 只要 `missing_inputs`、`blockers`、`conflicting_inputs` 非空，或 `identity_reconciliation.status` 不是 `confirmed`，`bootstrap-result.json.status` 不能是 `completed`。
 - Phase 12 没有隔离 replay agent 的 `replay-result.md` 时，`bootstrap-state.json.phase_status.phase-12-history-replay` 和 `bootstrap-result.json.phase_summary.phase-12-history-replay` 必须是 `needs-input`，不能是 `completed`。Phase 12 completed 必须至少有一次运行在独立文件系统边界（独立 container 或 VM）的有效隔离 replay；case construction 可以先完成，但不能替代 replay。
@@ -62,46 +64,46 @@
 - 非 first-workflow 的已确认 source 暂不可访问时可标 `deferred-needs-access`，不阻断 bootstrap；只有 first workflow 必需 access 才在 Phase 5/6 阻断。
 - [ ] `deferred-needs-access` 的非 first-workflow source 不得同时出现在 `bootstrap-result.json.missing_inputs` 或 `blockers`；把它留在 source route/report 的状态和后续 action 中。
 
-## Phase 3 - 启动交接
+## Phase 3 - Agent-native 启动
 
 详情：`playbooks/phases/phase-03-bootstrap-invocation.md`
 
-- [ ] 确认 jarvis-box 已调起 runtime agent。
-- [ ] 确认这是 bootstrap CLI handoff，不是 Target/Task/Run 创建。
-- [ ] 读取 target path、result path、working directory、prompt/context。
-- [ ] 确认 selected bootstrap agent、noninteractive/resume 标志。selected bootstrap agent 是本次 bootstrap 固定选择；不声称 jarvis-box Task runtime failover 会自动接管 bootstrap。
-- [ ] resume-generation 只读取已保存 answers/state 后重新发起 bootstrap agent，不继续旧 Run、不调用 native resume。
-- [ ] 读取已有 `bootstrap-state.json`，如存在。
-- [ ] resume 时执行完整性审计：读取已有 result/state 和用户改动，运行当前 `--stage phase-09` / final verifier（按已存在产物适用），把 blocker 映射到最早所属 phase；旧 `completed` 不覆盖当前证据。
-- [ ] resume 起点是最早未通过 phase；所有更晚 phase 设回 `pending`。修复仍由对应 phase 执行，不在 Phase 3 偷做业务扫描或文件生成。
-- [ ] 只交接已知信息和缺口，不做业务发现。
+- [ ] 当前已登录 runtime agent 直接读取 `GOAL.md`、`SKILL.md`、`acceptance.md` 和本 checklist；不是 Target/Task/Run 创建，也不等待另一层 CLI handoff。
+- [ ] 确认 selected agent executable/auth；当前会话成功接收本请求可作为 prompt probe，只有外部 agent route 才额外调用最小 probe。secret 只记录 available/missing。
+- [ ] 记录 effective UID/GID、workspace/target/source 的 owner/group/mode 和所需 read/write/execute probe。
+- [ ] 若 install/image 提供 `JARVIS_WORKSPACE_ROOT`，live probe 后把它作为 agent-owned workspace；缺失时记录 derived workspace，禁止把 `JARVIS_RUNTIME_ROOT` 当默认可写目录。
+- [ ] service-private state 与 agent-owned workspace 分离；Linux/container 的 UID/GID 或 volume mapping 能让 selected agent 写 bootstrap workspace 和 target。
+- [ ] 读取 runtime allowlist facts并探测 Git/VCS、method repo、source access、可选 isolation bridge；未观测能力不写成已配置。
+- [ ] target 未明确时在当前用户拥有的 runtime workspace 下选择可逆 local-only 默认并记录 derived provenance；不可逆写入仍需批准。
+- [ ] 读取已有 `bootstrap-state.json`；恢复时审计 result/state、用户改动和当前 verifier，找到最早失效 phase并把更晚 phase 设回 `pending`。
+- [ ] 当前 agent 自己编排后续 phases；并发不可用时顺序执行，不把 handoff 交给客户。
 - [ ] 写入或更新 state/result。输出中不要求 `task_id`/`run_id`。
-- [ ] 说明 jarvis-box 只在 `bootstrap-result.json` `status=completed` 时才 link `JARVIS_HOME`；`needs-input`/`blocked`/`failed` 作为未完成返回，根目录 state/result 仍用于下一次继续。
 
 停止条件：
 
 - [ ] target path 不安全或不可写。
-- [ ] runtime agent 没有输出路径。
+- [ ] selected runtime agent 不可执行、未认证或最小 probe 失败。
+- [ ] create-jarvis-skill 不可读。
+- [ ] workspace/target 对 selected agent 不可写，或 first-workflow source 不可读。
+- [ ] 继续需要未经授权的提权或所有权修改。
 - [ ] resume 会覆盖用户已编辑文件。
-- [ ] 把 bootstrap resume 误当 Task recovery（Continue With Agent / Recover Lost Run）。
-- [ ] 把非 `completed` 的 bootstrap 当已绑定成功。
 
 ## Phase 4 - 信息接收
 
 详情：`playbooks/phases/phase-04-bootstrap-intake.md`
 
 - [ ] 先读取 runtime allowlist env：`JARVIS_COMPANY_SLUG`、`JARVIS_COMPANY_NAME`、`JARVIS_CONFIRMED_PRODUCT_IDENTITY`、`JARVIS_TARGET_HOME`、`JARVIS_HOME`、`JARVIS_ENTRY_SKILL`、`JARVIS_BOX_HOME`、`JARVIS_RUNTIME_ROOT`、`JARVIS_SOURCE_OF_TRUTH`、`JARVIS_FIRST_LOOP`、`JARVIS_SOURCE_SCOPE`、`JARVIS_WORKFLOW_SCOPE`、`JARVIS_MODULE_HINTS`、`JARVIS_GITLAB_HOST`、`JARVIS_GITLAB_PROJECTS`、`JARVIS_RAW_SOURCE_POLICY`；不要 dump 全量 env 或 secret。
-- [ ] 收敛 company name / slug / company identity。
+- [ ] 合并用户事实、allowlist facts 和当前授权环境中的 live evidence；不要先发一份长表单。
+- [ ] 收敛 company name / slug / company identity；仅有 company name 时可形成 deterministic slug candidate 并记录 `derived-needs-conflict-check`。
 - [ ] 如果 jarvis-box / runtime 已传入 `company_slug` / `JARVIS_COMPANY_SLUG`，把它作为 confirmed slug；必须逐字使用，不要缩短或重新 slugify，例如不能把 `acme-claude-e2e` 改成 `acme`。
 - [ ] 收敛客户确认的 product/scope identity，如客户尚未确认则标记 unresolved。
 - [ ] 如果 `JARVIS_CONFIRMED_PRODUCT_IDENTITY` 存在，把它作为客户确认的 product identity；不能再把 repo/docs 中同名 product 写成 `needs-owner-confirmation`。
-- [ ] 收敛 first workflow。
-- [ ] 收敛 pilot repos。
-- [ ] 收敛 source scope。
+- [ ] 从 docs/navigation/issues/MRs/tests/CI 提出 first workflow candidates；只有真实候选冲突时才让客户选择。
+- [ ] 主动发现 pilot repos、repo roles、source scope 和访问状态。
 - [ ] 如果 `JARVIS_SOURCE_SCOPE`、`JARVIS_WORKFLOW_SCOPE` 或 `JARVIS_MODULE_HINTS` 存在，它们是客户/operator 给 agent 的 confirmed scope facts；Phase 6 必须逐项覆盖到 generation plan，不能丢弃、重命名、改大小写、合并成泛化名称，除非同一个客户/operator 明确要求改名。
-- [ ] 收敛 owners / escalation path。
-- [ ] 收敛 writeback policy。
-- [ ] 收敛 company Jarvis 远端仓库策略：VCS host、namespace/group、`<slot>-jarvis` project path、visibility、default branch、create owner、首次 seed 或 MR/PR 审批方式。
+- [ ] 从 live metadata 发现 owner/escalation hints，但不从登录用户或 repo 名猜 owner。
+- [ ] 未批准远端写回时默认 `human-approved` + local-only execution；远端建仓/push/MR/业务写回在不可逆 gate 前请求批准。
+- [ ] 发现 company Jarvis 远端仓库候选：VCS host、namespace/group、`<slot>-jarvis` project path、visibility、default branch、create owner、首次 seed 或 MR/PR 审批方式；未批准时不创建/推送。
 - [ ] 为每个 pilot repo 收敛 repo-local skills 写入方式：disabled、local-only、直接提交、branch + MR/PR 或 custom approval。
 - [ ] 记录 missing inputs、unresolved questions、blockers。
 - [ ] 记录 identity conflicts：客户声明身份、repo/docs 中识别出的产品/品牌名、两者是否已由 owner 确认。
@@ -109,39 +111,38 @@
 
 停止条件：
 
-- [ ] 缺 company name。
-- [ ] 缺 first workflow。
-- [ ] 缺 pilot repo 或 source scope。
+- [ ] company identity 存在无法安全表达的冲突。
+- [ ] first workflow 必需授权范围/访问或多个真实业务候选无法确定。
+- [ ] 没有任何可授权的 repo/source 足以继续发现。
 - [ ] `JARVIS_COMPANY_SLUG` 存在但输出 slug / entry skill / `jarvis.toml` / result paths 与它不一致。
-- [ ] 缺 owner / writeback policy 且无法继续。
-- [ ] company Jarvis project path、可见性、default branch、create owner 或首次发布策略缺失。
+- [ ] 用户要求当前执行不可逆写回，但 owner/approval policy 无法确定。
 
 ## Phase 5 - 就绪检查
 
 详情：`playbooks/phases/phase-05-readiness-gate.md`
 
-- [ ] 加载 install 提供的 `jarvis-box-doctor`，按当前安装版本和 slot 运行诊断；直接读取其人类可读结果，不增加 JSON schema。
-- [ ] doctor 发现可修复缺口时加载 `jarvis-box-init`，按权限规则修复并复诊；无法修复时记录 exact blocker。
-- [ ] 检查 `JARVIS_HOME` / target path。
-- [ ] 检查 `JARVIS_RUNTIME_ROOT` 存在或可创建；缺失但无法创建时不能进入 Phase 6。
+- [ ] install 提供 `jarvis-box-doctor` / `jarvis-box-init` 时按 live 合同使用；不存在时用 CLI/help/status 和直接 filesystem probe，不编造 skill。
+- [ ] selected agent 通过真实 prompt probe。
+- [ ] 检查 `JARVIS_HOME` / target path、bootstrap workspace 和 repo-local write targets 对 selected agent 的 effective UID/GID 可写。
+- [ ] 检查 service-private state 与 agent-owned workspace 分离；Linux owner/group/ACL 或 container host UID/GID mapping 明确。
 - [ ] 检查 source/repo 访问权限。
 - [ ] 检查 secret 边界，只记录 configured/unconfigured，不记录值。
-- [ ] 检查 writeback 是否允许。
-- [ ] 检查 company Jarvis 远端已存在且可访问，或当前身份具备已批准的建仓权限；需要 owner 预建时记录 owner 和 remote URL 交付条件。
+- [ ] 检查 writeback policy；没有批准时强制 local-only，不阻塞 Phase 6 discovery。
+- [ ] 检查 Git/provider/isolation capability，分别记录 observed-ready / missing / not-required-yet。
 - [ ] 判断是否能进入 Phase 6。
 
 停止条件：
 
 - [ ] 缺少 first workflow 所需 source/repo access。
+- [ ] target/workspace 对 selected agent 不可写，或继续需要未经授权的提权/所有权修改。
 - [ ] 继续会暴露 secret。
-- [ ] writeback 被要求但审批模型缺失。
-- [ ] company Jarvis remote/create 策略无法执行。
+- [ ] 用户要求立即远端 writeback，但审批模型或 target project 无法安全确定。
 
 ## Phase 6 - 业务发现和生成策略
 
 详情：`playbooks/phases/phase-06-business-discovery.md`
 
-> **这是 bootstrap 流程中的第一个重头戏。Phase 6 的全生态并发扫描会消耗大量 context——禁止跟主 session 挤在同一个 agent 进程。** bootstrap 主 agent 到达 Phase 6 时必须走分发机制：平台支持时派发独立 sub-agent；不支持时告知用户新开 session 并输出可直接粘贴的 handoff prompt。详见 phase-06-business-discovery.md 的"第零层：多 Agent 并发全生态扫描 → 分发机制"。
+> **这是 bootstrap 流程中的第一个重头戏，但编排由 agent 承担。** coordinator 在有 slots 时自行派发 docs/code/history/test-CI lanes；没有并发时按相同合同顺序执行并持久化 state。客户不新开 session、不复制 prompt、不搬运结果。详见 phase-06-business-discovery.md 的“agent-owned 全生态扫描编排”。
 
 Phase 6 是同一 Phase 内的两层扫描：(1) 全生态拓扑扫描——覆盖所有已授权 repos/docs/tests/issues-or-history/CI/客户材料，识别 product surfaces、完整 module candidates、repo roles、sources、workflow scope；(2) 第一条 workflow 深挖——对 first workflow 的 modules/repos/sources 做足够深的 evidence extraction。
 
@@ -229,7 +230,7 @@ Phase 7 创建 root、canonical company entry、完整 baseline references、cro
 - [ ] 已确认产品身份的任何正式 module/root/entry 文件不得保留未解决的身份或对该身份的 `needs-owner-confirmation`。
 - [ ] 对每个可访问 source，将 source scaffold 替换为具体 route。`needs-evidence`、`REFERENCES_PATH` 和示例占位符在可访问 route 中是 phase blocker。
 - [ ] 目标目录不是 Git worktree 时按确认的 default branch 初始化；已经是 worktree 时检查并保留现有 history/remotes，不重复初始化。
-- [ ] 远端不存在且 runtime agent 获准建仓时，用 provider CLI/API 创建 `<namespace>/<slot>-jarvis`；无权限时请求 owner 预建并通过 `bootstrap --resume` 继续。
+- [ ] 远端不存在且 runtime agent 获准建仓时，用 provider CLI/API 创建 `<namespace>/<slot>-jarvis`；无权限时请求 owner 预建，之后由 runtime agent 从根目录 state 继续。
 - [ ] `origin`、provider project metadata 和确认的 project path 一致；不覆盖不一致的 remote。
 - [ ] 首次提交前只 stage company Jarvis 产物，运行 `git diff --cached --check` 并检查 secret、raw source dump、私有 reference-company 内容、测试机绝对路径和未渲染 token。
 - [ ] 按批准策略发布：空仓库首次 seed 可直接推确认的 default branch；要求评审或已有 history 时推 bootstrap branch 并创建 MR/PR，不自动合并。
@@ -262,14 +263,14 @@ Phase 7 创建 root、canonical company entry、完整 baseline references、cro
 - [ ] 检查每个 repo 是否已有 repo-local guidance。
 - [ ] 没有时用 instantiator 创建 repo-local skill package。
 - [ ] 已有 repo-local guidance 时也要按 canonical package contract 补齐固定文件，不能用近似文件名替代。
-- [ ] 每个 repo-local package 包含 `skills/SKILL.md`、`skills/code-review/SKILL.md`、`skills/code-review/scripts/precheck.sh`、`skills/references/source-of-truth.md`、`skills/references/architecture-map.md`、`skills/references/test-entrypoints.md`、`skills/references/runtime-and-testability.md`、`skills/references/history-replay-loop.md`、`skills/eval-loop.md`、`skills/self-skills-improve/SKILL.md`。
+- [ ] 每个 repo-local package 包含 `skills/SKILL.md`、`skills/code-review/SKILL.md`、`skills/code-review/scripts/precheck.sh`、`skills/references/source-of-truth.md`、`skills/references/architecture-map.md`、`skills/references/test-entrypoints.md`、`skills/references/runtime-and-testability.md`、`skills/references/history-replay-loop.md`、`skills/self-skills-improve/SKILL.md`。Eval loop 是 Phase 12 控制流，不生成 `skills/eval-loop.md` 或 eval-loop skill。
 - [ ] `precheck.sh` 必须可执行，并从 repo root 跑一次。
 - [ ] `precheck.sh` 必须自包含，不能依赖 reference company 私有路径或维护命令，例如 `~/.hengshi/repos/hengshi-jarvis/*`、`pullall`、`hengshi-jarvis/tools/precheck-diff.sh`。
 - [ ] `precheck.sh` 本身也不能包含 reference-company 私有名称，不能通过在脚本里 grep 这些禁用字符串来“检查自己”；这类跨文件检查由 verifier 执行。
 - [ ] company Jarvis 只在 `references/jarvis-first-routing.md` 或对应 workflow skill 中指向 repo-local skill；不要创建顶层 `repos/<repo-name>.md`。
 - [ ] 真实 build/test/lint 命令只来自 repo 证据、CI、owner、pilot 或 replay。
 - [ ] 语言生态惯例（例如“标准 Go/Maven/npm 命令”）本身不是 repo 证据；命令必须指向实际 manifest、wrapper、CI、repo 文档、owner confirmation 或执行记录。
-- [ ] 确定性十文件 package 创建后，立即检查每个可读 repo 并填入所有可直接观察的事实：实际 default branch/分支策略、repo 角色和边界、语言/构建文件、重要路径、package/module 布局、精确 build/test/lint/CI 命令及其证据、测试/fixture 位置、runtime 前提条件、source-of-truth 指针、生成区域、公司 handoff。
+- [ ] 确定性九文件 package 创建后，立即检查每个可读 repo 并填入所有可直接观察的事实：实际 default branch/分支策略、repo 角色和边界、语言/构建文件、重要路径、package/module 布局、精确 build/test/lint/CI 命令及其证据、测试/fixture 位置、runtime 前提条件、source-of-truth 指针、生成区域、公司 handoff。
 - [ ] 区分 `observed-not-executed` 和 `executed-pass`：命令可以从构建/CI 证据记录而不假装执行过。未实际运行时不得标 `executed-pass`。
 - [ ] repo 可读时，核心 repo-local 文件不得保留 `<>` 占位符、泛化示例命令、伪造 default branch 或全面 `needs-owner-confirmation`。
 - [ ] copied template 中的“Phase 8 填充/替换”生成期旁白必须消失；保留的规则要改写成新 agent 可长期执行的 repo evidence contract。
@@ -370,9 +371,9 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 
 详情：`playbooks/phases/phase-12-history-replay.md`
 
-> **这是 bootstrap 流程中的第二个重头戏。批量 commit 组回放会逐组构造 eval case、隔离重放、oracle 对比——每组都是一次完整的 mini-loop，整体消耗远超单 episode。禁止跟主 session 挤在同一个 agent 进程。** bootstrap 主 agent 到达 Phase 12 时必须走分发机制：平台支持时派发独立 sub-agent；不支持时告知用户新开 session 并输出可直接粘贴的 handoff prompt。详见 phase-12-history-replay.md 的"批量 commit 组扫描与分组执行 → 分发机制"。
+> **这是 bootstrap 流程中的第二个重头戏，仍由当前 coordinator 编排。** 有 slots 时派发 bounded replay worker；否则顺序执行。使用轻量 cursor 逐组闭合，不先做全年分类，也不让客户搬运 handoff。标准指令见 `playbooks/prompts/history-calibration.md`。
 
-目标：从每个 pilot repo 及已授权历史来源的真实 episode 构造 eval case，用当前 skills 隔离重放，找失败模式，只把可复用、可验证的缺口交给 Phase 13。
+目标：从每个 pilot repo 及已授权历史来源的真实 episode 构造 eval case，用累计 calibration skill baseline 隔离重放；逐组完成 oracle comparison、skill-creator candidate update 和 same-case rerun。verified candidate 先成为下一组 baseline，Phase 13 再应用最终 ordered candidate set。
 
 ### Episode 搜索
 
@@ -380,6 +381,10 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] 在 `replay-case-registry.md` 的 Search Coverage 表中为每个 pilot repo 写一条真实 canonical 行：exact search command/query、时间或提交边界、候选、排除理由、停止理由和状态；不能用段落或“后续扫描”替代表格行。
 - [ ] 每个 repo 记录实际命令/查询、时间或提交边界、候选和排除理由、停止原因。无固定数量或窗口。
 - [ ] episode 准入：当时明确工作目标、cutoff 前足够 initial signal、cutoff 后可验证 outcome、授权访问。纯 housekeeping / 无可验证 outcome / START-oracle 无法分离的候选不进 replay，可留 backlog。
+- [ ] 对 Git 历史只建立轻量 cursor；从下一个未处理 commit 立即扩成最小相关组，不先把整个时间范围分类。
+- [ ] 分组使用 issue/MR key、连续主题、高信号文件重叠、follow-up cleanup 和补充 tests/verification；记录 `group_commits` / `preconsumed_commits`。
+- [ ] refactor/tests/docs/release/noise 在 cursor 前进时 encounter-and-skip 或并入所服务的组。每组先闭合 case→replay→comparison→decision→rerun，再推进 cursor。
+- [ ] registry 记录 `seed` / `full-range` mode、cursor before/after、owner、resume entry、当前 `calibration_skill_ref` 和 ordered verified candidate set；第一组使用 authoritative snapshot，后续组使用累计 ref。
 
 ### 时间切片与当前 skills
 
@@ -387,7 +392,7 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] `reconstructed-from-outcome-subject` 只能投影独立外部症状。文件、目录、module、class、method、field、constant、root cause、fix direction 需要独立 pre-outcome provenance。
 - [ ] visible-packet 中的 `replay-prompt.md`、`allowed-sources.md`、`skill-entrypoints.md` 每条事实声明和 narrowing instruction 必须逐条写进 outer case 的 Visible Packet Fact Closure 表，并回指 Visible Fact Provenance 的 Fact ID。
 - [ ] hidden oracle 必须从完整真实 final diff/artifact 提取实际观察到的 outcome，禁止 `likely`/`probably`/猜测。若历史 root cause/verification 未记录写 `unknown`。
-- [ ] 历史 repo/source snapshot 冻结在 cutoff；被测对象是运行时当前版本的 skills。记录当前 skill pointers，检查是否曾直接写入当前 skill。
+- [ ] 历史 repo/source snapshot 冻结在 cutoff；被测对象是当前 calibration baseline。记录当前 skill pointers 和 `calibration_skill_ref`，检查是否曾直接写入当前 skill。
 - [ ] 不写复杂的 identifier 黑名单算法。语义 provenance 审查属于 runtime agent；确定性检查只抓 exact/structural 矛盾。
 
 ### 隔离与执行
@@ -409,15 +414,19 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] replay 结束后由外层 bootstrap agent 做 oracle comparison；replay agent 不自评 oracle。
 - [ ] 首先读取 exact replay final output 和 exact 历史 final outcome。记录 command/pointer 和完整 changed surfaces 或等价非代码 artifact。
 - [ ] 比较 route/owner、关键证据、边界、行为结果、验证、越权/幻觉、闭合。替代 replay 方案只有经独立行为验证后才能称为等价/更优；否则标 `unproven`。
-- [ ] 非通过先归因：skill gap / instance fact gap / source-access-environment / execution deviation / case construction leak / oracle limitation。未执行/invalid 不能判断 skill。
+- [ ] 非通过先用精确枚举归因：`skill_gap` / `instance_fact_gap` / `source_access_environment` / `execution_deviation` / `case_construction_leak` / `oracle_limitation`。未执行/invalid 不能判断 skill。
 - [ ] 创建 `replay-failure-analysis.md` 和 `skill-update-decision.md`，必须使用规范模板并完整填写所有 sections/fields，不得用缩减自由格式替代。
 - [ ] `no_skill_gap` 需要：执行（`executed`）+ 有效 case + 完整 comparison + 充分 outcome 验证。泄漏/invalid/未验证 case 均为 `not-evaluated`。
-- [ ] skill gap 需可复用、有证据、可验证、归属明确。skill 更新后用同一 case 复跑证明改善。
+- [ ] `skill_gap` 需可复用、有证据、可验证、归属明确。skill 更新后用同一 case 复跑证明改善。
+- [ ] 只在 writable calibration snapshot 中调用 `skill-creator` 修改实际 primary skill home 的候选副本；禁止创建 eval-loop skill、把单个 commit 答案写进 skill，或在 Phase 12 push/merge authoritative home。
+- [ ] `instance_fact_gap` 只有当前权威来源能独立证明稳定事实时，才在 calibration snapshot 形成最小 fact correction；不调用 skill-creator，也不把单个历史 outcome 当成当前事实。
+- [ ] verified skill candidate / stable-fact correction 先晋升到累计 calibration baseline 并持久化 baseline before/after、新 ref 和 ordered candidate set，再推进 cursor；`no_skill_gap` / `defer` 保持 ref 不变。
 - [ ] Oracle comparison 必须在 failure analysis / skill decision / `no_skill_gap` / Phase 12 状态更新之前完成。
 
 ### 状态
 
-- [ ] `completed`：至少一个真实 ready case 在有效隔离中实际执行，外层完成 oracle comparison/归因/writeback decision。Phase 12 不修改 skills；更多候选进 backlog，不作为缺输入。
+- [ ] `seed completed`：事先声明 seed mode，至少一个真实 ready group 已闭合；若为 `skill_gap`，还完成 candidate update、same-case rerun 和累计 baseline 晋升；剩余范围有 cursor/ref、owner、resume entry，且明确未覆盖完整范围。
+- [ ] `full-range completed`：cursor 已越过请求边界，所有遇到的组均闭合或有证据地排除。越界前保持 `in-progress`；不能因上下文/预算自动降级成 seed。
 - [ ] `needs-input`：没有合格 episode、缺授权/真实 outcome/隔离 runtime/可用 agent。必须写已完成的搜索和下一步。
 - [ ] 已识别候选但没有 case 文件不是合格 `needs-input`。只留 candidate registry 没有 case 文件视为执行不完整。
 - [ ] 若执行后发现泄漏，分类为 `invalid`/`not-evaluated`；Phase 12 完成前必须另选有效 case。
@@ -447,7 +456,8 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] 做 redaction：去除 secret、个人隐私、未经授权材料、raw source dump、长篇原文和 hidden oracle；客户实例保留必要真实身份与稳定 pointer，upstream 再公司中立化。
 - [ ] 按目标 owner 的实际写入/审批政策执行，不预设 branch/MR/PR/CI。
 - [ ] 写入最小可验证规则，不写长篇复盘。保留 evidence pointer。
-- [ ] 用原 pilot/replay 或等价真实任务验证写回；skill 更新后用同一 Phase 12 case 隔离复跑，并更新 decision/registry。
+- [ ] 按 ordered verified candidate set 将累计 baseline 应用到 authoritative home，并核对最终 authoritative diff/ref 与 Phase 12 累计 ref 等价。
+- [ ] 用原 pilot/replay 或等价真实任务验证写回；对 ordered set 中每个 Phase 12 case 用最终累计 authoritative snapshot 隔离复跑，确认后续 candidate 没有让较早 case 回归，并更新 decision/registry。
 - [ ] 更新 `_bootstrap/controlled-writeback-log.md`（模板：`templates/company-jarvis/artifacts/controlled-writeback-log.md`）。
 - [ ] 只有治理规则本身变化时才更新 `references/writeback-governance.md`。
 - [ ] 无有效 Phase 12 replay 时不得写入由该 replay 推导出的规则。`replay-not-executed` 对应 decision 只能是 `defer`。
@@ -475,7 +485,7 @@ Phase 7 已经确定性创建三个 starter workflow。Phase 9 负责用 Phase 6
 - [ ] 逐项检查 install-owned 能力，每项分别记录五列维度：install/authority evidence、observed current state、last execution proof（或 unexercised）、readiness、owner & recovery。不得用单个模糊词合并。
 - [ ] 产物存在、public help、version 输出或零活跃 Task 不单独证明能力已配置/工作。零 Task 意为 `unexercised`，不是 `not-applicable`。容器缺少 systemd 不使 service/jobs 变为 `not-applicable`：实际探测可用替代方案或标记 `unverified`/`blocked`。
 - [ ] install-owned managed jobs 的事实来自当前 release docs/安装产物、host scheduler 或 `/server` crons、job logs/activity。不能因为不在顶层 `--help` 就判不存在。
-- [ ] 先按当前安装版本复核合同。当前已确认的 Task 合同是五个 lifecycle operations（start/continue/stop/recover/retry-writeback）；`reap`/`clean` 是维护；`reconcile` 是 dry-run；service restart 不自动恢复 Task；`recover` 仅 recovery-required；`bootstrap --resume` 只恢复表单/已确认状态，绝不是 Jarvis maintenance authority。此处不把某个版本号当作永久基线：若当前安装版本的 `--help` 或 release contract 有差异，以当前机器的 live 输出为准并记录差异。
+- [ ] 先按当前安装版本复核合同。当前已确认的 Task 合同是五个 lifecycle operations（start/continue/stop/recover/retry-writeback）；`reap`/`clean` 是维护；`reconcile` 是 dry-run；service restart 不自动恢复 Task；`recover` 仅 recovery-required；从 bootstrap state 恢复绝不是 Jarvis maintenance authority。此处不把某个版本号当作永久基线：若当前安装版本的 `--help` 或 release contract 有差异，以当前机器的 live 输出为准并记录差异。
 - [ ] 至少一个 runtime agent 需要真实 prompt probe（受控短 prompt 确认实际响应）。`--help` 和 `agent list --check` 不能替代。
 - [ ] doctor 总体非零时按具体 finding 归属，不把所有能力一律判失败。
 - [ ] 指定 Jarvis owner；替代责任人按客户政策登记。

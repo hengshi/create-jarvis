@@ -2,28 +2,24 @@
 """Deterministic instantiator for company Jarvis templates.
 
 Subcommands:
-    base    --state <bootstrap-state.json>
-    module  --state <...> --name <confirmed exact name>
-    source  --state <...> --name <confirmed exact name>  (creates sources/<name>/README.md only)
-    package --state <...> --kind <generic-source|generic-workflow>
+    base    --input <company render input JSON>
+    module  --input <...> --name <confirmed exact name>
+    source  --input <...> --name <confirmed exact name>  (creates sources/<name>/README.md only)
+    package --input <...> --kind <generic-source|generic-workflow>
             --name <slot-prefixed output name>
 
-The base command also installs the mandatory method skills and editable starter
-workflows, creates the root runtime contracts, and writes the initial
-_bootstrap/jarvis-build-brief.md. It leaves the supplied phase status intact and
-initializes any future phase to pending.
+The base command installs only company-owned entry/workflow skills. Generic
+method skills are runtime-owned and must not be copied into a customer repo.
+Long-task progress stays outside the generated repo in ordinary Markdown.
 """
 
 from __future__ import annotations
 
 import argparse
-import copy
 import json
-import os
 import shutil
 import stat
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -31,38 +27,15 @@ from urllib.parse import urlparse
 TEMPLATES_ROOT = Path(__file__).resolve().parent.parent / "templates"
 COMPANY_JARVIS_REPO = TEMPLATES_ROOT / "company-jarvis" / "repo"
 COMPANY_JARVIS_MODULE = TEMPLATES_ROOT / "company-jarvis" / "module"
-COMPANY_JARVIS_ARTIFACTS = TEMPLATES_ROOT / "company-jarvis" / "artifacts"
 COMPANY_JARVIS_SOURCE = TEMPLATES_ROOT / "company-jarvis" / "source"
 SKILL_PACKAGES = TEMPLATES_ROOT / "skill-packages"
 
-CORE_METHOD_PACKAGES = (
-    ("ponytail", "ponytail"),
-    ("writing-durable-docs", "writing-durable-docs"),
-    ("self-improve-skill", "jarvis-self-improve-skill"),
-    ("stop-slop", "stop-slop"),
-)
 STARTER_WORKFLOW_PACKAGES = (
     ("issue-post-check", "issue-post-check"),
     ("bugfix-loop", "bugfix-loop"),
     ("feature-delivery", "feature-delivery"),
 )
 EXTENSION_PACKAGE_KINDS = frozenset({"generic-source", "generic-workflow"})
-
-PHASE_KEYS = (
-    "phase-03-bootstrap-invocation",
-    "phase-04-bootstrap-intake",
-    "phase-05-readiness-gate",
-    "phase-06-business-discovery",
-    "phase-07-company-jarvis-repo",
-    "phase-08-repo-local-skills",
-    "phase-09-source-workflow-skills",
-    "phase-10-onboarding-report",
-    "phase-11-shadow-pilot",
-    "phase-12-history-replay",
-    "phase-13-controlled-writeback",
-    "phase-14-day2-operation",
-)
-
 
 def company_workflow_name(company_slug: str, workflow_name: str) -> str:
     """Return the canonical company-owned workflow skill name."""
@@ -72,15 +45,15 @@ def company_workflow_name(company_slug: str, workflow_name: str) -> str:
     return f"{prefix}{workflow_name}"
 
 
-def load_state(state_path: str) -> dict:
-    path = Path(state_path)
+def load_input(input_path: str) -> dict:
+    path = Path(input_path)
     if not path.is_file():
-        print(f"ERROR: state file not found: {state_path}", file=sys.stderr)
+        print(f"ERROR: render input not found: {input_path}", file=sys.stderr)
         sys.exit(1)
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        print(f"ERROR: invalid JSON in state file: {exc}", file=sys.stderr)
+        print(f"ERROR: invalid JSON in render input: {exc}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -97,63 +70,44 @@ def validate_name(name: str, label: str) -> str:
     return name
 
 
-def extract_globals(state: dict) -> dict:
-    """Extract global render values from bootstrap state. Fail closed on missing required fields."""
-    identity = state.get("identity_reconciliation")
-    if not isinstance(identity, dict):
-        print("ERROR: identity_reconciliation is missing or not an object", file=sys.stderr)
+def require_string(value: object, label: str, *, allow_empty: bool = False) -> str:
+    """Return a string field or fail with a stable diagnostic instead of a traceback."""
+    if not isinstance(value, str):
+        print(f"ERROR: {label} must be a string", file=sys.stderr)
+        sys.exit(1)
+    if not allow_empty and not value.strip():
+        print(f"ERROR: {label} is empty", file=sys.stderr)
+        sys.exit(1)
+    return value
+
+
+def extract_globals(input_data: dict) -> dict:
+    """Extract confirmed template values from a small render input."""
+    company = input_data.get("company")
+    if not isinstance(company, dict):
+        print("ERROR: company is missing or not an object", file=sys.stderr)
         sys.exit(1)
 
-    company_identity = identity.get("company_identity")
-    if not isinstance(company_identity, dict):
-        print("ERROR: identity_reconciliation.company_identity is missing or not an object", file=sys.stderr)
-        sys.exit(1)
-
-    company_name = company_identity.get("name", "")
-    company_slug = company_identity.get("slug", "")
-
-    if not company_name or not company_name.strip():
-        print("ERROR: COMPANY_NAME is empty — identity_reconciliation.company_identity.name is required", file=sys.stderr)
-        sys.exit(1)
-    if not company_slug or not company_slug.strip():
-        print("ERROR: COMPANY_SLUG is empty — identity_reconciliation.company_identity.slug is required", file=sys.stderr)
-        sys.exit(1)
+    company_name = require_string(
+        company.get("name", ""),
+        "COMPANY_NAME — company.name",
+    )
+    company_slug = require_string(
+        company.get("slug", ""),
+        "COMPANY_SLUG — company.slug",
+    )
     company_slug = validate_name(company_slug, "company slug")
 
-    paths = state.get("paths")
-    if not isinstance(paths, dict):
-        print("ERROR: paths is missing or not an object", file=sys.stderr)
-        sys.exit(1)
-
-    confirmed = state.get("confirmed_answers")
-    if not isinstance(confirmed, dict):
-        confirmed = {}
-
-    # PRODUCT_IDENTITY: must come from identity_reconciliation.confirmed_product_identity; fail closed if missing
-    product_identity = identity.get("confirmed_product_identity", "")
-    if not product_identity or not product_identity.strip():
-        print("ERROR: PRODUCT_IDENTITY is empty — identity_reconciliation.confirmed_product_identity is required", file=sys.stderr)
-        sys.exit(1)
-
-    # RUNTIME_ROOT: validate state has runtime_root (fail if missing), but always render fixed literal
-    runtime_root = confirmed.get("runtime_root") or paths.get("runtime_root", "")
-    if not runtime_root or not runtime_root.strip():
-        print("ERROR: RUNTIME_ROOT is empty — confirmed_answers.runtime_root and paths.runtime_root are both missing", file=sys.stderr)
-        sys.exit(1)
-    # Actual observed path stays in bootstrap-state/result, not durable templates.
-    runtime_root = "$JARVIS_RUNTIME_ROOT"
-
-    # VCS_HOST: priority vcs_host_confirmed > gitlab_host_confirmed > vcs_host > gitlab_host; missing -> BOOTSTRAP_REQUIRED
-    vcs_host = (
-        confirmed.get("vcs_host_confirmed")
-        or confirmed.get("gitlab_host_confirmed")
-        or confirmed.get("vcs_host")
-        or confirmed.get("gitlab_host", "")
+    product_identity = require_string(
+        company.get("product_identity", ""),
+        "PRODUCT_IDENTITY — company.product_identity",
     )
-    if not vcs_host or not vcs_host.strip():
-        vcs_host = "BOOTSTRAP_REQUIRED"
 
-    # Parse CSV/list confirmed_answers into clean deduplicated lists
+    scope = input_data.get("scope")
+    if not isinstance(scope, dict):
+        scope = {}
+
+    # Normalize optional scope hints into clean deduplicated lists.
     def _parse_csv(value):
         """Parse CSV string or list, strip whitespace, drop empties, stable dedup, preserve case/punctuation."""
         if isinstance(value, list):
@@ -171,16 +125,14 @@ def extract_globals(state: dict) -> dict:
                 result.append(s)
         return result
 
-    module_hints = _parse_csv(confirmed.get("module_hints", ""))
-    source_scope = _parse_csv(confirmed.get("source_scope", ""))
-    workflow_scope = _parse_csv(confirmed.get("workflow_scope", ""))
-    repo_scope = _parse_csv(confirmed.get("gitlab_projects_confirmed",
-                                           confirmed.get("gitlab_projects", "")))
+    module_hints = _parse_csv(scope.get("modules", []))
+    source_scope = _parse_csv(scope.get("sources", []))
+    repo_scope = _parse_csv(scope.get("repositories", []))
 
     def _bullet_index(items: list[str], fmt: str) -> str:
-        """Generate a durable scope list without leaving a bootstrap sentinel."""
+        """Generate a durable scope list without leaving a construction sentinel."""
         if not items:
-            return "- none-yet (populate from Phase 6 evidence)"
+            return "- none-yet (populate from observed evidence)"
         return "\n".join(f"- {fmt.format(item)}" for item in items)
 
     def _repo_basename(project: str) -> str:
@@ -202,25 +154,19 @@ def extract_globals(state: dict) -> dict:
 
     def _repo_index(items: list[str]) -> str:
         if not items:
-            return "- none-yet (populate from Phase 6 repo role map)"
+            return "- none-yet (populate from observed repository evidence)"
         return "\n".join(
             f"- `{_repo_basename(project)}` — VCS project `{project}`; "
-            "repo-local entry `skills/SKILL.md` inside that repo"
+            "repo-local entry unresolved until observed; use `pending Repository learning` when absent"
             for project in items
         )
 
-    # COMPANY_OWNER: accept string or list; missing -> BOOTSTRAP_REQUIRED
-    company_owner = confirmed.get("company_owner") or confirmed.get("owners", "")
+    # COMPANY_OWNER: accept string or list; missing -> UNRESOLVED
+    company_owner = company.get("owner", "")
     if isinstance(company_owner, list):
         company_owner = ", ".join(company_owner)
-    if not company_owner or not company_owner.strip():
-        company_owner = "BOOTSTRAP_REQUIRED"
-
-    # ENTRY_SKILL_PATH: must come from paths.entry_skill; missing fail
-    entry_skill_path = paths.get("entry_skill", "")
-    if not entry_skill_path or not entry_skill_path.strip():
-        print("ERROR: ENTRY_SKILL_PATH is empty — paths.entry_skill is required", file=sys.stderr)
-        sys.exit(1)
+    if not isinstance(company_owner, str) or not company_owner.strip():
+        company_owner = "UNRESOLVED"
 
     starter_workflows = [
         company_workflow_name(company_slug, suffix)
@@ -228,9 +174,7 @@ def extract_globals(state: dict) -> dict:
     ]
     workflow_index = []
     seen_workflows = set()
-    for workflow in starter_workflows + [
-        company_workflow_name(company_slug, item) for item in workflow_scope
-    ]:
+    for workflow in starter_workflows:
         if workflow not in seen_workflows:
             seen_workflows.add(workflow)
             workflow_index.append(workflow)
@@ -240,9 +184,6 @@ def extract_globals(state: dict) -> dict:
         "COMPANY_SLUG": company_slug,
         "COMPANY_JARVIS_NAME": f"{company_slug}-jarvis",
         "PRODUCT_IDENTITY": product_identity,
-        "RUNTIME_ROOT": runtime_root,
-        "ENTRY_SKILL_PATH": entry_skill_path,
-        "VCS_HOST": vcs_host,
         "COMPANY_OWNER": company_owner,
         "MODULE_INDEX": _bullet_index(module_hints, "modules/{}/overview.md"),
         "SOURCE_INDEX": _bullet_index(source_scope, "sources/{}/README.md"),
@@ -279,7 +220,7 @@ def refresh_readme_scope_indexes(
 ) -> None:
     """Fill the initial README scope placeholders from rendered directories.
 
-    ``base`` runs before discovery, so a state file may legitimately have no
+    ``base`` can run before deep discovery, so the render input may have no
     module/source/workflow hints. Later deterministic instantiation commands
     must still keep the durable company entry synchronized without overwriting
     an agent or owner edit.
@@ -310,7 +251,7 @@ def refresh_readme_scope_indexes(
         if heading == "工作流":
             prefix = f"{company_slug}-workflow-"
             names = [name for name in names if company_slug and name.startswith(prefix)]
-            if "BOOTSTRAP_REQUIRED" not in current and not current.strip().startswith("- none-yet"):
+            if "UNRESOLVED" not in current and not current.strip().startswith("- none-yet"):
                 missing = [
                     name for name in names
                     if item_format.format(name) not in current
@@ -322,10 +263,10 @@ def refresh_readme_scope_indexes(
                     replacement = current.rstrip() + "\n" + addition + "\n"
                     text = text[:content_start] + replacement + text[end:]
                 continue
-        elif "BOOTSTRAP_REQUIRED" not in current and not current.strip().startswith("- none-yet"):
+        elif "UNRESOLVED" not in current and not current.strip().startswith("- none-yet"):
             continue
         replacement = "\n\n" + (
-            "- none-yet (populate from Phase 6 evidence)"
+            "- none-yet (populate from observed evidence)"
             if not names
             else "\n".join(f"- {item_format.format(name)}" for name in names)
         ) + "\n\n"
@@ -353,11 +294,15 @@ def copy_skill_package(
     if kind == "generic-source":
         company_prefix = f"{globals_['COMPANY_SLUG']}-"
         package_globals["SOURCE_NAME"] = name.removeprefix(company_prefix)
-    return copy_and_render(
+    result = copy_and_render(
         SKILL_PACKAGES / kind,
         target / "skills" / name,
         package_globals,
     )
+    prefix = Path("skills") / name
+    for key in ("created", "preserved", "skipped"):
+        result[key] = [str(prefix / rel) for rel in result[key]]
+    return result
 
 
 def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
@@ -373,8 +318,6 @@ def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
         if src_path.is_dir():
             continue
         rel_path = src_path.relative_to(src_dir)
-        if rel_path.parts and rel_path.parts[0] in ("bootstrap-state.json", "bootstrap-result.json"):
-            continue
         try:
             raw = src_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
@@ -390,10 +333,6 @@ def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
 
     for src_path in sorted(src_dir.rglob("*")):
         rel_path = src_path.relative_to(src_dir)
-
-        # Skip bootstrap-state/result in repo template
-        if rel_path.parts and rel_path.parts[0] in ("bootstrap-state.json", "bootstrap-result.json"):
-            continue
 
         # Apply company slug rename
         parts = list(rel_path.parts)
@@ -457,136 +396,48 @@ def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
     return result
 
 
-def render_single_file(
-    src_path: Path,
-    dst_path: Path,
-    globals_: dict,
-    result: dict,
-    root: Path | None = None,
-) -> None:
-    """Render one explicit bootstrap artifact using copy-and-render semantics."""
-    if not src_path.is_file():
-        result["errors"].append(f"source file not found: {src_path}")
-        return
-
+def _resolve_agent_target(target_path: str, workspace_root: str) -> tuple[Path, Path]:
+    """Resolve a strict child target inside the runtime-declared agent workspace."""
+    workspace = Path(workspace_root).expanduser().resolve(strict=True)
+    if not workspace.is_dir():
+        print(f"ERROR: workspace root is not a directory: {workspace}", file=sys.stderr)
+        sys.exit(1)
+    target = Path(target_path).expanduser().resolve(strict=False)
     try:
-        raw = src_path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        result["errors"].append(f"bootstrap artifact is not UTF-8 text: {src_path}")
-        return
-
-    rendered = render_content(raw, globals_)
-    unresolved = check_unresolved(rendered, str(dst_path))
-    if unresolved:
-        result["errors"].append(
-            f"preflight: unresolved tokens in template {src_path.name}: {unresolved}"
+        relative = target.relative_to(workspace)
+    except ValueError:
+        print(
+            f"ERROR: company target must be inside the agent workspace: {target} not under {workspace}",
+            file=sys.stderr,
         )
-        return
-
-    dst_path.parent.mkdir(parents=True, exist_ok=True)
-    rel = str(dst_path.relative_to(root)) if root is not None else str(dst_path)
-    if dst_path.exists():
-        try:
-            existing = dst_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            result["preserved"].append(rel)
-            return
-        if existing == rendered:
-            result["skipped"].append(rel)
-        else:
-            # Build brief is an agent-owned process artifact after first creation.
-            # Never overwrite a human/runtime update on a repeated invocation.
-            result["preserved"].append(rel)
-    else:
-        dst_path.write_text(rendered, encoding="utf-8")
-        result["created"].append(rel)
+        sys.exit(1)
+    if relative == Path("."):
+        print("ERROR: company target must be a child of the workspace root", file=sys.stderr)
+        sys.exit(1)
+    return target, workspace
 
 
-def _phase_map(state: dict) -> dict[str, str]:
-    """Return the complete phase map while preserving recorded statuses."""
-    current = state.get("phase", "")
-    current_status = state.get("status", "in-progress")
-    supplied = state.get("phase_status")
-    phase_status = dict(supplied) if isinstance(supplied, dict) else {}
+def _resolve_input_target(input_data: dict) -> tuple[Path, Path]:
+    """Resolve and revalidate the write target for every render command."""
+    paths = input_data.get("paths")
+    if not isinstance(paths, dict):
+        print("ERROR: paths is missing or not an object", file=sys.stderr)
+        sys.exit(1)
 
-    for phase in PHASE_KEYS:
-        phase_status.setdefault(phase, "pending")
-    if current in phase_status and current_status in {
-        "in-progress", "completed", "needs-input", "blocked", "failed"
-    }:
-        phase_status[current] = current_status
-    return {phase: phase_status[phase] for phase in PHASE_KEYS}
+    target_value = require_string(paths.get("target", ""), "paths.target")
+    workspace_value = require_string(
+        paths.get("workspace_root", ""),
+        "paths.workspace_root",
+    )
+    target, workspace = _resolve_agent_target(target_value, workspace_value)
 
-
-def _runtime_contracts(state: dict, globals_: dict, target: Path, file_result: dict) -> tuple[dict, dict]:
-    """Build the root contracts written by every company-Jarvis bootstrap."""
-    normalized_state = copy.deepcopy(state)
-    normalized_state["phase_status"] = _phase_map(normalized_state)
-    normalized_state.setdefault("schema_version", 1)
-    normalized_state.setdefault("inputs", {})
-    normalized_state.setdefault("confirmed_answers", {})
-    normalized_state.setdefault("identity_reconciliation", {})
-    normalized_state.setdefault("method_repo", {})
-    normalized_state.setdefault("status", "in-progress")
-    normalized_state.setdefault("phase", "phase-07-company-jarvis-repo")
-
-    paths = state.get("paths", {})
-    jarvis_home = str(paths.get("jarvis_home") or target)
-    entry_skill = str(paths.get("entry_skill") or f"skills/{globals_['COMPANY_SLUG']}-jarvis/SKILL.md")
-    status = normalized_state["status"]
-    phase_map = normalized_state["phase_status"]
-    result = {
-        "schema_version": 1,
-        "status": status,
-        "summary": (
-            f"Company Jarvis bootstrap state initialized at {normalized_state['phase']}; "
-            "continue the phase checklist from the recorded phase."
-        ),
-        "paths": {
-            "jarvis_home": jarvis_home,
-            "jarvis_target_home": str(target),
-            "entry_skill": entry_skill,
-        },
-        "created_files": sorted(file_result["created"]),
-        "updated_files": [],
-        "preserved_files": sorted(file_result["preserved"]),
-        "missing_inputs": list(state.get("missing_inputs", [])) if isinstance(state.get("missing_inputs", []), list) else [],
-        "blockers": list(state.get("blockers", [])) if isinstance(state.get("blockers", []), list) else [],
-        "conflicting_inputs": list(state.get("conflicting_inputs", [])) if isinstance(state.get("conflicting_inputs", []), list) else [],
-        "unresolved_questions": list(state.get("unresolved_questions", [])) if isinstance(state.get("unresolved_questions", []), list) else [],
-        "next_action": "Continue the current phase in playbooks/phase-checklist.md.",
-        "phase_summary": phase_map,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-    }
-    return normalized_state, result
+    return target, workspace
 
 
-def _write_contract(path: Path, value: dict, result: dict, target: Path) -> None:
-    """Write a runtime-owned JSON contract and track whether it changed."""
-    rel = str(path.relative_to(target))
-    if path.exists():
-        rendered = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-        try:
-            existing = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            existing = ""
-        if existing != rendered:
-            result["updated_files"].append(rel)
-    else:
-        result["created_files"].append(rel)
-        rendered = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(rendered, encoding="utf-8")
-
-
-def cmd_base(state: dict) -> int:
+def cmd_base(input_data: dict) -> int:
     """Instantiate company Jarvis repo from templates/company-jarvis/repo/."""
-    globals_ = extract_globals(state)
-    paths = state.get("paths", {})
-    target = Path(paths.get("jarvis_target_home", ""))
-    if not target or str(target) == ".":
-        print("ERROR: paths.jarvis_target_home is missing or invalid", file=sys.stderr)
-        return 1
+    globals_ = extract_globals(input_data)
+    target, _ = _resolve_input_target(input_data)
 
     if not globals_.get("COMPANY_SLUG"):
         print("ERROR: COMPANY_SLUG is empty — cannot render company-jarvis templates", file=sys.stderr)
@@ -594,11 +445,6 @@ def cmd_base(state: dict) -> int:
 
     print(f"base: target={target}, slug={globals_['COMPANY_SLUG']}")
     result = copy_and_render(COMPANY_JARVIS_REPO, target, globals_)
-    for kind, name in CORE_METHOD_PACKAGES:
-        merge_copy_results(
-            result,
-            copy_skill_package(target, globals_, kind=kind, name=name),
-        )
     for kind, suffix in STARTER_WORKFLOW_PACKAGES:
         name = company_workflow_name(globals_["COMPANY_SLUG"], suffix)
         merge_copy_results(
@@ -621,27 +467,6 @@ def cmd_base(state: dict) -> int:
     for f in sorted(result["skipped"]):
         print(f"  = {f}")
 
-    # Phase 7 owns the first durable build brief and root runtime contracts.
-    # State/result are intentionally kept at repo root so jarvis-box can resume
-    # without understanding the private _bootstrap evidence layout.
-    render_single_file(
-        COMPANY_JARVIS_ARTIFACTS / "jarvis-build-brief.md",
-        target / "_bootstrap" / "jarvis-build-brief.md",
-        globals_,
-        result,
-        target,
-    )
-    normalized_state, runtime_result = _runtime_contracts(state, globals_, target, result)
-    _write_contract(target / "bootstrap-state.json", normalized_state, runtime_result, target)
-    # Include the actual files above in result metadata before writing the result itself.
-    runtime_result["created_files"] = sorted(set(runtime_result["created_files"]))
-    runtime_result["updated_files"] = sorted(set(runtime_result["updated_files"]))
-    runtime_result["preserved_files"] = sorted(set(runtime_result["preserved_files"]))
-    _write_contract(target / "bootstrap-result.json", runtime_result, runtime_result, target)
-
-    print(f"bootstrap artifact: {target / '_bootstrap' / 'jarvis-build-brief.md'}")
-    print(f"runtime contracts: {target / 'bootstrap-state.json'}, {target / 'bootstrap-result.json'}")
-
     if result["errors"]:
         print(f"ERRORS:")
         for e in result["errors"]:
@@ -650,14 +475,10 @@ def cmd_base(state: dict) -> int:
     return 0
 
 
-def cmd_module(state: dict, name: str) -> int:
+def cmd_module(input_data: dict, name: str) -> int:
     """Instantiate a single module contract from templates/company-jarvis/module/."""
-    globals_ = extract_globals(state)
-    paths = state.get("paths", {})
-    target = Path(paths.get("jarvis_target_home", ""))
-    if not target or str(target) == ".":
-        print("ERROR: paths.jarvis_target_home is missing", file=sys.stderr)
-        return 1
+    globals_ = extract_globals(input_data)
+    target, _ = _resolve_input_target(input_data)
 
     name = validate_name(name, "module name")
     module_dir = target / "modules" / name
@@ -687,14 +508,10 @@ def cmd_module(state: dict, name: str) -> int:
     return 0
 
 
-def cmd_source(state: dict, name: str) -> int:
+def cmd_source(input_data: dict, name: str) -> int:
     """Instantiate a source route entry from templates/company-jarvis/source/ (README.md only, no SKILL.md)."""
-    globals_ = extract_globals(state)
-    paths = state.get("paths", {})
-    target = Path(paths.get("jarvis_target_home", ""))
-    if not target or str(target) == ".":
-        print("ERROR: paths.jarvis_target_home is missing", file=sys.stderr)
-        return 1
+    globals_ = extract_globals(input_data)
+    target, _ = _resolve_input_target(input_data)
 
     name = validate_name(name, "source name")
     src_template = COMPANY_JARVIS_SOURCE
@@ -725,14 +542,10 @@ def cmd_source(state: dict, name: str) -> int:
     return 0
 
 
-def cmd_package(state: dict, kind: str, name: str) -> int:
+def cmd_package(input_data: dict, kind: str, name: str) -> int:
     """Instantiate a skill package from templates/skill-packages/<kind>/."""
-    globals_ = extract_globals(state)
-    paths = state.get("paths", {})
-    target = Path(paths.get("jarvis_target_home", ""))
-    if not target or str(target) == ".":
-        print("ERROR: paths.jarvis_target_home is missing", file=sys.stderr)
-        return 1
+    globals_ = extract_globals(input_data)
+    target, _ = _resolve_input_target(input_data)
 
     kind = validate_name(kind, "package kind")
     name = validate_name(name, "package name")
@@ -800,18 +613,18 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_base = sub.add_parser("base", help="Instantiate company Jarvis repo base")
-    p_base.add_argument("--state", required=True, help="Path to bootstrap-state.json")
+    p_base.add_argument("--input", required=True, help="Path to company render input JSON")
 
     p_module = sub.add_parser("module", help="Instantiate a single module contract")
-    p_module.add_argument("--state", required=True)
+    p_module.add_argument("--input", required=True)
     p_module.add_argument("--name", required=True, help="Exact confirmed module name")
 
     p_source = sub.add_parser("source", help="Instantiate a source entry")
-    p_source.add_argument("--state", required=True)
+    p_source.add_argument("--input", required=True)
     p_source.add_argument("--name", required=True, help="Exact confirmed source name")
 
     p_package = sub.add_parser("package", help="Instantiate a skill package")
-    p_package.add_argument("--state", required=True)
+    p_package.add_argument("--input", required=True)
     p_package.add_argument(
         "--kind",
         required=True,
@@ -825,16 +638,16 @@ def main() -> int:
     )
 
     args = parser.parse_args()
-    state = load_state(args.state)
+    input_data = load_input(args.input)
 
     if args.command == "base":
-        return cmd_base(state)
+        return cmd_base(input_data)
     elif args.command == "module":
-        return cmd_module(state, args.name)
+        return cmd_module(input_data, args.name)
     elif args.command == "source":
-        return cmd_source(state, args.name)
+        return cmd_source(input_data, args.name)
     elif args.command == "package":
-        return cmd_package(state, args.kind, args.name)
+        return cmd_package(input_data, args.kind, args.name)
 
     return 1
 

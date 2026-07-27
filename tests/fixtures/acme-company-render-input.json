@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "company": {
+    "name": "Acme Corp",
+    "slug": "acme-claude-e2e",
+    "product_identity": "Acme Analytics Platform",
+    "owner": "acme-engineering"
+  },
+  "paths": {
+    "target": "/tmp/test-acme-jarvis",
+    "workspace_root": "/tmp"
+  },
+  "scope": {
+    "modules": ["payroll", "benefits", "HQL"],
+    "sources": ["customer-docs", "api-reference"],
+    "workflows": ["deploy-loop"],
+    "repositories": ["acme/web-frontend", "acme/backend-api"]
+  }
+}

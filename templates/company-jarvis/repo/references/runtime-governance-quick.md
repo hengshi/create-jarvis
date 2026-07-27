@@ -20,7 +20,7 @@ jarvis-box agent current
 
 ## 路径确认
 
-读取 company root 的 `bootstrap-state.json`，确认其中已登记的 `runtime_root`、jarvis target、method repo 等路径。若 bootstrap-state 与 `jarvis-box init` / `jarvis-box status` 的输出冲突，**阻塞**，不选一个猜测。以当前 CLI 输出和 bootstrap-state 共同确认的值为准。
+普通业务任务从当前授权 checkout、company entry 和 live `jarvis-box status` 确认路径。仍在 construction 期间时，任务目标和构件范围以外部 `BUILD-CONTEXT.md` 为准。静态 company repo 不保存 runtime root 或 method-pack 路径。
 
 ## 执行上下文识别
 
@@ -32,7 +32,7 @@ jarvis-box agent current
 | 已授权 repo checkout | 有明确授权记录的工作树 | 在授权范围内读写 |
 | 受管 Task workspace | 存在可验证的 Task identity（task_id、workspace 路径与 Task 记录一致） | 按 Task/Run 生命周期处理 |
 
-只有存在可验证 Task identity 时才应用 Task/Run 生命周期和受管 workspace 语义。用户完成安装后直接启动 codex/claude/copilot 对话执行 Phase 3-14 是合法的——该对话不一定是 jarvis-box Task 或 Run，不得要求 Task pointer 或 workspace 才能开始工作。
+只有存在可验证 Task identity 时才应用 Task/Run 生命周期和受管 workspace 语义。用户完成安装后直接启动 codex/claude/copilot 对话构建或继续 Jarvis 是合法的——该对话不一定是 jarvis-box Task 或 Run，不得要求 Task pointer 或受管 Task workspace 才能开始工作。
 
 ## 写入边界
 

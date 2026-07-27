@@ -14,8 +14,8 @@ version: 1.0
 
 - **公司身份**：{{COMPANY_NAME}}（slug: {{COMPANY_SLUG}}）
 - **客户确认的产品身份**：{{PRODUCT_IDENTITY}}
-- **Source 检测到的身份**：BOOTSTRAP_REQUIRED — Phase 7 根据 source/repo/docs 证据填写，标记 `needs-owner-confirmation`；不得覆盖公司身份和客户确认的产品身份
-- **身份协调状态**：BOOTSTRAP_REQUIRED — `confirmed` / `needs-owner-confirmation` / `conflict` / `unresolved`
+- **Source 检测到的身份**：UNRESOLVED — 根据 source/repo/docs 证据填写，标记 `needs-owner-confirmation`；不得覆盖公司身份和客户确认的产品身份
+- **身份协调状态**：UNRESOLVED — `confirmed` / `needs-owner-confirmation` / `conflict` / `unresolved`
 
 ---
 
@@ -27,13 +27,13 @@ version: 1.0
 
 {{WORKFLOW_INDEX}}
 
-### First Workflow 路由表
+### 初始任务路由表
 
-| 触发证据 | Workflow skill | First source / proof | Repo-local handoff（如有） | 验证 | END / writeback |
-|---------|---------------|---------------------|--------------------------|------|----------------|
-| BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED |
+| 触发证据 | Candidate module / source | First proof | Repo-local handoff（如有） | 验证 | 当前状态 |
+|---------|---------------------------|-------------|--------------------------|------|--------|
+| UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED |
 
-每条已填实规则必须能回指触发证据，并包含 workflow skill、first proof、适用的 repo-local handoff、验证和 END writeback。
+每条已填实规则必须能回指触发证据，并包含 module/source、first proof、适用的 repo-local handoff、验证和 unresolved/pending 状态。workflow 未激活时仍可完成这条初始路由。
 
 ---
 
@@ -47,20 +47,21 @@ version: 1.0
 
 | Repo | 证据支撑的角色 | Repo-local entry | First proof | 升级 / 返回条件 |
 |------|--------------|-----------------|-------------|----------------|
-| BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED |
+| UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED |
 
-repo 名来自实际 checkout identity，repo-local entry 路径可解析，角色与 first proof 均能回指 source/repo evidence。
+repo 名来自实际 checkout identity。repo-local entry 必须是当前可解析路径；尚未生成时明确写 `pending Repository learning`。角色与 first proof 均能回指 source/repo evidence。
 
 ---
 
 ## 路由算法
 
 1. 从 artifact / source 提取事实集合
-2. 匹配已确认的 workflow —— 命中则进入对应 workflow skill
-3. 从客户业务/产品域确定 module 边界
-4. 选择最接近原始 claim、足以区分关键路由假设且在授权范围内可执行的 first proof
-5. 仅在证据指向特定 repo 时路由到 repo-local handoff
-6. 不存在匹配或证据冲突 → `blocked`，记录需要解除阻塞的 evidence 类型
+2. 匹配已确认且 `active` 的 workflow —— 命中则进入对应 workflow skill
+3. 没有 active workflow 时进入 construction/onboarding mode，只做 semantic routing，不声称已形成 delivery closure
+4. 从客户业务/产品域确定 module 边界
+5. 选择最接近原始 claim、足以区分关键路由假设且在授权范围内可执行的 first proof
+6. 仅在证据指向特定 repo 时路由到当前真实 repo-local handoff
+7. module/source/first-proof route 不存在或证据冲突 → `blocked`，记录需要解除阻塞的 evidence 类型
 
 ---
 

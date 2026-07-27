@@ -1,12 +1,24 @@
 ---
 name: {{SKILL_NAME}}
-description: "{{COMPANY_NAME}} 功能交付动态闭环。输入可以是 PRD、feature request、客户诉求、产品方案或 management ask；先定动态闭环，再产出 spec、计划、执行、验证和多 surface 交付结果。"
+description: "{{COMPANY_NAME}} Feature-delivery workflow 的客户定制草稿。仅用于向客户讲解、校准和验证真实交付流程；正文状态改为 active 前不得承接真实 feature delivery。"
 version: "2.0.0"
 ---
 
 # {{COMPANY_NAME}} 功能交付
 
-从需求输入到交付闭环：定义本次动态闭环，判断就绪，路由执行，逐项验证，记录收尾。
+## 模板状态
+
+**当前状态：`draft-template`**
+
+这是 `1+2` 阶段预装的教学与改造起点，不是已经确认的客户流程。Agent 应向客户解释动态
+START → WORK → VERIFY → END，再用 company Jarvis、repo-local skills，以及客户真实的需求
+入口、决策角色、branch/review/test/release policy 和交付凭证替换通用假设。
+
+只有至少一个客户真实或等价受控 feature case 已验证从需求到交付闭合，并由客户确认流程
+可用后，才把本节改为 `active`，同时把 frontmatter description 改成真实触发条件。
+`draft-template` 期间只能用于 workflow onboarding，不能执行生产 feature delivery。
+
+以下内容是供客户校准的初始假设：从需求输入到交付闭环，定义本次动态闭环，判断就绪，路由执行，逐项验证，记录收尾。
 
 ## 触发条件
 

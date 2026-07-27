@@ -9,9 +9,9 @@
 agent 按事实域选择真值来源，不用一个来源覆盖另一个来源负责的事实：
 
 1. **当前 CLI 输出与 `--help`** — 命令是否存在及其 command shape。
-2. **bootstrap-state.json** — 当前 bootstrap 已确认的 company/method/target 路径与 phase 状态。
-3. **live `jarvis-box init` / `jarvis-box status` / `jarvis-box agent current`** — readiness、服务和 agent 实时状态。
-4. **source / repo contract** — source 访问与具体 repo 执行规则。
+2. **live `jarvis-box init` / `jarvis-box status` / `jarvis-box agent current`** — readiness、服务和 agent 实时状态。
+3. **source / repo contract** — source 访问与具体 repo 执行规则。
+4. **外部 `BUILD-CONTEXT.md`** — 仅在初次 construction/learning 期间确认构件与写入范围；它不是 company repo 的长期 runtime state。
 
 同一事实在这些来源间冲突时停止并记录冲突，不擅自选一个覆盖。静态本文不覆盖 live product 输出。
 
@@ -46,8 +46,8 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 
 `tasks start/continue/stop/recover/retry-writeback` 是会改变 Task、Run 或 provider delivery 的五个产品操作。仅在 Task identity、授权、目标和恢复方式明确时执行。
 
-- `continue` 在同一 Task 中创建后续 Run；它不是 bootstrap resume。
-- `continue` 可以由 jarvis-box 使用已保存的 provider-native session handle 继续同一 agent 会话；该 handle 属于 runtime 私有状态。即使 Codex 输出 JSONL `thread.started` / `thread_id`，也不能把它复制到 company Jarvis、bootstrap artifact 或公开 handoff。
+- `continue` 在同一 Task 中创建后续 Run；它不是普通 Agent progress 恢复。
+- `continue` 可以由 jarvis-box 使用已保存的 provider-native session handle 继续同一 agent 会话；该 handle 属于 runtime 私有状态。即使 Codex 输出 JSONL `thread.started` / `thread_id`，也不能把它复制到 company Jarvis、construction artifact 或公开 handoff。
 - Task 的 `task_id`、`run_id`、workspace 和 session 状态只记录 jarvis-box 实际返回或公开暴露的值。UI/feed 对 lane display id 的解析是产品内部兼容行为，不允许 agent 根据目录名、lane 名或字符串拼接自行生成 Task/Run identity。
 - `recover` 只用于 live 状态已确认的 `recovery-required` 进程观察链丢失。
 - `retry-writeback` 只重试已有 provider delivery，不运行 agent，也不做 skill/file 写回。
@@ -57,13 +57,13 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 
 `agent set/enable/disable/order/unset`、`tasks reap/clean`、`setup gitlab`、`start/stop/restart` 会改变配置、保留期或服务状态，但不增加 Task 生命周期操作。执行前确认授权范围、操作目标和失败恢复方式。
 
-`tasks reconcile` 只生成 dry-run 计划，不执行计划中的 mutation。Company bootstrap 从根目录 state 继续，不恢复 Task/Run。
+`tasks reconcile` 只生成 dry-run 计划，不执行计划中的 mutation。Company construction 或 Repository learning 从各自 progress 文件继续，不伪造 Task/Run。
 
 ## 4. 密钥与凭据
 
 - 密钥、agent credentials、runtime state **不写入** company 或 repo artifact。
 - jarvis-box 自身的 runtime 配置属于 `JARVIS_ENV_FILE` 或外部密钥管理器；agent vendor 的登录凭据由对应 CLI/keychain/外部凭据系统管理，jarvis-box 不安装或复制这些凭据。
-- 不在 task-state、event、prompt、result、日志或 workspace 文件中暴露密钥。
+- 不在 event、prompt、result、progress、日志或 workspace 文件中暴露密钥。
 - Private resume handle 不进入公共 artifact。
 
 ## 5. 分支真值
@@ -82,7 +82,7 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 
 jarvis-box release 可以通过主机或外部 scheduler 托管 runtime sync、company Jarvis maintenance、session self-improvement 和 Task workspace cleanup。它们是维护入口，不是隐藏的用户 Task 队列。
 
-Phase 14 从以下证据确认当前版本和当前机器实际拥有的 jobs：
+初始化 day-2 运营时，从以下证据确认当前版本和当前机器实际拥有的 jobs：
 
 1. 当前安装版本及其 release 文档/安装产物；
 2. host scheduler 或 `/server` crons 视图；

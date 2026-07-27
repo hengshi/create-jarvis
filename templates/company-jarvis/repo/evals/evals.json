@@ -2,5 +2,5 @@
   "evals": [],
   "version": "1.0",
   "generated_at": null,
-  "description": "Eval registry for {{COMPANY_SLUG}}-jarvis workflow validation"
+  "description": "Behavior eval registry for {{COMPANY_SLUG}}-jarvis entry routing and validated workflows"
 }

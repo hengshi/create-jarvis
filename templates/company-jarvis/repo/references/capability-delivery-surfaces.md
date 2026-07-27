@@ -21,7 +21,7 @@ description: 确定每个 capability 的 authority、交付面、验证面和文
 
 | Capability | Contract authority | Execution owners | Delivery surfaces | Verification surfaces | Docs / operational fallout | 状态 |
 |-----------|-------------------|------------------|------------------|---------------------|--------------------------|------|
-| BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED | BOOTSTRAP_REQUIRED |
+| UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED |
 
 状态反映 evidence 是否足以支撑当前 contract；未解决项同时记录已查范围和恢复条件。
 

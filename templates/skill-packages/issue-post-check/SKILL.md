@@ -1,12 +1,23 @@
 ---
 name: {{SKILL_NAME}}
 description: >
-  已建 issue 的后检母版。事件、人、bot 请求审查已存在 issue 时使用。
-  先过 trigger gate：intake marker 只证明来源不证明结论正确，仅当 intake 输出契约与证据仍完整、
-  live issue 无新增/冲突/stale/risk 信号且公司策略允许时才 skip。否则进入完整 START→WORK→VERIFY→END 后检。
+  {{COMPANY_NAME}} Issue post-check workflow 的客户定制草稿。仅用于向客户讲解、校准和验证
+  真实 issue 流程；正文状态改为 active 前不得审查生产 issue。
 ---
 
 # {{COMPANY_NAME}} Issue 后检
+
+## 模板状态
+
+**当前状态：`draft-template`**
+
+这是 `1+2` 阶段预装的教学与改造起点。Agent 应先向客户确认是否需要 post-check、issue
+从哪里进入、谁有 disposition 权限、怎样交接 bugfix/feature、哪些动作允许回写，再保留、
+改写或删除下方通用 gate。
+
+只有至少一个客户真实或等价受控 issue case 已验证 intake、判断、route 和 handoff，并由客户
+确认流程可用后，才把本节改为 `active`，同时把 frontmatter description 改成真实触发条件。
+`draft-template` 期间只能用于 workflow onboarding，不能处理生产 issue。
 
 面向**已建 issue** 的强制审查。所有 source/tool 从 company route 和 live issue 中按需解析。
 
@@ -58,14 +69,14 @@ description: >
 
 ### Skip 输出
 
-简短记录 trigger gate 结果和理由，写入 decision record。不输出完整 comment，不触发后续 phase。
+简短记录 trigger gate 结果和理由，写入 decision record。不输出完整 comment，不触发后续步骤。
 
 ---
 
 ## START
 
 1. 完成 runtime preflight。
-2. 用 Phase 6 已确认的 issue source route 读取 live issue：当前正文、触发事件、评论、附件 pointer、可用 metadata。
+2. 用 company Jarvis 中已确认的 issue source route 读取 live issue：当前正文、触发事件、评论、附件 pointer、可用 metadata。
 3. 登记事实、推断、未知。不得只信 webhook 摘要。
 
 ## WORK

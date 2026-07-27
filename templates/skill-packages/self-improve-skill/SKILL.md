@@ -1,12 +1,12 @@
 ---
-name: {{SKILL_NAME}}
+name: jarvis-self-improve-skill
 description: >
-  {{COMPANY_NAME}} 的 company-owned self-improvement 方法。读取 jarvis-box 支持的
+  Company Jarvis self-improvement 方法。读取 jarvis-box 支持的
   agent session 和高信号 review trajectory，判断是否存在可复用、可验证的缺口，
   并把结果路由到正确的 durable owner。
 ---
 
-# {{COMPANY_NAME}} Self-Improvement
+# Company Jarvis Self-Improvement
 
 这是 company Jarvis 的方法论 skill，不是 collector、scheduler、数据库或运行时实现。
 session 收集、agent registry、定时触发和运行目录由 jarvis-box install 提供；本 skill
@@ -14,15 +14,15 @@ session 收集、agent registry、定时触发和运行目录由 jarvis-box inst
 
 ## 强制预读
 
-进入此 skill 前必须读取：
+进入此 skill 前，先从当前已加载的 company entry 定位 active company Jarvis root，再读取：
 
-- `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`
-- `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`
-- `{{COMPANY_SLUG}}-jarvis/references/minimal-closure-card.md`
+- `references/runtime-governance-quick.md`
+- `references/agent-engineering-quality-gate.md`
+- `references/minimal-closure-card.md`
 
 涉及写回时加读：
 
-- `{{COMPANY_SLUG}}-jarvis/references/writeback-governance.md`
+- `references/writeback-governance.md`
 
 ## START -> WORK -> VERIFY -> END
 

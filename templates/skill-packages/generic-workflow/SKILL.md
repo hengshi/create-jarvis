@@ -1,10 +1,19 @@
 ---
 name: {{SKILL_NAME}}
 description: >
-  {{COMPANY_NAME}} 通用兜底工作流。仅在 generation plan 明确选择 fallback 时存在。第一步经 company entry 重做 specialized workflow 路由；能路由就退出 fallback。
+  {{COMPANY_NAME}} 额外 workflow 的客户定制草稿。仅用于讲解、校准和验证客户真实流程；
+  正文状态改为 active 前不得承接生产任务。
 ---
 
 # {{COMPANY_NAME}} 通用兜底工作流
+
+## 模板状态
+
+**当前状态：`draft-template`**
+
+这是客户额外 workflow 的改造起点。必须用客户真实 trigger、角色、source、repo-local skill、
+policy 和 closure evidence 替换通用 fallback 假设，并通过至少一个真实或等价受控 case。
+完成后才改为 `active` 并重写 frontmatter description；在此之前只能用于 workflow onboarding。
 
 此 skill 仅在 generation plan 明确选择 fallback 时存在。它不是 specialized workflow 的替代品——一旦识别任务类型，立即路由到匹配的 workflow skill。
 

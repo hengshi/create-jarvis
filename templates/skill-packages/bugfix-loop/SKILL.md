@@ -1,11 +1,23 @@
 ---
 name: {{SKILL_NAME}}
 description: >
-  当根据 issue、error、截图、日志或 failing check 修复 bug，或上一次修复仍无效需要继续调试时使用。
-  遵循 START → WORK → VERIFY → END 闭环：消费已验证 handoff，在执行 repo 中实施、验证并完成交付。
+  {{COMPANY_NAME}} Bugfix workflow 的客户定制草稿。仅在向客户讲解、校准和验证其真实
+  bugfix 流程时使用；正文状态改为 active 前不得承接真实 bugfix。
 ---
 
 # {{COMPANY_NAME}} Bugfix Loop
+
+## 模板状态
+
+**当前状态：`draft-template`**
+
+这是 `1+2` 阶段预装的教学与改造起点，不是已经确认的客户流程。Agent 应逐项向客户解释
+本草稿的 START → WORK → VERIFY → END、handoff 和 gate，再用 company Jarvis、repo-local
+skills 以及客户真实 issue、分支、review、test、release policy 替换其中的通用假设。
+
+只有至少一个客户真实或等价受控 bugfix case 已验证 route、patch、verification 和 closure，
+并由客户确认流程可用后，才把本节改为 `active`，同时把 frontmatter description 改成真实
+触发条件。`draft-template` 期间只能用于 workflow onboarding，不能执行生产 bugfix。
 
 ## 执行规则
 

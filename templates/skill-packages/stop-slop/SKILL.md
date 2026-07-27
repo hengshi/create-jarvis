@@ -1,5 +1,5 @@
 ---
-name: {{SKILL_NAME}}
+name: stop-slop
 description: 起草、编辑或审阅面向人的文字时使用，删除可预测的 AI 写作痕迹，让表达直接、具体并符合真实读者场景。
 ---
 

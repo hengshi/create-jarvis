@@ -1,79 +1,112 @@
 ---
 name: create-jarvis-skill
-description: Agent-native instruction set for building or continuing a customer-owned company Jarvis repo after jarvis-box or a supported container has prepared the runtime. Use when a customer asks an authenticated Codex, Claude, or other runtime agent to discover the authorized company ecosystem, create company/repo-local skills, run pilot/history calibration, or resume from bootstrap state.
+description: Prepare, construct, publish, activate, and evolve a customer-owned Jarvis with the customer's authenticated runtime agent. Use when a customer wants to inventory authorized company artifacts, build and publish a company Jarvis repo to customer-selected GitHub or GitLab, learn repo-local skills from real repository history, reconcile company and repo knowledge, customize workflows, or improve Jarvis from real delivery evidence. The default entry prepares two independent long-running construction tasks; it does not run the whole build in one session.
 ---
 
 # Create JARVIS Skill
 
-jarvis-box install 或受支持的 container 应已经准备好 runtime、可写 workspace 和 agent CLI；客户完成所选 agent 的登录。本 skill 不负责安装，但 Phase 3/5 必须验证这些能力和 UID/GID 权限合同，不能把安装缺口当成客户操作问题。
+本 skill 使用一个极简的 `1 + 2` 运行模型：
 
-本 skill 的任务只有一个：当前 runtime agent 直接按 `playbooks/phase-checklist.md` 从 Phase 3 到 Phase 14 逐项执行，生成客户自己的 company Jarvis 生态。入口 prompt 见 `playbooks/prompts/agent-native-bootstrap.md`；不需要 bootstrap 表单命令。
+1. 当前客户 runtime agent 只负责准备：检查环境、收集已授权构件的路径与访问状态，并写出两个自包含任务文件。
+2. Company Jarvis construction agent 读取其中一份任务，构建并发布客户自己的 company Jarvis repo，并安装三套待客户定制的 workflow 草稿。
+3. Repository learning agent 读取另一份任务，逐个进入客户代码仓库，通过真实历史 episode 的 eval loop 生成或改进 repo-local skills。
 
-## 必读顺序
+这三个角色不能混成一个长会话。准备 Agent 写完任务包和两条启动命令后就停止；两个执行 Agent 可以分别运行数小时或过夜。
 
-1. `GOAL.md`
-2. `acceptance.md`
-3. `playbooks/phase-checklist.md`
-4. 当前 phase 详情：`playbooks/phases/phase-*.md`
-5. 需要执行专门任务时读取 `playbooks/prompts/`
-6. 需要生成文件时读取 `templates/`
+`1 + 2` 是初次构建的并发方式，不是完整成熟路径。完整路径是：Preparation → Company construction + Repository learning → 1+2 reconciliation → Workflow construction → Shadow delivery → Active Jarvis → 持续进化。进入任一角色前先读 `playbooks/customer-jarvis-growth-loop.md` 中对应步骤。
 
-## 模板分类
+## 先判断当前角色
 
-| 模板 | 用途 |
-|---|---|
-| `templates/company-jarvis/` | company JARVIS 仓库母版（repo/module/source/artifacts） |
-| `templates/repo-local-skill/` | repo-local skill canonical package 母版 |
-| `templates/skill-packages/` | 默认方法/workflow 母版与通用扩展母版 |
-| `templates/replay/` | history replay 产物模板 |
+- 客户说“为我们构建 Jarvis”，且当前目录没有专门的 `RUN-*.md` 任务：进入 **Preparation**。
+- 当前请求明确要求读取 `RUN-COMPANY-JARVIS-CONSTRUCTION.md`：只执行 **Company Jarvis construction**。
+- 当前请求明确要求读取 `RUN-REPOSITORY-LEARNING.md`：只执行 **Repository learning**。
+- 客户要求讲解、定制或启用 bugfix/feature workflow，且 company Jarvis 与 repo-local skills 已存在：进入 **Workflow onboarding**。
+- 客户正在用已定制 workflow 处理真实任务，或要求继续提升已上岗 Jarvis：进入 **Shadow delivery / Evidence-driven evolution**。
 
-## Phase 7/8/9 确定性脚本
+不要因为看到了两个任务文件就在同一个 Agent 中顺序执行它们。
 
-- **Phase 7**：`scripts/instantiate_company_jarvis.py base/module/source --state <bootstrap-state.json>`；`base` 同时安装默认四个方法 skill 和三个 slot 化 workflow 母版
-- **Phase 8**：`scripts/instantiate_repo_local_skill.py --repo <repo路径>`
-- **Phase 9**：定制默认 workflow；额外能力使用 `package --kind <generic-source|generic-workflow> --name <slot前缀技能名>`
-- **验证**：`scripts/verify_bootstrap_output.py --jarvis-home <目标目录>`
+## Preparation
 
-## 执行规则
+按以下顺序读取：
 
-- 从 Phase 3 开始；Phase 0-2 属于 jarvis-box/install image，不在本仓库重复实现。Phase 3 由客户已经打开的 runtime agent 直接进入，不等待另一层 CLI handoff。
-- 当前 agent 是 bootstrap 协调者。需要并发时自行派发 bounded lanes；并发不可用时顺序执行并通过 state 恢复，禁止要求客户新开 session、复制 prompt 或转发 agent 结果。
-- 先探测 live runtime、授权 source 和 VCS metadata，再询问无法安全推导的身份冲突、权限和不可逆写入审批。不要把所有 phase 字段变成首轮表单。
-- bootstrap workspace、customer checkout 和 target 必须对 selected agent 的有效 UID/GID 可读写；service-private state 与 agent-owned workspace 分离。权限不成立时把 exact blocker 归给 jarvis-box install/image，禁止用盲目提权或 world-writable 目录掩盖。
-- 每次按 checklist 推进，当前 phase 在执行/checkpoint 中写 `in-progress`，收口时写 `completed`、`needs-input`、`blocked` 或 `failed`；显式 full-range history 未到 cursor 边界时不能伪装成终态。
-- 先从授权 repo/source、Git/VCS metadata、文档、issues/MRs、测试与运行证据中寻找答案；只有可访问证据已穷尽后，才为仍缺失的客户事实、权限、owner、scope 或 writeback policy 向人请求输入。
-- company identity、客户确认的 product identity、source-detected product/brand identity 必须分开记录；未确认前不要混写成一个已确认主体。
-- 业务 modules 必须来自客户授权的 docs、repos、tests、issues/MRs、wiki 或 owner 确认。
-- 不把 `backend`、`frontend`、`api`、`database`、`infra` 这类工程层当作主要业务 module。
-- repo execution truth 留在 repo-local skills；company Jarvis 只做入口、路由、workflow 编排和 writeback 判断。
-- repo-local skill 复用已有内容时也必须补齐 canonical package 固定文件；`precheck.sh` 必须自包含，不能依赖 reference company 或操作员机器的私有路径、脚本和维护命令。
-- source skill 只写访问、路由、引用和边界，不复制 source 原文。
-- company Jarvis repo 必须采用 `hengshi-jarvis` 形态：`modules/`、`sources/`、`cross-cutting/`、`references/`、`skills/`、`tools/`、`evals/`；不要创建顶层 `repos/`、`workflows/`、`pilot/`、`writeback/`、`rollout/`、`scheduled-jobs/` 作为主结构。
-- 已由客户/operator 确认的 module/source 名称必须逐字节保留为目录名，包括大小写；例如 `HQL` 必须是 `modules/HQL/`，不能被 agent 改成 `modules/hql/`。workflow 的 `<name>` 部分保持原样，并按公司命名合同生成 `<slot>-workflow-<name>`。
-- Git 仓库名和 company entry skill 均为 `<slot>-jarvis`；entry 的 canonical 位置是 `skills/<slot>-jarvis/SKILL.md`。
-- 通用方法 skill 固定为 `ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop`，不加 slot 前缀。
-- 默认客户工作流固定为 `<slot>-workflow-issue-post-check`、`<slot>-workflow-bugfix-loop`、`<slot>-workflow-feature-delivery`，Phase 9 必须依据客户事实完成初次定制。
-- company 自有 source/tool skill 命名为 `<slot>-<name>`；repo-local skills 留在各代码仓库，不加 slot 前缀。
-- skill 扩展前先判断 `no_skill_gap`。
-- Phase 12 历史回放不能默认等待人工 episode；pilot repo 有 Git 历史时，必须用轻量 cursor 逐组执行 `commit group → eval case → replay → oracle comparison → skill-creator decision → same-case rerun`。不得先把整个时间范围全量分类，也不得创建 eval-loop skill。没有 isolated replay agent 只阻塞 replay 执行，不阻塞 case 文件创建。候选清单不是合格产物；有候选但没有 `evals/history-replay/cases/<case-id>/history-replay-case.md` 时，Phase 12 是执行失败，不是合格 `needs-input`。
-- `bootstrap-result.json` 只报告 runtime 状态、路径、缺口和下一步，不输出复杂分层字段；其中 `missing_inputs`、`blockers`、`conflicting_inputs`、`unresolved_questions` 必须是字符串数组。
-- `bootstrap-result.json.paths` 只能是 string map，不能包含数组或对象；多个文件路径写入 `created_files` 字符串数组或 report 文件。
-- `bootstrap-result.json` 和 `bootstrap-state.json` 必须写在 company Jarvis repo 根目录，`_bootstrap/` 只能保存审计副本和过程证据。
+1. `playbooks/customer-jarvis-growth-loop.md`
+2. `playbooks/one-plus-two-runtime-model.md`
+3. `playbooks/runtime-method-contract.md`
+4. `playbooks/prompts/preparation.md`
 
-## 完成标准
+Preparation 只做浅层、可验证的构件盘点，不做深度业务提炼或历史学习。它在 agent-owned workspace 中创建：
 
-`completed` 只允许在产物满足 `acceptance.md` 时写出。最低要求：
+```text
+jarvis-build/
+├── BUILD-CONTEXT.md
+├── RUN-COMPANY-JARVIS-CONSTRUCTION.md
+├── RUN-REPOSITORY-LEARNING.md
+└── START-HERE.md
+```
 
-- company Jarvis repo 有有效 company entry skill；
-- company entry skill 位于 `skills/<slot>-jarvis/SKILL.md`，并且仓库骨架接近 `hengshi-jarvis`；
-- 默认四个通用方法 skill 和三个 slot 化 workflow 均存在；
-- company identity、confirmed product identity、source-detected identity 的边界清楚；
-- company entry 能把真实 artifact 路由到 module、workflow、source 或 repo-local skill；
-- 有证据驱动的客户产品/业务 module 拓扑；
-- first workflow 有 START → WORK → VERIFY → END；
-- pilot repos 有 repo-local skill package 或明确 blocker；
-- `sources/`、`references/jarvis-first-routing.md`、workflow skills 和 repo-local handoff 有 role、owner、状态、证据和缺口；
-- 影子试跑、历史回放、受控写回和第二天运营有固定产物路径，或明确写出 `needs-input` / blocker；
-- 没有 secret、私有 reference company 事实、raw source dump。
+`BUILD-CONTEXT.md` 必须同时记录客户选择的 GitHub/GitLab、host、owner/namespace、`<company-slug>-jarvis` repo、visibility、default branch、远端是否已存在、当前授权与发布方式。客户未明确说出平台时，只能在现场证据唯一时自动确定；GitHub/GitLab 或 namespace 有歧义就问一个最小问题，不能凭当前登录账号猜。
 
-如果产物不像客户自己的 company Jarvis 生态，不要写 `completed`；返回 `needs-input`、`blocked` 或 `failed`，并说明需要补哪一个 phase/checklist 项。
+`START-HERE.md` 必须包含适配当前已登录 agent 的两条可直接执行命令，不能保留路径占位符。最终只把这两个命令、任务目录和确有必要的发布 blocker 告诉客户。
+
+不创建 `bootstrap-state.json`、`bootstrap-result.json` 或 `jarvis.toml`。进程、session、heartbeat 和 retry 由 runtime/jarvis-box 负责。
+
+## Company Jarvis construction
+
+只读取：
+
+1. `BUILD-CONTEXT.md`
+2. `RUN-COMPANY-JARVIS-CONSTRUCTION.md`
+3. `playbooks/customer-jarvis-growth-loop.md`
+4. `playbooks/prompts/company-jarvis-construction.md`
+5. Company construction 明确引用的模板与 playbook
+
+它只写 company Jarvis target、客户确认的 GitHub/GitLab company repo、任务目录中的 `COMPANY-JARVIS-PROGRESS.md` 和确有并发扫描需要的 task-local evidence packet，把客户代码仓库视为只读证据。它不能顺手创建或修改 repo-local skills。
+
+Company construction 对 `BUILD-CONTEXT.md` 声明的授权范围持续做 capability/source/repo coverage：从产品证据建立 taxonomy，对每个 candidate 做 include/merge/defer/reject，对 included capability 闭合产品、实现与验证证据，再建立 source routes、repo fleet、capability surfaces、cross-cutting 和 company entry。它不能用固定运行时长或几个示例 module 提前结束，也不能用 Repository learning 的 eval loop 替代公司级语义构建。
+
+完成结构与语义验证后才发布。全新或确认为空的远端可以建立初始历史并推送默认分支；已有历史的远端必须保留历史，在独立分支提交并创建 GitHub PR 或 GitLab MR，不能 force-push、覆盖或自动合并。只有本地目录不算 Company construction 完成；等待客户 review 时应明确标为 `ready-for-review`，不能冒充已经进入默认分支。
+
+预装的 issue post-check、bugfix 和 feature-delivery workflow 是 `draft-template`，只用于后续向客户讲解和共同改造。它们没有经过客户真实流程验证前，不能作为已经可上岗的 workflow。
+
+## Repository learning
+
+只读取：
+
+1. `BUILD-CONTEXT.md`
+2. `RUN-REPOSITORY-LEARNING.md`
+3. `playbooks/customer-jarvis-growth-loop.md`
+4. `playbooks/prompts/repository-learning.md`
+5. 当前 episode 需要的 `templates/replay/`
+
+它只写客户代码仓库中经 eval loop 验证的 repo-local skill delta，以及任务目录里的 `REPOSITORY-LEARNING-PROGRESS.md` 和 replay 证据。它不能修改 company Jarvis repo。
+
+一个 Repository learning agent 可以处理任意数量的 repo。所有 repo 共用一个进度文档；每个 repo 只是其中一行和必要的当前 episode 记录，不建立 per-repo 状态机。
+
+历史范围由客户选择，可以是最近一年、最近两年、全部可达历史或自定义日期/ref。Agent 必须遍历该范围并读取 commit 的实际 code changes；commit message 只能用于导航，不能代表已经理解 bugfix/feature。
+
+## 1+2 完成后：Workflow onboarding
+
+当 company Jarvis 与 Repository learning 都完成或达到客户同意的可用边界后，先执行 **1+2 reconciliation**：读取两份 progress 和每个 repo 的真实 repo-local entry，把 company routing 中的 `pending Repository learning` 替换为可解析 pointer，并重跑 company → repo-local routing probes。然后使用预装 workflow 草稿向客户讲解闭环，并结合客户真实的 issue/source、角色分工、repo-local skills、测试、review、发布与验收方式逐项改造。
+
+只有 workflow 已替换模板假设、能路由到真实 company/repo 入口，并在客户真实 bugfix/feature case 上通过验证后，才能把正文状态从 `draft-template` 改为 `active`。这是 Jarvis 数字员工正式上岗的门槛，不是 `1+2` 的隐藏子步骤。
+
+开始 onboarding 时先读 company Jarvis、`COMPANY-JARVIS-PROGRESS.md`、`REPOSITORY-LEARNING-PROGRESS.md` 和各 repo 最终 skill delta。若任一必要 route/repo skill 仍 blocked，可以继续讲解和记录客户事实，但不能激活依赖它的 workflow。通过对话引导客户确认，不生成第三套状态机或固定问卷。
+
+## Shadow delivery 与持续进化
+
+workflow 通过首个客户 case 后进入 shadow delivery，不因状态改成 `active` 就停止方法指导。按 `playbooks/customer-jarvis-growth-loop.md` 使用后续真实任务持续检查 routing、repo-local execution、verification、END 和客户口头补充；缺口写回唯一正确的 primary home 后重跑原 case 或相邻 case。
+
+稳定运行后，每次任务只在出现可复用且可验证的增量时更新 Jarvis。company capability/route、cross-cutting、source、repo-local skill 和 workflow 各自维护自己的事实；当前任务证据不直接升级成 durable rule。现有资产已足够时记录 `no_skill_gap`，不为了“持续进化”制造文件。
+
+## 不可协商边界
+
+- `BUILD-CONTEXT.md` 保存构件指针、访问状态、当前 revision 和写入策略，不复制代码、文档正文或凭据。
+- repo execution truth 留在对应代码仓库；company Jarvis 只保存公司级入口、语义、路由，以及从草稿定制并验证过的跨 repo workflow。
+- 预装 workflow 必须保持 `draft-template`，直到客户定制和真实案例验证完成；文件存在不等于可投入生产。
+- eval loop 是 Repository learning 的内部方法，不生成 `eval-loop` skill，也不向客户讲解。
+- commits 用于发现和还原 episode；commit message 分类不是 eval loop。
+- 只有 same-case replay 证明改善后才保留 skill delta；没有可复用缺口时记录 `no_skill_gap`。
+- 不覆盖客户未提交改动，不越过 `BUILD-CONTEXT.md` 记录的 write policy。
+- Company Jarvis 的正式交付必须发布到客户确认的 GitHub 或 GitLab；不能根据安装了哪个 CLI、当前登录账号或现有代码仓库 owner 擅自选择平台与 namespace。
+- 新 company repo 默认 private，除非客户明确选择其他 visibility；已有远端必须保留历史并遵守 branch/review policy。
+- 需要恢复时，重新执行同一条命令；Agent 先读对应 progress 文件再继续。

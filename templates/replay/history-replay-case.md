@@ -1,16 +1,21 @@
 # 历史重放 Case
 
-> **Outer case**——包含 hidden oracle，不能挂给 replay agent。本文件与被测 skills、replay agent 之间必须有独立的可读边界。本文件只能由外层 bootstrap agent 读。
+> **Outer case**——包含 hidden oracle，不能提供给 replay agent。本文件与被测 skills、replay agent 之间必须有独立的可读边界。本文件只能由外层 Repository learning agent 读。
 
 ## Case Identity
 
 - **Case ID**: `<case-id>`
-- **Source episode type**: `commit` / `MR` / `issue` / `incident` / `support-ticket` / `task`
-- **Source episode pointer**: `<commit / MR / issue / incident URL 或 redacted pointer>`
-- **Group commits**: `<ordered commit list or artifact pointers>`
-- **Cursor seed**: `<commit selected before group expansion>`
-- **Cursor after group**: `<next commit in the requested traversal after advancing from the seed; non-contiguous group members do not move this implicitly>`
-- **Preconsumed commits**: `<non-seed commits consumed by this group and skipped if encountered later>`
+- **Episode type**: `issue-to-outcome` / `feature-request-to-delivery` / `incident-to-resolution` / `support-case-to-resolution` / `review-to-disposition` / `task-to-outcome` / `reconstructed-problem-to-outcome`
+- **Original problem pointer**: `<issue / request / incident / support / review / task；Git-only 时为 reconstructed START provenance>`
+- **Original work goal / problem**: `<cutoff 前存在的原始任务、需求或问题 pointer>`
+- **Outcome pointer**: `<cutoff 后可验证的 final disposition / MR / commit / delivery pointer>`
+- **Episode evidence**: `<issue / ticket / MR / review / CI / test / delivery pointers>`
+- **Group commits**: `<Git episode 的 ordered commit evidence；非 Git episode 写 not-applicable>`
+- **Code-change inspection**: `<逐 commit patch/changed-code 读取证据 pointer；不能只填 message 或 stat>`
+- **Range coverage disposition**: `<这些 commits 是 episode seed / supporting / preconsumed / code-read exclusion>`
+- **Cursor seed**: `<source artifact/commit selected for discovery>`
+- **Cursor after episode**: `<next pointer in the requested traversal; non-contiguous evidence does not move this implicitly>`
+- **Preconsumed commits**: `<non-seed Git evidence skipped if encountered later；非 Git episode 写 not-applicable>`
 - **Calibration skill ref before**: `<authoritative-derived or cumulative snapshot ref>`
 - **Calibration skill ref after**: `<same ref for no-update, or promoted cumulative ref>`
 - **Repo**: `<repo name or source>`
@@ -23,11 +28,16 @@
 
 - **Selection source**: `git-history` / `pilot` / `issue` / `MR` / `incident` / `ticket` / `task`
 - **实际搜索命令**: `<exact command, e.g. git log / git show>`
-- **选中理由**: <bugfix / regression / test / routing / verification / writeback signal>
+- **实际 code-read 命令/证据**: `<读取 patch、parent/final code、tests 的命令和输出 pointer>`
+- **选中理由**: <为什么这是与当前 workflow/repo skill 相关的完整真实工作 episode>
 - **为什么可执行**: <目标明确、初始信号足够、outcome 可验证、START/oracle 可分离>
 - **搜索边界**: <时间或提交范围>
 - **候选排除理由**: <why other candidates were excluded>
-- **分组证据**: <same issue/MR key / consecutive topic / high-signal file overlap / follow-up cleanup / tests-verification>
+- **Episode 边界证据**: <原始任务如何关联到 MR/commits/review/CI/test/final disposition>
+
+`commit`、`commit-group` 和 `MR` 不能作为 episode type。它们是发现 seed、过程容器或 outcome
+evidence；即使 episode 最终只有一个 fix commit，也必须写清“原始问题 → 可验证 outcome”的
+边界，Git-only 重建使用 `reconstructed-problem-to-outcome`。
 
 ## Visible START State
 
@@ -47,7 +57,7 @@
 
 ### Current Skills
 
-被测对象是当前 calibration baseline 的 company / repo-local / source / workflow skills，不回退成历史 skill。第一组从 authoritative snapshot 派生；后续组使用 registry 的累计 ref。历史 repo/source snapshot 冻结在 cutoff。
+被测对象是当前 repo 的 repo-local skills；runtime 方法 skill 只作为执行工具，不是本 case 的写回目标。第一个 episode 从 authoritative snapshot 派生，后续 episode 使用已验证的累计 ref。历史 repo snapshot 冻结在 cutoff。
 
 | Skill | Version / Pointer | Expected Role |
 |---|---|---|
@@ -82,21 +92,20 @@ episode 是否曾直接影响当前 skill 的内容：
 
 ## Isolation Mount Allowlist
 
-- **Visible packet dir**: `_bootstrap/history-replay-runs/<case-id>/visible-packet/`
-- **Replay agent CLI checks**: `_bootstrap/history-replay-runs/<case-id>/replay-agent-cli-checks.md`
+- **Visible packet dir**: `<replay-workspace>/<case-id>/visible-packet/`
+- **Replay agent CLI checks**: `<replay-workspace>/<case-id>/replay-agent-cli-checks.md`
 - **Replay worktree / snapshot**: `<parent commit worktree or allowed read-only repo pointer>`
 - **Mount allowlist**:
   - `visible-packet/`（只含 replay prompt、allowed sources/repos、skill entrypoints、cutoff snapshot pointer）
   - cutoff snapshot
-  - 裁剪后的当前 company Jarvis runtime
-  - 必要 repo-local skills
+  - 当前 repo-local skills
   - 独立输出目录
 - **禁止挂载**:
   - 本 outer case 文件
   - `replay-failure-analysis.md`
   - `skill-update-decision.md`
   - Hidden oracle artifacts
-  - Bootstrap transcript / 已有 failure analysis
+  - Repository learning transcript / 已有 failure analysis
   - 未来 Git refs
 
 ## Hidden Outcome Oracle
@@ -108,6 +117,7 @@ episode 是否曾直接影响当前 skill 的内容：
 - **Actual changed surfaces**: `<files, modules, docs, workflows——完整列表>`
 - **Final artifact extraction command / pointer**: `<读取完整 final diff 或等价 outcome artifact 的 exact command/pointer>`
 - **Final artifact fully read**: `yes` / `no`
+- **Relevant code changes fully understood**: `yes` / `no`（必须读实际 patch 与必要上下文，message/stat 不足）
 - **Documented root cause**: `<历史材料明确记录的 root cause；未记录写 unknown>`
 - **Actual verification evidence**: `<checks, review, CI, manual proof>`
 - **Historical verification status**: `verified` / `partial` / `unknown`
@@ -128,7 +138,7 @@ episode 是否曾直接影响当前 skill 的内容：
 
 ## Case Readiness Gate
 
-> 在调用 replay bridge 前由外层 agent 完成。
+> 在调用隔离 replay runtime 前由外层 Repository learning agent 完成。
 
 - **Visible fact 表完整**: `yes` / `no`
 - **Packet Fact Closure 表完整**（每条 visible-packet 事实可回指 Fact ID）: `yes` / `no`

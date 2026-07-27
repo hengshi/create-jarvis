@@ -1,5 +1,5 @@
 ---
-name: {{SKILL_NAME}}
+name: writing-durable-docs
 description: 写或修改 README、API 文档、workflow skill、source route、产品说明等耐久文档时使用，确保正文脱离当前聊天、issue、review 和分支上下文后仍然成立。
 ---
 
@@ -15,7 +15,7 @@ description: 写或修改 README、API 文档、workflow skill、source route、
 
 ## START
 
-先读 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md` 和 `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`，再确认：
+先从当前已加载的 company entry 定位 active company Jarvis root，再读其中的 `references/runtime-governance-quick.md` 和 `references/agent-engineering-quality-gate.md`，然后确认：
 
 - canonical target source 和写权限
 - 没看过当前会话的长期读者
@@ -37,8 +37,8 @@ description: 写或修改 README、API 文档、workflow skill、source route、
 
 按需读取：
 
-- `{{COMPANY_SLUG}}-jarvis/references/redaction-rules.md`
-- `{{COMPANY_SLUG}}-jarvis/references/writeback-governance.md`
+- active company Jarvis 的 `references/redaction-rules.md`
+- active company Jarvis 的 `references/writeback-governance.md`
 
 ## VERIFY
 
@@ -54,5 +54,5 @@ description: 写或修改 README、API 文档、workflow skill、source route、
 
 - 按 source route 和权限交付，实际写回后才声称完成。
 - 记录 target、evidence 和未解决项。
-- 判断是否需要 repo-local 或 {{COMPANY_NAME}} Jarvis writeback。
+- 判断是否需要 repo-local 或 active company Jarvis writeback。
 - 普通文档编辑不制造 `no_skill_gap`。

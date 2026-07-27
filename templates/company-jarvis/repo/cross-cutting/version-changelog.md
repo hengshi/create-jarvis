@@ -9,10 +9,10 @@
 
 | 字段 | 值 |
 |------|-----|
-| Source of truth | BOOTSTRAP_REQUIRED — Phase 7 根据客户实际版本管理方式配置 |
-| 访问/检索方式 | BOOTSTRAP_REQUIRED |
-| 产品/范围 | BOOTSTRAP_REQUIRED |
-| 状态 | BOOTSTRAP_REQUIRED |
+| Source of truth | UNRESOLVED — runtime agent 根据客户实际版本管理方式配置 |
+| 访问/检索方式 | UNRESOLVED |
+| 产品/范围 | UNRESOLVED |
+| 状态 | UNRESOLVED |
 
 若客户经 evidence 确认无版本管理实践，在此记录 `not-applicable` 及证据来源，不虚构版本基础设施。
 
@@ -24,13 +24,13 @@
 
 | 版本 identity | Source pointer | 受影响 modules / delivery surfaces | 状态 |
 |-------------|---------------|---------------------------|----|
-| （bootstrap 尚未登记任何版本线） | — | — | — |
+| （初次构建尚未登记任何版本线） | — | — | — |
 
 ### 历史版本
 
 | 版本 identity | Source pointer | 受影响 modules / delivery surfaces | 状态 |
 |-------------|---------------|---------------------------|----|
-| （bootstrap 尚未登记任何历史版本） | — | — | — |
+| （初次构建尚未登记任何历史版本） | — | — | — |
 
 **字段说明**：
 

@@ -34,13 +34,17 @@
 - **Evidence type**: `<final-diff / final-artifact / review-decision / api-response / 其他>`
 - **Exact command or artifact pointer**: `<读取完整历史 outcome 的 exact command/pointer，脱敏>`
 - **确认已完整读取**: `yes` / `no`
+- **Actual code changes fully read**: `yes` / `no` / `not-applicable`
+- **Patch / surrounding-code evidence**: `<pointer>`
 - **Documented root cause**: `<历史材料明确记录的 root cause；未记录写 unknown>`
 - **Historical verification status**: `verified` / `partial` / `unknown`
 - **Complete changed surfaces / outcome artifacts**: `<完整列表或 pointer>`
 
 ## Oracle Comparison
 
-> Oracle comparison 必须由外层 bootstrap agent 读取完整 hidden oracle 后执行。replay agent 不自评 oracle。
+> Oracle comparison 必须由外层 Repository learning agent 读取完整 hidden oracle 后执行。replay agent 不自评 oracle。
+
+> 代码 episode 的实际 code changes 未读完时，本 case 只能标记 `not-evaluated`，不能判断 skill gap。
 
 **读取完整 hidden oracle 确认**: `yes` / `no`
 
@@ -104,8 +108,8 @@
 
 ## Candidate Fact Correction / Method Gap / Primary Home
 
-给 Phase 13 的候选：
+候选写回位置：
 
 | Home | Candidate Update | Type | Pros | Risks |
 |---|---|---|---|---|
-| `repo-local` / `company-jarvis` / `source-skill` / `workflow-skill` / `upstream` / `none` | `<update>` | stable-fact / method-gap | | |
+| `repo-local` / `upstream-method` / `task-local` / `none` | `<update>` | stable-fact / method-gap | | |

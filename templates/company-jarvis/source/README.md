@@ -5,44 +5,44 @@
 ## Identity
 
 - **名称**: `{{SOURCE_NAME}}`
-- **类型**: `BOOTSTRAP_REQUIRED`
-- **Owner**: `BOOTSTRAP_REQUIRED`
+- **类型**: `UNRESOLVED`
+- **Owner**: `UNRESOLVED`
 
 ## Access
 
-- **Access 状态**: `BOOTSTRAP_REQUIRED`
-- **Host**: `BOOTSTRAP_REQUIRED`（没有 host 的 source 写 `not-applicable`）
-- **Location**: `BOOTSTRAP_REQUIRED`
-- **Project / Repo 路径**: `BOOTSTRAP_REQUIRED`
-- **默认分支**: `BOOTSTRAP_REQUIRED`（非 Git source 写 `not-applicable`）
-- **认证入口**: `BOOTSTRAP_REQUIRED`（只记录登录入口或凭据类型，不记录凭据值）
+- **Access 状态**: `UNRESOLVED`
+- **Host**: `UNRESOLVED`（没有 host 的 source 写 `not-applicable`）
+- **Location**: `UNRESOLVED`
+- **Project / Repo 路径**: `UNRESOLVED`
+- **默认分支**: `UNRESOLVED`（非 Git source 写 `not-applicable`）
+- **认证入口**: `UNRESOLVED`（只记录登录入口或凭据类型，不记录凭据值）
 
 ## Retrieval
 
-- **精确检索命令**: `BOOTSTRAP_REQUIRED`
-- **Evidence pointer**: `BOOTSTRAP_REQUIRED`
-- **Evidence version**: `BOOTSTRAP_REQUIRED`（commit、文档版本或观测时间，按 source 类型选择）
+- **精确检索命令**: `UNRESOLVED`
+- **Evidence pointer**: `UNRESOLVED`
+- **Evidence version**: `UNRESOLVED`（commit、文档版本或观测时间，按 source 类型选择）
 
 ## Redaction
 
-- **Source-specific redaction**: `BOOTSTRAP_REQUIRED`（没有额外约束时写 `none-observed`；凭据值、secret 和 PII 始终不写入）
+- **Source-specific redaction**: `UNRESOLVED`（没有额外约束时写 `none-observed`；凭据值、secret 和 PII 始终不写入）
 
 ## Writeback
 
-- **可回写范围**: `BOOTSTRAP_REQUIRED`
-- **禁止回写**: `BOOTSTRAP_REQUIRED`
+- **可回写范围**: `UNRESOLVED`
+- **禁止回写**: `UNRESOLVED`
 - **回写治理引用**: `../../references/writeback-governance.md`
 
 ## Blocking & Recovery
 
-- **Route 状态**: `BOOTSTRAP_REQUIRED`
-- **阻塞条件 / 缺失输入**: `BOOTSTRAP_REQUIRED`（active route 写 `not-applicable`）
-- **恢复条件**: `BOOTSTRAP_REQUIRED`
-- **是否阻塞 first workflow**: `BOOTSTRAP_REQUIRED`
-- **依赖的其他 source**: `BOOTSTRAP_REQUIRED`
+- **Route 状态**: `UNRESOLVED`
+- **阻塞条件 / 缺失输入**: `UNRESOLVED`（active route 写 `not-applicable`）
+- **恢复条件**: `UNRESOLVED`
+- **是否阻塞初始 routing / capability coverage**: `UNRESOLVED`
+- **依赖的其他 source**: `UNRESOLVED`
 
-## Phase 7 替换规则
+## Construction 填写规则
 
-- **可访问 source**：Phase 7 必须读取 source 并将所有临时占位替换为实际值；检索命令必须可直接执行，不得写省略号或伪命令。
-- **不可访问 source**：将状态字段写为实际 deferred/blocked 状态，注明缺失输入、恢复条件和是否阻塞 first workflow，不保留临时占位。
+- **可访问 source**：construction agent 必须读取 source 并将所有临时占位替换为实际值；检索命令必须可直接执行，不得写省略号或伪命令。
+- **不可访问 source**：将状态字段写为实际 deferred/blocked 状态，注明缺失输入、恢复条件和是否阻塞初始 routing/capability coverage，不保留临时占位。
 - 不适用的字段写 `not-applicable`，搜索后仍未知的字段写 `unresolved` 并附已检查证据；不要为填满表格而编造。

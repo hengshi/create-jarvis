@@ -11,7 +11,7 @@ jarvis-box 是 agent 任务的运行时环境。产品负责：
 - **service 管理**：启停、健康检查、日志。
 - **agent 路由**：当前 agent 的选择、启用、排序和诊断。
 - **Task/Run 管理**（仅受管任务）：Task 生命周期、Run 证据、事件审计。
-- **bootstrap handoff**：安装后的初始化信息传递。
+- **construction handoff**：安装后的构建任务信息传递。
 - **day-2 诊断**：`doctor`、`monitor`、`logs`、`tasks verify/diagnose/reconcile`。
 - **install-owned maintenance**：由当前 release 和 host scheduler 托管的 runtime sync、Jarvis maintenance、session self-improvement、Task workspace cleanup。
 
@@ -48,13 +48,13 @@ Task 只有 `start`、`continue`、`stop`、`recover`、`retry-writeback` 五个
 
 当前 CLI 和 `--help` 是 command shape 的权威。install-owned managed jobs 的权威来自当前 release 文档/安装产物、host scheduler、`/server` crons 和 job logs。company Jarvis 不重新实现这些能力。
 
-Company Jarvis bootstrap 由用户在已登录 runtime agent 中直接启动；agent 使用 create-jarvis-skill 和根目录 `bootstrap-state.json` 开始或继续。它不是 Task continue/recover，也不复用旧 Run。
+Company Jarvis 初次构建使用 create-jarvis-skill 的 1+2 handoff：Preparation agent 写两个任务，两个执行 Agent 分别从各自 progress 开始或继续。company repo 本身不保存 construction 状态机。
 
-jarvis-box/install image 应提供 runtime agent CLI、可写 agent workspace 和正确 UID/GID/volume mapping，但不保存 agent vendor 登录凭据。Phase 3 继续之前，至少一个 agent CLI 必须已由用户完成认证并通过受控 prompt probe。
+jarvis-box/install image 应提供 runtime agent CLI、可写 agent workspace 和正确 UID/GID/volume mapping，但不保存 agent vendor 登录凭据。语义构建开始前，至少一个 agent CLI 必须已由用户完成认证并通过受控 prompt probe。
 
 ## 环境变量
 
-以下变量由 jarvis-box 管理，值从当前环境、`bootstrap-state`、`init` 或 `status` 的 live 输出获取，不猜公司名或路径：
+以下变量由 jarvis-box 管理，值从当前环境、`init` 或 `status` 的 live 输出获取，不从 company repo 猜测：
 
 - `JARVIS_RUNTIME_ROOT`
 - `JARVIS_ENV_FILE`

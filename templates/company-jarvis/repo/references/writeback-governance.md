@@ -5,7 +5,7 @@ description: 确定 learning signal 是否应持久化、写入何处、以何�
 
 # 写回治理
 
-写回处理 pilot、history replay 和真实任务产生的学习信号。只有可复用、有证据、可验证且归属明确的内容，才能进入持久知识或 skill；其余内容留在任务记录或等待确认。
+写回处理真实任务和客户确认产生的学习信号。只有可复用、有证据、可验证且归属明确的内容，才能进入持久知识或 skill；其余内容留在任务记录或等待确认。
 
 稳定事实修正与 skill 规则扩展是两类动作：
 
@@ -26,7 +26,7 @@ description: 确定 learning signal 是否应持久化、写入何处、以何�
 skill 更新必须同时满足：
 
 - 存在现有 skill 无法覆盖的可复用缺口
-- 有具体证据（任务记录、replay 结果、真实 outcome）支持
+- 有具体证据（任务记录、真实 outcome）支持
 - 可以通过未来的独立执行验证该规则是否有效
 - 归属明确（知道应写入哪个 primary home）
 
@@ -41,7 +41,7 @@ skill 更新必须同时满足：
 | 客户业务/产品事实、module 边界、跨 repo 路由、owner 映射 | company Jarvis module / reference |
 | 某个 source 的访问、检索、引用、新鲜度和脱敏边界 | source skill |
 | 跨 source、repo 或角色的 START -> WORK -> VERIFY -> END 闭环 | workflow skill |
-| 任意公司都需要的 bootstrap 阶段、产物和校准方法 | `create-jarvis-skill` |
+| 任意公司都需要的 construction 方法 | `create-jarvis-skill` |
 
 同一学习如果包含不同 owner 的内容，先拆成多条学习，每条只有一个主归属。
 
@@ -63,7 +63,7 @@ runtime agent 按以下步骤执行：
 
 ### 1. 固定学习信号
 
-记录触发任务或 replay、观察到的行为、证据 pointer、影响和当前不确定项。没有证据的猜测只留在 task-local。
+记录触发任务、观察到的行为、证据 pointer、影响和当前不确定项。没有证据的猜测只留在 task-local。
 
 ### 2. 区分事实与方法
 
@@ -85,7 +85,7 @@ runtime agent 按以下步骤执行：
   -> source skill
 学习涉及跨 source/repo 的闭环编排？
   -> workflow skill
-学习涉及公司中立的 bootstrap 方法？
+学习涉及公司中立的 construction 方法？
   -> create-jarvis-skill
 学习只对当前任务成立，或仍是未证实猜测？
   -> task-local，不进入持久 skill
@@ -101,7 +101,7 @@ runtime agent 按以下步骤执行：
 
 ### 6. 最小写入并验证
 
-只写能够闭合本次缺口的最小规则或事实；保留 provenance 和验证方式。使用原 replay case、等价真实任务或直接事实检查，证明写入有效。
+只写能够闭合本次缺口的最小规则或事实；保留 provenance 和验证方式。使用等价真实任务或直接事实检查，证明写入有效。
 
 ### 7. 检查镜像
 
@@ -111,7 +111,7 @@ runtime agent 按以下步骤执行：
 
 每次 writeback 决策记录以下信息（自由文本，不要求固定格式）：
 
-- 触发来源（任务 ID / replay case ID / pilot 标识）
+- 触发来源（任务或真实案例 pointer）
 - 学习是事实修正还是方法缺口
 - `no_skill_gap` 判断及证据
 - primary home 及写入位置

@@ -9,7 +9,6 @@
 - **公司**: {{COMPANY_NAME}}（`{{COMPANY_SLUG}}`）
 - **产品 / 业务范围**: {{PRODUCT_IDENTITY}}
 - **Owner**: {{COMPANY_OWNER}}
-- **运行时根**: {{RUNTIME_ROOT}}
 
 ## 职责面
 
@@ -24,13 +23,15 @@ JARVIS 提供四个可验证的职责面：
 
 ## 核心原则
 
-**workflow-first，不要先按仓库。** 根据 task 类型选择闭环工作流，不先猜测在哪个 repo 执行。
+**workflow-first when active，不要先按仓库。** 有已验证 workflow 时根据 task 类型选择闭环；尚未激活 workflow 时，仍可通过 module/source/first proof 做 construction/onboarding routing，但不能冒充生产闭环。
 
 **artifact-first。** 输入是 issue / MR / error / screenshot / URL / failing test 时，从 artifact 路由，不做无上下文全局搜索。
 
 **repo-local truth。** repo 内部工程执行方法留在 repo-local skills。JARVIS 只维护跨 repo 路由、模式和工作流综合。
 
 **source-of-truth。** 每个事实只有一个权威归属。source 内容留在 source，不复制到 JARVIS；模块知识通过 evidence pointer 引用原始来源。
+
+**knowledge layering。** `modules` 回答 what，`cross-cutting` 回答 why inspect next，repo-local 回答 where/how，task artifact 回答本次证明了什么。完整合同见 `references/knowledge-layer-contract.md`。
 
 ## 已确认范围（scope，不代表语义已确认）
 
@@ -46,6 +47,8 @@ JARVIS 提供四个可验证的职责面：
 
 {{WORKFLOW_INDEX}}
 
+上述预装 workflow 初始都只是 `draft-template`，不属于已验证生产范围。
+
 ### 仓库
 
 {{REPO_INDEX}}
@@ -58,7 +61,6 @@ JARVIS 提供四个可验证的职责面：
 {{COMPANY_SLUG}}-jarvis/
 ├── README.md
 ├── MAINTENANCE.md
-├── jarvis.toml
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── SKILL.md
@@ -69,8 +71,7 @@ JARVIS 提供四个可验证的职责面：
 ├── references/        ← 路由规则、质量门、写回治理等持久引用
 ├── skills/            ← entry skill + workflow skills + source-helper skills
 ├── tools/             ← 可复用工具和手动任务
-├── evals/             ← 评估用例与历史回放
-└── _bootstrap/        ← 引导期产物（discovery 证据、pilot 记录、回放运行），仅作 bootstrap/runtime 证据
+└── evals/             ← company workflow 的行为验证案例
 ```
 
 ## 技能分类
@@ -78,16 +79,20 @@ JARVIS 提供四个可验证的职责面：
 | 类别 | 位置 | 用途 |
 |---|---|---|
 | entry skill | `skills/{{COMPANY_SLUG}}-jarvis/SKILL.md` | 统一入口、闭环路由、收束 |
-| 通用方法 | `skills/ponytail/`、`writing-durable-docs/`、`jarvis-self-improve-skill/`、`stop-slop/` | 所有客户默认拥有的方法内核 |
+| 通用方法 | runtime agent discovery 中的 `skill-creator`、`ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` | container 安装一次，不复制到本 repo |
 | source/tool | `skills/{{COMPANY_SLUG}}-<name>/SKILL.md` | 帮助 agent 使用客户特定 source/tool |
 | workflow | `skills/{{COMPANY_SLUG}}-workflow-<name>/SKILL.md` | 跨 repo / 跨角色的客户闭环 |
 | repo-local skill | 各 repo 根 `skills/` canonical package | 单 repo 内工程执行方法 |
 
-默认 workflow：
+预装 workflow 草稿：
 
 - `skills/{{COMPANY_SLUG}}-workflow-issue-post-check/SKILL.md`
 - `skills/{{COMPANY_SLUG}}-workflow-bugfix-loop/SKILL.md`
 - `skills/{{COMPANY_SLUG}}-workflow-feature-delivery/SKILL.md`
+
+它们初始都必须保持 `draft-template`，用于 Agent 向客户讲解和共同改造，不能因为文件已存在
+就承接生产任务。结合 company routing 与 repo-local skills 完成客户定制，并通过真实 case
+后，才逐个改为 `active`。
 
 ## 强制预读
 

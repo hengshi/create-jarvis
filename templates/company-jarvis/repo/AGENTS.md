@@ -4,7 +4,7 @@
 - {{COMPANY_SLUG}}-jarvis 是 {{COMPANY_NAME}} 企业闭环统一入口，非单纯 repo router。
 - 任何 {{COMPANY_NAME}} 工作流开始前，必须先读 `references/runtime-governance-quick.md`。
 - Canonical entry skill: `skills/{{COMPANY_SLUG}}-jarvis/SKILL.md`
-- Workflow-first：按闭环选工作流，不先按仓库选。
+- Workflow-first when active：有已验证 workflow 时按闭环选择；尚无 active workflow 时只做 module/source/first-proof routing，不冒充生产闭环。
 - Artifact-first：有 issue / MR / error / screenshot / URL / failing test 时，从 artifact 路由。
 - Repo-local truth：repo 内工程执行方法留在 repo-local skills。
 - Redaction：不把源代码、密钥、私密信息复制进此 repo。

@@ -25,9 +25,11 @@ Session compact、handoff 后，后续 agent 重新执行本节 preflight 即可
 
 ## 3. 客户索引
 
-### 已确认工作流
+### Workflow 状态
 
 {{WORKFLOW_INDEX}}
+
+初始列出的 company workflows 均是 `draft-template`；只有后续客户定制并通过真实 case 的 workflow 才属于已确认可执行范围。
 
 ### 模块
 
@@ -49,7 +51,7 @@ Session compact、handoff 后，后续 agent 重新执行本节 preflight 即可
 
 Capability owner 可以是已确认的 product、source、process 或 repo owner，不预设必须是 repo。
 
-默认路由入口：
+预装 workflow 草稿：
 
 - 已建 issue/ticket 需要判断、去重或路由：`{{COMPANY_SLUG}}-workflow-issue-post-check`
 - 已确认 bug 需要修复：`{{COMPANY_SLUG}}-workflow-bugfix-loop`
@@ -57,21 +59,27 @@ Capability owner 可以是已确认的 product、source、process 或 repo owner
 - 进入代码或耐久文档实现前：按任务加载 `ponytail`、`writing-durable-docs` 或 `stop-slop`
 - 发现重复 agent failure 或 review pattern：`jarvis-self-improve-skill`
 
+前三个 company workflow 初始状态是 `draft-template`。路由前必须读取目标 skill 的模板状态：
+只有 `active` 才能承接真实任务；仍是 `draft-template` 时只进入客户 workflow onboarding，
+解释草稿并结合真实 source、角色、repo-local skill 和交付 policy 做定制验证。
+
 ## 4. 路由算法
 
-本入口坚持 **workflow-first**：先识别要闭合的工作流，再选择 module、source 和 repo-local
-执行面；不要先按仓库猜入口。坚持 **artifact-first**：从 issue、MR、error、screenshot、
-failing test 或其他实际 artifact 提取事实后再路由，不做无上下文的全局搜索。
+本入口坚持 **workflow-first when active**：先检查是否有已经验证并激活的 workflow；命中时再选择 module、source 和 repo-local 执行面。尚无 active workflow 时，仍可在 construction/onboarding mode 中完成 company semantic routing，找到 module/source/first proof，但不能把它冒充可执行的交付闭环。不要先按仓库猜入口。
+
+同时坚持 **artifact-first**：从 issue、MR、error、screenshot、failing test 或其他实际 artifact 提取事实后再路由，不做无上下文的全局搜索。
 
 ```text
 读 artifact / source pointer
 → 提取显式事实、claim、可观测差异、unknown
-→ 先选已确认 workflow，再映射到 customer module / source
+→ 有匹配的 active workflow：进入 workflow，再映射到 customer module / source
+→ 没有 active workflow：以 construction/onboarding mode 映射到 module / source / first proof
 → 只有 evidence 路由到 repo 时才进入 repo-local
-→ 没有匹配 workflow 或关键 route 无法证明 → blocked，不发明
+→ 关键 module/source/first-proof route 无法证明 → blocked，不发明
 ```
 
 artifact 所在容器或标题不等于 execution owner；首跳必须由内容与 route evidence 决定。
+construction/onboarding mode 可以用于理解、验证路由和收集客户 workflow 事实，不能承接未激活的生产 delivery。
 
 ## 5. START → WORK → VERIFY → END
 
@@ -98,7 +106,7 @@ artifact 所在容器或标题不等于 execution owner；首跳必须由内容�
 |---|---|
 | `runtime-governance-quick.md` | 任何工作流开始前强制预读 |
 | `runtime-governance.md` | quick 明确触发升级时 |
-| `canonical-repo-fleet.md` | 维护 bootstrap state 已确认的 canonical repo fleet |
+| `canonical-repo-fleet.md` | 查询已确认的 canonical repo fleet |
 | `jarvis-box.md` | jarvis-box 概念、服务模式 |
 
 ### 路由 / 所有权
@@ -127,7 +135,7 @@ artifact 所在容器或标题不等于 execution owner；首跳必须由内容�
 |---|---|
 | `redaction-rules.md` | 迁移原始内容到共享 skill/reference 前 |
 | `writeback-governance.md` | END 阶段写回时 |
-| `history-replay.md` | 仅 replay / 维护使用 |
+| `knowledge-layer-contract.md` | 判断 module/cross-cutting/repo-local/source/task 的 primary home 时 |
 
 ## 7. 边界与停止
 

@@ -1,6 +1,6 @@
 # Skill Update Decision
 
-> **Phase 12 先在 calibration snapshot 形成 candidate，并完成 same-case rerun；Phase 13 才把 verified candidate 应用到 authoritative home。** 未执行/invalid → Decision: `defer`，Status: `deferred`，不能写 `no_skill_gap` 或 `closed`。
+> 先在 calibration snapshot 形成 candidate 并完成 same-case rerun，再把 verified candidate 应用到 authoritative repo-local home。未执行/invalid → Decision: `defer`，Status: `deferred`，不能写 `no_skill_gap` 或 `closed`。
 
 ## Decision Summary
 
@@ -11,11 +11,11 @@
 - **Primary failure classification**: `<skill_gap / instance_fact_gap / source_access_environment / execution_deviation / case_construction_leak / oracle_limitation / not-evaluated>`
 - **Learning type**: `stable-fact` / `method-gap` / `not-evaluated`
 - **no_skill_gap**: `yes` / `no` / `not-evaluated`
-- **Primary home**: `task-local` / `repo-local` / `company-jarvis` / `source-skill` / `workflow-skill` / `upstream` / `no-writeback`
+- **Primary home**: `task-local` / `repo-local` / `upstream-method` / `no-writeback`
 - **Mirror**: `none` 或 `<target + reason>`
 - **Conflict**: `none` 或 `writeback-conflict`
 - **Owner**: `<owner or unresolved>`
-- **Decision**: `no_skill_gap` / `task-local` / `repo-local` / `company-jarvis` / `source-skill` / `workflow-skill` / `upstream` / `defer`
+- **Decision**: `no_skill_gap` / `task-local` / `repo-local` / `upstream-method` / `defer`
 - **Status**: `proposed` / `approved` / `patched` / `verified` / `deferred` / `closed`
 
 ## Rationale
@@ -32,7 +32,7 @@
 
 - **Evidence**: `<pilot-id / replay-case-id / run-id>`
 
-## Phase 12 Candidate Update
+## Candidate Update
 
 - **Calibration snapshot**: `<writable snapshot pointer>`
 - **Calibration skill ref before**: `<snapshot ref/digest>`
@@ -43,7 +43,7 @@
 - **Stable-fact authority and verification**: `<current authoritative source pointer + check / not-applicable>`
 - **Case-specific facts excluded**: `<what was intentionally not written>`
 
-## Phase 12 Same-Case Rerun
+## Same-Case Rerun
 
 保持同一 visible START、cutoff、allowed sources 和 hidden oracle，只替换 skill snapshot。
 
@@ -59,12 +59,12 @@
 
 同一个 case 证明 candidate 修复了该回归，不单独证明跨 episode 泛化。
 
-## Phase 13 Approval
+## Writeback Approval
 
 - **Owner approval**: `approved` / `needs-owner-confirmation` / `blocked`
 - **Approval evidence**: `<pointer>`
 
-## Phase 13 Writeback Evidence
+## Writeback Evidence
 
 - **Writeback ID**: `<wb-id>`（对应 `controlled-writeback-log.md`）
 - **Patch evidence**: `<pointer or summary>`
@@ -72,9 +72,9 @@
 - **Ordered candidate position**: `<n/total>`
 - **Final authoritative ref matches cumulative calibration ref**: `yes` / `no` / `blocked`
 
-## Phase 13 Delivery Revalidation
+## Delivery Revalidation
 
-ordered candidate set 全部应用后，用最终累计 authoritative snapshot 对 Phase 12 同一 visible START 做交付复验，确认应用过程或后续 candidate 没有改变已验证行为。
+ordered candidate set 全部应用后，用最终累计 authoritative snapshot 对同一 visible START 做交付复验，确认应用过程或后续 candidate 没有改变已验证行为。
 
 - **Rerun ID**: `<run-id>`
 - **Result**: `preserved` / `regressed` / `partial` / `blocked`

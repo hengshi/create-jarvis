@@ -1,67 +1,64 @@
 # Create Jarvis 验收标准
 
-验收分为 Preparation、Company Jarvis construction 和 Repository learning 三个角色。一个角色的完成不能用来冒充另一个角色完成。
+## 一句话入口与恢复
 
-## Preparation 完成
+- 在没有 jarvis-box 的 Host 上，客户只给已授权 Codex canonical GitHub URL 和建设请求，Agent 即可开始。
+- Agent 自行读取并固定 method commit；客户不 curl、不安装 Skill、不选择版本、不运行 phase 或两条子任务命令。
+- 全新 journey 创建 `BUILD-CONTEXT.md`、两个 `RUN-*.md` 和 pointer-only `CONSTRUCTION-JOURNAL.md`。
+- 再次发送同一句话时，Agent 先找到 journal，切回记录的 method commit，验证 pointers 后继续，不重建或自动升级方法。
+- 没有子 Agent 时，由 Coordinator 顺序执行两个 lane；它不虚假承诺上下文隔离、后台进程或 heartbeat。
 
-- 在 agent-owned workspace 中生成 `BUILD-CONTEXT.md`、两个 `RUN-*.md` 和 `START-HERE.md`。
-- inventory 覆盖所有已授权 repo、文档和工作系统，并记录准确 pointer、live access、revision、dirty state 和 write policy。
-- `BUILD-CONTEXT.md` 记录客户确认的 GitHub/GitLab provider、host、owner/namespace、`<company-slug>-jarvis` repo、visibility、default branch、远端存在状态、访问/创建权限与发布方式；不因 CLI 存在或当前登录账号而猜测。
-- 两个任务文件包含实际绝对路径，不包含凭据、源码/文档 dump 或未解析占位符。
-- `START-HERE.md` 有两条适配现场已登录 agent 的可执行命令；它们分别启动新的 Company construction 与 Repository learning agent。
-- Preparation agent 写完后停止，没有偷偷开始任一长任务。
+## Preparation
 
-## Company Jarvis construction 完成
+- inventory 覆盖已授权 repo、文档和工作系统，记录准确 pointer、live access、revision、dirty state 和 write/delivery policy。
+- GitHub/GitLab、host、owner/namespace、Company Jarvis repo、visibility、default branch和 publication mode 有现场证据；有歧义时只问一个最小问题。
+- 每个代码 repo 的交付方式明确为 read-only、local commit、branch push 或 branch + PR/MR。
+- 文件不包含凭据、source dump、未解析占位符、`jarvis.toml` 或 bootstrap JSON 状态机。
 
-- 产物是客户自己的独立 company Jarvis repo，而不是知识 dump 或 repo-local skill 集合。
-- 验证后的产物已发布到 `BUILD-CONTEXT.md` 确认的客户 GitHub/GitLab repo；只有本地目录不能标记完成。
-- `BUILD-CONTEXT.md` 声明的每个 artifact root、source 和 repo 都有 coverage 状态；每个 candidate capability 都有 include/merge/defer/reject disposition。
-- 有明确的 company entry、公司/产品身份边界和 module/source/repo routing。
-- 每个 included software module 都有产品锚点、实际读取过的实现锚点和 first proof/verification contract；repo/path 或 commit message 本身不能冒充业务证据。
-- known issues、decisions、rejected features 和 test coverage 只写有 authority 的可复用事实；没有证据时允许保持明确空状态。
-- repo fleet 区分 capability authority、execution owner、delivery、docs/operational 和 verification surfaces，不使用“主仓/次仓”代替关系。
-- cross-cutting 只保存稳定因果边、false owner、first proof 与 repo-local next hop，不复制仓库 implementation truth。
-- 至少用真实产品问题、defect 线索和跨 capability 变更线索验证 company entry routing；失败 route 修正后已重跑。
-- 三套预装 workflow 明确保持 `draft-template`；Company construction 不把母版冒充客户已验证 workflow。
-- 所有客户事实都能回指 `BUILD-CONTEXT.md` 中的授权构件；不知道的事实保持 unresolved。
-- 客户代码仓库未被该 Agent 修改。
-- 全新或确认无历史的远端有可达的初始默认分支和 commit；已有历史的远端没有被覆盖或 force-push，而是在基于默认分支的独立 branch 上提交并创建 PR/MR。
-- 若客户 policy 要求 review，PR/MR 未合并前状态是 `ready-for-review`，不能声称 canonical default branch 已交付；Agent 不自动合并。
-- company repo 不包含 `jarvis.toml`、construction state files 或 runtime-owned 通用 skills 的副本。
-- `COMPANY-JARVIS-PROGRESS.md` 足以让另一个 Agent 验证最后证据并继续，并记录 provider、remote URL、branch、commit、PR/MR（如有）和远端验证结果，但不记录凭据。
+## Company Jarvis construction
 
-不能用固定运行时长、固定 Agent 数、几个示例 module、所有模板文件非空或结构 verifier PASS 代替上述语义覆盖。
+- 输出是 customer-owned Company Jarvis repo，而不是知识 dump 或 repo-local skill 集合。
+- 授权范围中的 capability/source/repo 都有 evidence-backed disposition。
+- included capability 有产品锚点、实现锚点和 first proof/verification contract。
+- Company entry 能从真实 artifact 路由到 module/source/repo next hop；cross-cutting 不复制实现真相。
+- starter workflows 保持 `draft-template`。
+- 新/空远端拥有可达 commit；已有远端保留历史并通过 branch + PR/MR 交付。
+- progress 记录 remote、branch、commit、PR/MR、review/merge 状态和验证结果；只有本地目录不算完成。
+- construction/onboarding 可在 Host Agent 中执行，不要求 `jarvis-box version/status/agent current`。
 
-## Repository learning 完成
+## Repository learning
 
-- `BUILD-CONTEXT.md` 中每个 repo 都在同一份进度表中有明确状态；没有 per-repo JSON 状态机。
-- 声明为 `completed` 的 repo 已扫描到声明历史范围边界；阻塞 repo 写明已搜索范围和恢复动作。
-- 历史范围可以是一年、两年、全部可达历史或自定义日期/ref；范围内 commit 有实际 code-change 检查证据，不能只用 message/stat 分类冒充 learning。
-- 每个执行过的 case 都是从原始问题到真实 outcome 的完整 episode，START 没有泄漏事后答案。
-- baseline replay 实际执行，外层 comparison 在 skill decision 之前完成。
-- 每个保留的 skill delta 都有 same-case 改善证据；无可复用缺口时正确记录 `no_skill_gap`。
-- 默认按 oldest-to-newest 累积学习，并在范围结束后用当前 revision 重新核对架构、路径、命令、构建和测试，未把过时历史规则留进最终 skill。
-- repo-local delta 只写入所属代码仓库，不复制到 company Jarvis，不生成 `eval-loop` skill。
-- 未经批准不覆盖 dirty worktree、不 push、不建 branch/MR。
+- 所有 repo 共用一份进度表，没有 per-repo JSON 状态机。
+- 声明完成的历史范围已检查实际 code changes；commit message/stat 分类不能冒充 learning。
+- 每个执行 case 都有 visible START、隔离 baseline replay、真实 outcome comparison、skill decision 和 same-case rerun。
+- 只有证明行为改善且相邻回归可接受的最小 delta 被保留；`no_skill_gap` 不制造文件。
+- 最终 guidance 在当前 revision 上重新核对，过时历史规则已移除或收窄。
+- 每个 repo 记录 branch、commit、PR/MR、验证和 consumability；dirty local delta 或 read-only candidate 不能声称已部署。
 
-## Workflow onboarding 完成
+## Reconciliation 与 workflow construction
 
-- 1+2 reconciliation 已把 company routing 中的 pending repo handoff 替换为真实可解析的 repo-local entry，或明确保留 blocked；company → repo-local probes 已重跑。
-- Agent 已用预装草稿向客户讲清 issue post-check、bugfix、feature-delivery 的 START → WORK → VERIFY → END。
-- 每个激活的 workflow 已替换通用假设，使用客户真实 source、角色、company route、repo-local skill、branch/review/test/release policy。
-- 至少用一个客户真实或等价受控 case 验证 route、handoff、执行和 closure；未验证的 workflow 继续保持 `draft-template`。
-- 只有满足上述条件的 skill 才改为 `active`。workflow 文件存在或 `1+2` 完成都不能单独宣称数字员工已上岗。
+- Company routes 只连接真实存在、可读的 pinned repo-local entries。
+- route-scoped boundary 只覆盖该 workflow 需要的 modules、sources 和 repos；剩余范围仍明确 in-progress/deferred。
+- starter workflow 已替换客户 source、角色、路由、branch/review/test/release policy，并通过至少一个受控或真实 case后，才从 `draft-template` 改为 `construction-ready`。
+- `construction-ready` 不能承接无监督生产任务。
 
-## Shadow delivery 完成
+## Formal runtime deployment
 
-- 已激活候选 workflow 在多个代表性客户任务中完成 route、execution、verification 和 END closure。
-- 客户不再需要口头补充关键隐藏步骤；若仍需补充，事实已写回正确 primary home 并重跑。
-- Agent 完成声明与客户验收证据一致；未验证范围保持明确。
-- 通过数量不按固定天数或固定 task count 判断，而由客户任务类型覆盖与剩余风险决定。
+- Deployment 只使用 canonical remotes 和 resolved commits，不使用 Host 绝对路径或复制 Host credential home。
+- 正式高权限身份的 Git host user/id、Git author、Agent account、credential/rotation owner 可审计。
+- Company clone、pilot repo clone、受控 writeback 和 Agent probe 以正式身份通过。
+- runtime snapshot 固定 Company commit、workflow 所需 repo commits、repo-local entries、image digests 和 probe 结果。
+- container 内 company → repo entry、source access 和必要 build/test command 均实际验证。
+- Docker socket未获单独授权时不挂载；若挂载，审计中明确标为 host-root-equivalent。
+- 成功后 workflow 进入 `ready-for-shadow`，不是 `active`。
 
-## 整体边界
+## Shadow 与 active
 
-- jarvis-box/container 负责 agent、Git、`gh`、`glab`、权限、进程、session、heartbeat 和日志；method pack 不复制这些能力。
-- 三个角色只写各自允许的目录。
-- 客户只需要看到任务目录、两条启动命令、结果和真正的 blocker，不需要学习内部方法名。
-- 不使用 `jarvis.toml`、`bootstrap-state.json` 或 `bootstrap-result.json` 作为当前生态的必备合同。
+- `ready-for-shadow` workflow 在客户监督下处理代表性真实任务，并在执行期间使用不可变 snapshot。
+- 后台 learning 或 self-improve 只能写新 ref，不直接修改当前 snapshot。
+- routing、execution、verification、END 和客户隐藏步骤在代表性任务中闭合后，客户明确批准，workflow 才进入 `active`。
+- `active` 记录对应 workflow 和 exact deployment revisions；不宣称整个客户 Jarvis 的全部范围同时 active。
+
+## 客户可见结果
+
+默认只展示 Company repo/PR、repo-local PR/MR 状态、当前可用范围、需审批或授权的事项、真实 blocker 和下一项业务结果。Phase、eval、oracle、cursor、内部 progress 文件和子进程命令不构成客户操作界面。

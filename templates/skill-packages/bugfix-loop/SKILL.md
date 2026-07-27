@@ -2,7 +2,7 @@
 name: {{SKILL_NAME}}
 description: >
   {{COMPANY_NAME}} Bugfix workflow 的客户定制草稿。仅在向客户讲解、校准和验证其真实
-  bugfix 流程时使用；正文状态改为 active 前不得承接真实 bugfix。
+  bugfix 流程时使用；完成正式部署与 supervised shadow 前不得承接无人监督的生产 bugfix。
 ---
 
 # {{COMPANY_NAME}} Bugfix Loop
@@ -15,14 +15,16 @@ description: >
 本草稿的 START → WORK → VERIFY → END、handoff 和 gate，再用 company Jarvis、repo-local
 skills 以及客户真实 issue、分支、review、test、release policy 替换其中的通用假设。
 
-只有至少一个客户真实或等价受控 bugfix case 已验证 route、patch、verification 和 closure，
-并由客户确认流程可用后，才把本节改为 `active`，同时把 frontmatter description 改成真实
-触发条件。`draft-template` 期间只能用于 workflow onboarding，不能执行生产 bugfix。
+至少一个客户真实或等价受控 bugfix case 在建设环境验证 route、patch、verification 和 closure
+后，将本节改为 `construction-ready`。正式 runtime 固定 Company/repo/image revisions 并通过
+capability probes 后依次进入 `runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督
+下执行时为 `shadowing`。只有 shadow 稳定闭合并获客户批准后才改为 `active`。
+`draft-template` 期间只能用于 workflow onboarding。
 
 ## 执行规则
 
 - `{{COMPANY_SLUG}}-jarvis/references/` 解析到共享公司 Jarvis references 目录。本 skill 本地文件从当前 skill package 的 `references/` 目录解析。
-- 先读 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance.md` 做 runtime preflight。
+- 先识别 construction、普通 checkout 或 managed production；边界不清、冲突或诊断时才读 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`。
 - Runtime preflight 后必读 `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`。
 - 进入 patch 前必须通过 assumption gate、scope gate 和 surgical-change gate；声称 fixed / verified / done 前必须通过 verification gate 和 output gate。
 
@@ -44,7 +46,7 @@ skills 以及客户真实 issue、分支、review、test、release policy 替换
 ## START
 
 ### Runtime preflight
-读 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance.md`，再读 `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`。完成后立即回到 artifact-first 主线。
+识别执行上下文；quick 明确触发升级时才读完整版。再读 `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`，随后立即回到 artifact-first 主线。
 
 ### 消费输入 artifact
 从 post-check handoff 或用户提供的材料中提取：

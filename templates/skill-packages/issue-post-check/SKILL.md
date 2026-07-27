@@ -2,7 +2,7 @@
 name: {{SKILL_NAME}}
 description: >
   {{COMPANY_NAME}} Issue post-check workflow 的客户定制草稿。仅用于向客户讲解、校准和验证
-  真实 issue 流程；正文状态改为 active 前不得审查生产 issue。
+  真实 issue 流程；完成正式部署与 supervised shadow 前不得无人监督地审查生产 issue。
 ---
 
 # {{COMPANY_NAME}} Issue 后检
@@ -15,9 +15,10 @@ description: >
 从哪里进入、谁有 disposition 权限、怎样交接 bugfix/feature、哪些动作允许回写，再保留、
 改写或删除下方通用 gate。
 
-只有至少一个客户真实或等价受控 issue case 已验证 intake、判断、route 和 handoff，并由客户
-确认流程可用后，才把本节改为 `active`，同时把 frontmatter description 改成真实触发条件。
-`draft-template` 期间只能用于 workflow onboarding，不能处理生产 issue。
+至少一个客户真实或等价受控 issue case 在建设环境验证 intake、判断、route 和 handoff 后，
+将本节改为 `construction-ready`。正式 runtime 固定 revisions 并通过 probes 后依次进入
+`runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督下执行时为 `shadowing`。
+只有 shadow 稳定闭合并获客户批准后才改为 `active`。`draft-template` 期间只用于 onboarding。
 
 面向**已建 issue** 的强制审查。所有 source/tool 从 company route 和 live issue 中按需解析。
 
@@ -25,7 +26,7 @@ description: >
 
 ## 强制性前置阅读
 
-- `{{COMPANY_SLUG}}-jarvis/references/runtime-governance.md`
+- 先识别执行上下文；仅在边界不清、冲突或诊断时读取 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`，并按需升级完整版
 - `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`
 - 进入 disposition 前：`{{COMPANY_SLUG}}-jarvis/references/issue-claim-normalization.md`
 

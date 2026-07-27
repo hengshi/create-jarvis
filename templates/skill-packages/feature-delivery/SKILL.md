@@ -1,6 +1,6 @@
 ---
 name: {{SKILL_NAME}}
-description: "{{COMPANY_NAME}} Feature-delivery workflow 的客户定制草稿。仅用于向客户讲解、校准和验证真实交付流程；正文状态改为 active 前不得承接真实 feature delivery。"
+description: "{{COMPANY_NAME}} Feature-delivery workflow 的客户定制草稿。仅用于向客户讲解、校准和验证真实交付流程；完成正式部署与 supervised shadow 前不得承接无人监督的生产 feature delivery。"
 version: "2.0.0"
 ---
 
@@ -14,9 +14,11 @@ version: "2.0.0"
 START → WORK → VERIFY → END，再用 company Jarvis、repo-local skills，以及客户真实的需求
 入口、决策角色、branch/review/test/release policy 和交付凭证替换通用假设。
 
-只有至少一个客户真实或等价受控 feature case 已验证从需求到交付闭合，并由客户确认流程
-可用后，才把本节改为 `active`，同时把 frontmatter description 改成真实触发条件。
-`draft-template` 期间只能用于 workflow onboarding，不能执行生产 feature delivery。
+至少一个客户真实或等价受控 feature case 在建设环境验证从需求到交付闭合后，将本节改为
+`construction-ready`。正式 runtime 固定 Company/repo/image revisions 并通过 capability probes
+后依次进入 `runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督下执行时为
+`shadowing`。只有 shadow 稳定闭合并获客户批准后才改为 `active`。
+`draft-template` 期间只能用于 workflow onboarding。
 
 以下内容是供客户校准的初始假设：从需求输入到交付闭环，定义本次动态闭环，判断就绪，路由执行，逐项验证，记录收尾。
 
@@ -43,7 +45,9 @@ START → WORK → VERIFY → END，再用 company Jarvis、repo-local skills，
 
 ### 预检
 
-在路由、repo 发现、repo-local skill 切换或执行之前，读取 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`；触发升级条件时再读 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance.md`，确定运行时根目录、工作区边界和资源归属。
+先识别 construction、普通授权 checkout 或 managed production。上下文缺失、冲突或需要 runtime
+诊断时才读 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`；quick 触发升级条件时
+再读完整版。不要在 construction 中要求 jarvis-box，也不要把静态 company repo 当作运行时状态。
 
 随后读取 `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`，将该文件中的 scope gate、verification gate、output gate 作为后续各阶段的停止条件。
 

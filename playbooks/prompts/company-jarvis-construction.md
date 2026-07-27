@@ -26,7 +26,8 @@ Company Jarvis 至少能回答：
 - 客户代码仓库、文档和工作系统都是只读证据；不要在其中创建 repo-local skills、branch、commit 或 MR/PR。
 - 不运行 Repository learning 的 history eval loop。Company construction 可以定向读取 issue、MR/PR、commit diff 和测试来证明公司级事实，但不遍历历史来训练 repo-local skill。
 - 不创建 `jarvis.toml`、`bootstrap-state.json` 或 `bootstrap-result.json`。
-- runtime method skills 由 container 安装，不复制进 company repo。
+- 当前是 Host Agent 的 construction context，不要求 jarvis-box 已安装，也不执行 `jarvis-box version/status/agent current`。生成的 company 指针必须允许 construction/onboarding 在普通授权 checkout 中继续；正式 runtime 诊断只在后续 managed-production context 中触发。
+- runtime-owned 通用方法不复制进 company repo；当前 Host Agent 已有对应方法时可以使用，没有时按本 method pack 的自包含合同完成。
 - base 中的 issue post-check、bugfix 和 feature-delivery workflow 必须保持 `draft-template`。本任务不能把通用母版冒充客户已经验证的 workflow。
 - 发布不是可选的额外动作。只能严格按 `BUILD-CONTEXT.md` 中已经确认的 provider、host、owner/namespace、repo、visibility、default branch 和 publication mode 执行；缺少或冲突时先标 blocker，不能猜测或降级为只交本地目录。
 

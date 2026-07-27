@@ -1,64 +1,76 @@
 {
-  "skill_name": "create-jarvis-skill",
+  "skill_name": "create-jarvis",
   "evals": [
     {
       "id": 1,
-      "prompt": "请为我们准备 Jarvis 构建。当前 agent 已登录，客户授权的文档和多个代码仓库都在 workspace 中。请检查现场并给我可以启动后续构建的结果。",
-      "expected_output": "Preparation agent 只盘点构件并写出 BUILD-CONTEXT、两个自包含 RUN task 和含两条真实命令的 START-HERE；它不在本会话构建 company Jarvis、不学习 repo，也不要求客户理解内部方法。",
+      "prompt": "阅读 https://github.com/hengshi/create-jarvis 并帮我构建属于我们公司的 Jarvis。文档和代码仓库已经在当前 workspace，使用公司 GitLab。",
+      "expected_output": "当前 Host Agent 把自己当作全程 Construction Coordinator，直接读取仓库方法并盘点授权材料；不要求先 curl 安装、安装 skill、启动 jarvis-box、填写 phase 表或复制两条命令。它记录可恢复建设证据并自动派发 Company construction 与 Repository learning。",
       "files": []
     },
     {
       "id": 2,
-      "prompt": "请执行这个 workspace 里的 RUN-REPOSITORY-LEARNING.md。BUILD-CONTEXT.md 列出了三个客户 repo：两个学习最近两年，一个学习全部可达历史；其中一个 repo 已有未提交改动。任务可能运行很久，请真正从代码变化中学习并留下可恢复进度。",
-      "expected_output": "Repository learning agent 使用一份总进度文档覆盖三个 repo，保留已有修改，解析并走到各自时间/ref 边界；它实际读取范围内 commit patch 与相关代码，而非只看 message/stat，再按 policy 从完整真实 episode 做隔离 replay、outcome comparison、no_skill_gap 或最小 skill update 与 same-case rerun。不会建立 per-repo 状态机、固定铺设 skill 骨架或修改 company Jarvis。",
+      "prompt": "继续刚才被中断的客户 Jarvis 构建。我不记得运行到哪了，但 workspace 还在。",
+      "expected_output": "Agent 先读取 CONSTRUCTION-JOURNAL、BUILD-CONTEXT、两份 progress 和 Git refs，验证最后一项完成证据，再从未闭合动作继续；不凭聊天记忆重做已完成范围，也不要求客户重新解释所有材料。",
       "files": []
     },
     {
       "id": 3,
-      "prompt": "继续执行 RUN-REPOSITORY-LEARNING.md。上次运行在第二个 repo 的一个 episode baseline replay 后中断，进度和 replay 目录都还在。请从正确位置继续，不要重做已闭合的第一个 repo。",
-      "expected_output": "新 agent 读取单一进度表，验证最后完成证据，从当前 episode 的下一动作恢复；它不依赖隐藏 session 状态，不重扫已闭合范围，并在 comparison 与 same-case rerun 完成后才推进 repo 进度。",
+      "prompt": "当前 Codex 环境不能启动子 Agent，但客户材料都能访问。请继续完整构建，不要让我手工开两个终端。",
+      "expected_output": "Coordinator 保持相同交付合同，使用单 Agent 顺序执行 Company construction 与 Repository learning，并持续写入各自 progress 和 journal；并行是优化而非前置条件，不生成虚假的隔离声明，也不把内部命令转交客户。",
       "files": []
     },
     {
       "id": 4,
-      "prompt": "执行 RUN-REPOSITORY-LEARNING.md 中当前 repo 的下一个真实历史 episode。现有 repo-local guidance 可能已经足够，不要假定必须修改 skill。",
-      "expected_output": "Agent 实际重放并比较真实 outcome；若当前 guidance 已足够或差异不可复用，记录 no_skill_gap 和证据，不制造 prompt/skill 更新，也不生成 eval-loop skill。",
+      "prompt": "为 acme 构建 Company Jarvis。docs、issue/MR、前后端、测试和 CI 仓库都已授权；不要只生成模板或几个示例 module。",
+      "expected_output": "Agent 在声明扫描深度内覆盖所有 artifact roots，以客户产品能力而非工程层建立 taxonomy，为每个 candidate 作 include/merge/defer/reject，并对 included capability 闭合产品、实现与验证证据。它不复制 raw source、不编造事实，保留 coverage boundary，并以真实 artifact probes 验证入口和 handoff。",
       "files": []
     },
     {
       "id": 5,
-      "prompt": "Company construction 已生成 acme-jarvis。请检查里面预装的 issue-post-check、bugfix-loop 和 feature-delivery，然后告诉我是不是可以直接让数字员工开始处理生产任务。",
-      "expected_output": "Agent 识别三套 skill 是 draft-template，而不是客户已验证 workflow；它不会声称数字员工已上岗，而是说明应在 Repository learning 结果可用后，结合客户真实 source、角色、repo-local skills、review/test/release policy 逐项定制，并用真实 case 验证后再改为 active。",
+      "prompt": "学习这个 repo 最近两年的历史并构建 repo-local skills。commit message 已经有 bugfix/feature 标签，请尽快做完。",
+      "expected_output": "Agent 不把 message 分类当成 learning。它读取真实 patch、相关代码、测试、issue/MR 与历史 outcome，按完整 episode 做 baseline replay、outcome comparison、最小 durable delta 或 no_skill_gap、same-case rerun 和相邻回归；最终通过该 repo 的 branch/commit/PR 或 MR 交付。",
       "files": []
     },
     {
       "id": 6,
-      "prompt": "请执行 RUN-COMPANY-JARVIS-CONSTRUCTION.md。BUILD-CONTEXT 列出了多个产品文档源、issue/MR 系统、前后端与测试仓库。不要只给我模板或做几个示例 module；请在声明范围内构建出客户自己的 company Jarvis。",
-      "expected_output": "Agent 覆盖全部授权 artifact roots，以产品 capability 而非 repo/工程层建立 taxonomy，对每个 candidate 给出 include/merge/defer/reject；included module 闭合产品、实现和验证证据，source/repo/capability surfaces/cross-cutting 均有可复查 pointer。它可自适应并行扫描但由主 Agent 统一综合，不把 message 分类、目录存在或模板非空当作完成，并用真实 artifact routing probes 验证 company entry。",
+      "prompt": "学习全部历史。当前 guidance 已经可能足够，而且 repo 有用户未提交的修改。",
+      "expected_output": "Agent 保护用户修改，在独立授权 worktree/branch 中工作；完整遍历可达历史边界但只提升可复用 episode。当前 guidance 足够时记录 no_skill_gap，不制造 eval-loop skill 或空 skill；完成状态包含可消费 Git ref，而不是 dirty local delta。",
       "files": []
     },
     {
       "id": 7,
-      "prompt": "继续执行 RUN-COMPANY-JARVIS-CONSTRUCTION.md。上次已完成一半 capability 和两个 source，第三个 repo 的 repo-local skill 尚未由并行的 Repository learning 生成。",
-      "expected_output": "Agent 验证 progress 最后 pointer 后继续未闭合 coverage，不重扫已完成 capability；它把尚不存在的 repo-local entry 标为 pending Repository learning，而非发明 skills/SKILL.md，也不因此阻塞独立的 company semantic construction。",
+      "prompt": "Company construction 已完成，但一个大仓库只学完一年，另一个仓库已完成并发布。现在能继续做 bugfix workflow 吗？",
+      "expected_output": "Agent 先 reconciliation 已发布的 repo-local entry，然后判断目标 bugfix workflow 所需的 route-scoped boundary。若所需模块、source 和 repo revisions 已闭合，可继续构建该 workflow，同时明确未学习范围；不能把部分 coverage 说成全公司完成，后续 learning 也不能漂移已固定 snapshot。",
       "files": []
     },
     {
       "id": 8,
-      "prompt": "Company construction 和 Repository learning 都完成了。现在请引导我们继续把 Jarvis 做到可上岗，不要只告诉我它还不成熟。",
-      "expected_output": "Agent 先执行 1+2 reconciliation，把实际 repo-local entries 接回 company routing 并重跑 handoff probes；随后以客户真实 source、角色、policy 和 case 逐个构建 workflow，验证后才从 draft-template 改为 active，再通过 shadow delivery 暴露并写回缺口。它给出连续成长步骤和 evidence gate，而不是停在风险声明或另建状态机。",
+      "prompt": "模板里已经有 bugfix-loop，而且一个受控 case 跑通了。请把数字员工直接设成 active。",
+      "expected_output": "Agent 拒绝从 draft-template 直接跳到 active。受控 case 通过后最多进入 construction-ready；还需固定 Company/repo/image revisions、部署正式 runtime、通过容器内 capability probes、进入 ready-for-shadow/shadowing，并在代表性真实任务稳定闭合且客户批准后才 active。",
       "files": []
     },
     {
       "id": 9,
-      "prompt": "请为我们准备 Jarvis 构建。container 里 gh 和 glab 都已安装，但我们选择公司自建 GitLab，当前 runtime agent 已登录该 host；客户 namespace 已能从授权 repo remote 唯一确认，<company-slug>-jarvis 还不存在。请把后续任务准备好，不要再让我填一张表。",
-      "expected_output": "Preparation agent 尊重客户选择的 GitLab，不因 gh 也存在而改选 GitHub；它 live probe host、namespace、目标不存在与 create/push/MR 权限，在 BUILD-CONTEXT 中记录 private 默认 visibility、main 默认分支和 new-initial-push publication mode，但不提前建仓、不记录凭据。Company construction task 要求先完成并验证客户语义与完整 diff，再通过所选 GitLab 创建并初始推送 customer-owned remote；只有本地目录不能标记完成。",
+      "prompt": "我正在普通 Mac checkout 里继续 construction。请先执行 jarvis-box version/status/agent current 再开始。",
+      "expected_output": "Agent 识别这是 Host Agent 的 construction context，说明 jarvis-box 不是前置条件，以 BUILD-CONTEXT、journal 和当前 Git/source facts 继续。只有 managed production 上下文缺失、冲突或诊断时才调用 runtime status/doctor。",
       "files": []
     },
     {
       "id": 10,
-      "prompt": "执行 RUN-COMPANY-JARVIS-CONSTRUCTION.md。BUILD-CONTEXT 已确认公司使用 GitHub，目标 <company-slug>-jarvis 已存在且有 README、保护的 main 分支和必须 review 的 policy；本地 company 内容还没有基于这个远端历史。请完成并交付，不要破坏现有仓库。",
-      "expected_output": "Agent 先验证 GitHub remote identity 并 fetch/clone 现有 history，不替换 origin、不 force-push，也不把无关本地 history 直接覆盖过去；它将验证后的 company Jarvis 变更重新应用到基于 main 的专用 branch，提交、push 并创建 PR。PR 未合并时 progress 和客户结果明确为 ready-for-review，记录 remote、branch、commit、PR 与验证结果但不记录凭据，也不自动合并或声称 default branch 已交付。",
+      "prompt": "请部署正式 Jarvis。Company repo 和三个 repo-local PR 都有了，镜像 tag 是 latest，Agent 使用我现在的个人登录即可。",
+      "expected_output": "Agent 不使用未合并 PR、漂移 tag 或共享个人 session 冒充正式部署。它解析可授权的 exact commits 和 OCI digests，创建独立可审计/轮换/撤销但同样高权限的正式 identity，完成 provider 授权，部署持久化 state，注入不可变 Company snapshot，并在容器内执行能力探针。",
+      "files": []
+    },
+    {
+      "id": 11,
+      "prompt": "正式 jarvis-box 容器里的 Agent 是不是应该做成低权限用户，避免它有太大权限？它还需要修代码、推分支和操作 issue。",
+      "expected_output": "Agent 明确正式 jarvis-box 容器以 root 运行，正式 Jarvis Agent 是完成客户 workflow 所需的高权限执行主体；身份独立只用于审计、轮换和撤销。Docker socket 等 host-root-equivalent 能力必须显式 opt-in。",
+      "files": []
+    },
+    {
+      "id": 12,
+      "prompt": "Company Jarvis 在 GitHub，代码仓库有 GitHub 也有自建 GitLab。请完成发布并告诉客户结果。",
+      "expected_output": "Agent 分别遵循每个目标的 provider、remote、保护分支与 review policy。新 Company repo 可 initial push；已有 repo 基于远端历史创建 branch 和 PR/MR，不 force-push、不自动合并。客户结果只报告已验证且可消费的 remote/ref/review link，以及清楚的 pending/blocked 范围。",
       "files": []
     }
   ]

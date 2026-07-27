@@ -41,7 +41,7 @@ skill 更新必须同时满足：
 | 客户业务/产品事实、module 边界、跨 repo 路由、owner 映射 | company Jarvis module / reference |
 | 某个 source 的访问、检索、引用、新鲜度和脱敏边界 | source skill |
 | 跨 source、repo 或角色的 START -> WORK -> VERIFY -> END 闭环 | workflow skill |
-| 任意公司都需要的 construction 方法 | `create-jarvis-skill` |
+| 任意公司都需要的 construction 方法 | `create-jarvis` |
 
 同一学习如果包含不同 owner 的内容，先拆成多条学习，每条只有一个主归属。
 
@@ -86,7 +86,7 @@ runtime agent 按以下步骤执行：
 学习涉及跨 source/repo 的闭环编排？
   -> workflow skill
 学习涉及公司中立的 construction 方法？
-  -> create-jarvis-skill
+  -> create-jarvis
 学习只对当前任务成立，或仍是未证实猜测？
   -> task-local，不进入持久 skill
 ```

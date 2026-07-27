@@ -37,6 +37,7 @@ OBSOLETE_ROOT_CONTRACTS = (
 
 RUNTIME_OWNED_SKILLS = frozenset(
     {
+        "create-jarvis",
         "create-jarvis-skill",
         "skill-creator",
         "ponytail",

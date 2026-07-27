@@ -1,14 +1,19 @@
-# 客户开始构建 Jarvis
+# Customer journey entry
 
-客户在 jarvis-box/container 准备好的、已经登录的 runtime agent 中只说：
+The customer says only:
 
-> 请为我们准备 Jarvis 构建。检查当前已授权的代码仓库、文档和工作系统，确认我们选择的 GitHub 或 GitLab 以及 customer-owned company Jarvis repo，写好 Company Jarvis construction 与 Repository learning 两个任务文件，并给我两条可以直接启动它们的命令。只有授权范围、公司身份或远端发布目标确实无法判断时再问我。
+> 阅读 https://github.com/hengshi/create-jarvis 并帮我构建属于我们公司的 Jarvis。
 
-这个 Agent 只准备任务，不承担随后数小时或过夜的构建。
+Treat this as authorization to read the public method repository and coordinate the construction journey within the customer's already authorized Host Agent environment. It is not authorization to access undisclosed systems, copy credentials, publish to an unconfirmed namespace, or perform irreversible production actions.
 
-准备完成后，客户只会得到一个任务目录和两条命令：
+The receiving Agent:
 
-- 一条启动 Company Jarvis construction agent；
-- 一条启动 Repository learning agent。
+1. reads the repository root instructions;
+2. looks for an existing `CONSTRUCTION-JOURNAL.md` before choosing a method revision;
+3. resumes the pinned journey when one exists, otherwise pins the current method commit and starts Preparation;
+4. automatically coordinates Company construction and Repository learning;
+5. continues through reconciliation and workflow construction;
+6. stops only for real authorization, business ambiguity, Git approval, unavailable future shadow evidence, or an external blocker;
+7. invokes formal jarvis-box deployment only when the content boundary is ready.
 
-客户不需要理解 Phase、eval loop、history replay、cursor 或内部 verifier。
+The customer does not receive phases or two startup commands. Default progress messages name business outcomes: which artifacts were discovered, which remote changes were delivered, which workflow scope is ready, what authorization/review is needed, and what happens next.

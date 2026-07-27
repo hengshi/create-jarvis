@@ -2,7 +2,7 @@
 name: {{SKILL_NAME}}
 description: >
   {{COMPANY_NAME}} 额外 workflow 的客户定制草稿。仅用于讲解、校准和验证客户真实流程；
-  正文状态改为 active 前不得承接生产任务。
+  完成正式部署与 supervised shadow 前不得承接无人监督的生产任务。
 ---
 
 # {{COMPANY_NAME}} 通用兜底工作流
@@ -12,8 +12,9 @@ description: >
 **当前状态：`draft-template`**
 
 这是客户额外 workflow 的改造起点。必须用客户真实 trigger、角色、source、repo-local skill、
-policy 和 closure evidence 替换通用 fallback 假设，并通过至少一个真实或等价受控 case。
-完成后才改为 `active` 并重写 frontmatter description；在此之前只能用于 workflow onboarding。
+policy 和 closure evidence 替换通用 fallback 假设，并通过至少一个真实或等价受控 case。完成后
+改为 `construction-ready`；正式部署后进入 `runtime-deployed`、`ready-for-shadow`，监督执行时
+为 `shadowing`，稳定闭合且客户批准后才改为 `active`。
 
 此 skill 仅在 generation plan 明确选择 fallback 时存在。它不是 specialized workflow 的替代品——一旦识别任务类型，立即路由到匹配的 workflow skill。
 
@@ -23,9 +24,8 @@ policy 和 closure evidence 替换通用 fallback 假设，并通过至少一个
 
 ## 强制预读
 
-进入此工作流前必须读：
-- `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`
-- `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`
+进入此工作流先识别执行上下文；边界不清、冲突或诊断时才读 runtime governance quick。
+`{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md` 仍为必读。
 
 涉及路由/所有权时加读：
 - `{{COMPANY_SLUG}}-jarvis/references/jarvis-first-routing.md`

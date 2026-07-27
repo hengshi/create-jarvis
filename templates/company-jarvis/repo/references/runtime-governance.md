@@ -8,12 +8,14 @@
 
 agent 按事实域选择真值来源，不用一个来源覆盖另一个来源负责的事实：
 
-1. **当前 CLI 输出与 `--help`** — 命令是否存在及其 command shape。
-2. **live `jarvis-box init` / `jarvis-box status` / `jarvis-box agent current`** — readiness、服务和 agent 实时状态。
+1. **外部 `BUILD-CONTEXT.md` 与当前 Git/source facts** — construction/learning 的构件、revision 与写入范围。
+2. **runtime 注入的 Company snapshot、Task identity 与 deployment lock** — managed production 的当前授权上下文。
 3. **source / repo contract** — source 访问与具体 repo 执行规则。
-4. **外部 `BUILD-CONTEXT.md`** — 仅在初次 construction/learning 期间确认构件与写入范围；它不是 company repo 的长期 runtime state。
+4. **当前 CLI 输出与 `--help`** — 需要诊断或运维时确认命令是否存在及 command shape。
+5. **live `jarvis-box status` / `agent current` / `doctor`** — 仅用于 managed production 的缺失、冲突和故障诊断。
 
-同一事实在这些来源间冲突时停止并记录冲突，不擅自选一个覆盖。静态本文不覆盖 live product 输出。
+同一事实在负责该事实域的来源间冲突时停止并记录冲突，不擅自选一个覆盖。正常任务由 runtime
+在进入 Agent 前解析并注入上下文，不要求每次会话自行运行状态命令。
 
 ## 2. 执行上下文与写入边界
 
@@ -21,11 +23,14 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 
 每次会话判定执行上下文（详见 [runtime-governance-quick.md](runtime-governance-quick.md)）：
 
+- **Construction / onboarding**：由 Host Agent 在普通授权 checkout 中构建客户资产，以外部 BUILD-CONTEXT 和 Git facts 为准，不依赖 jarvis-box。
 - **普通 operator checkout**：人工 clone 的工作树，无 Task 身份。合法，记录授权工作树，不伪造 Task 状态。
 - **已授权 repo checkout**：有明确授权记录的工作树，在授权范围内读写。
 - **受管 Task workspace**：存在可验证 Task identity 时，按 Task/Run 生命周期处理。
 
-用户安装后直接启动 agent 对话执行工作是**合法且预期**的使用方式。该对话不一定是 jarvis-box Task 或 Run。只有实际由 jarvis-box Task 启动的会话才应用 Task/Run 生命周期和受管 workspace 语义。
+用户直接启动 agent 对话建设或执行授权工作是**合法且预期**的使用方式。该对话不一定是
+jarvis-box Task 或 Run。只有 runtime 注入了可验证 Task identity 时才应用 Task/Run 生命周期和
+受管 workspace 语义。
 
 ### 2.2 写入边界
 
@@ -38,9 +43,9 @@ agent 按事实域选择真值来源，不用一个来源覆盖另一个来源�
 
 ## 3. 命令分类
 
-### 3.1 观测类命令（始终可用）
+### 3.1 观测类命令（按需可用）
 
-`version`、`status`、`init`、`doctor`、`monitor`、`logs`、`latest`、`agent current/list/doctor/smoke`、`tasks list/json/index/verify/diagnose/show/events/logs`。
+`version`、`status`、`init`、`doctor`、`monitor`、`logs`、`latest`、`agent current/list/doctor/smoke`、`tasks list/json/index/verify/diagnose/show/events/logs`。它们用于诊断和运维，不是普通业务会话的固定 preflight。
 
 ### 3.2 Task 的五个生命周期操作
 

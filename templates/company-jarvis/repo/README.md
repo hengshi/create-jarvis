@@ -92,12 +92,14 @@ JARVIS 提供四个可验证的职责面：
 
 它们初始都必须保持 `draft-template`，用于 Agent 向客户讲解和共同改造，不能因为文件已存在
 就承接生产任务。结合 company routing 与 repo-local skills 完成客户定制，并通过真实 case
-后，才逐个改为 `active`。
+后，才逐个改为 `construction-ready`。随后还必须经历正式 runtime 部署和 supervised shadow，
+状态按 `construction-ready → runtime-deployed → ready-for-shadow → shadowing → active` 推进。
 
-## 强制预读
+## 执行上下文
 
-任何 {{COMPANY_NAME}} 工作流开始前，必须先读：
-- `references/runtime-governance-quick.md`（触发升级条件时再读 `references/runtime-governance.md`）
+construction/onboarding 不依赖 jarvis-box，以外部 BUILD-CONTEXT 和当前 Git/source facts 为准。
+managed production 使用 runtime 注入的不可变 Company snapshot。上下文缺失、冲突或需要诊断时
+才读 `references/runtime-governance-quick.md`（触发升级条件时再读完整版）。
 
 ## 二级路由条件
 

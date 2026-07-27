@@ -1,56 +1,52 @@
 # 运行时治理速查
 
-**状态**：强制 | **版本**：1.0
+**状态**：强制边界 | **版本**：2.0
 
----
+本文件先区分执行上下文，再决定是否需要 runtime 检查。Company Jarvis 同时服务建设期和正式
+运行期；不能把 jarvis-box 当成所有会话的前置条件。
 
-每次新会话执行任务前必须完成以下预检。若触发升级条件，转到 [runtime-governance.md](runtime-governance.md) 完整版。
+## 先判定上下文
 
-## 会话预检
+| 上下文 | 权威事实 | 行为 |
+|---|---|---|
+| Construction / onboarding | 外部 `BUILD-CONTEXT.md`、`CONSTRUCTION-JOURNAL.md`、当前授权 checkout 与 Git facts | 不要求 jarvis-box；按建设授权继续 |
+| 普通授权 checkout | 用户指令、repo-local contract、当前 Git/source facts | 合法；不伪造 Task/Run 或 managed-runtime 状态 |
+| Managed production | runtime 注入的 Company snapshot、Task identity、授权 target 和 deployment lock | 按注入上下文执行；只在缺失、冲突或诊断时调用 status/doctor |
 
-每次新会话的第一项任务前：
+识别不到 managed Task identity 时，不得要求 task pointer 才能开始 construction 或普通授权工作。
 
-```bash
-jarvis-box version
-jarvis-box status
-jarvis-box agent current
-```
+## 路径与写入边界
 
-`jarvis-box version` 失败说明当前 shell 不可用，停止并修复安装或 PATH。需要探查 agent 实际能力时按任务需要执行 `jarvis-box agent smoke` 或 `jarvis-box agent doctor`。
+- construction 的目标、source、repo、revision 和写入策略以外部 `BUILD-CONTEXT.md` 为准；
+- managed production 只使用 runtime 注入的 company root、repo fleet 和授权 target；
+- 普通 checkout 只在用户明确授权的工作树内写入；
+- 不直接编辑 jarvis-box 管理的 state/env/cache 或任何凭据；
+- provider-native session handle 属于 runtime 私有状态，不进入 Company Jarvis 或公开 handoff。
 
-## 路径确认
+静态 Company Jarvis 不保存某台机器的绝对 runtime root、容器路径、凭据或可变 Task 状态。
 
-普通业务任务从当前授权 checkout、company entry 和 live `jarvis-box status` 确认路径。仍在 construction 期间时，任务目标和构件范围以外部 `BUILD-CONTEXT.md` 为准。静态 company repo 不保存 runtime root 或 method-pack 路径。
+## 何时检查 jarvis-box
 
-## 执行上下文识别
+只有处于 managed production 且发生以下情况时，才按当前产品 `--help` 使用对应
+`jarvis-box status`、`agent current`、`doctor` 或 Task 观测命令：
 
-每次会话必须判定当前处于哪种执行上下文：
+- 注入的 Company context、Task identity 或授权 target 缺失；
+- 注入上下文与当前 checkout/source 事实冲突；
+- service、agent、connector 或 Task 明确需要诊断；
+- operator 明确要求 runtime 运维检查。
 
-| 上下文 | 特征 | 处理方式 |
-|--------|------|---------|
-| 普通 operator checkout | 人工 clone 的工作树，无 Task 身份 | 合法；记录授权工作树，不伪造 Task 状态 |
-| 已授权 repo checkout | 有明确授权记录的工作树 | 在授权范围内读写 |
-| 受管 Task workspace | 存在可验证的 Task identity（task_id、workspace 路径与 Task 记录一致） | 按 Task/Run 生命周期处理 |
+正常业务会话不机械执行 `jarvis-box version/status/agent current`。运行时应在任务进入 Agent 前
+完成上下文解析与注入，而不是把 discovery 成本推给每次会话。
 
-只有存在可验证 Task identity 时才应用 Task/Run 生命周期和受管 workspace 语义。用户完成安装后直接启动 codex/claude/copilot 对话构建或继续 Jarvis 是合法的——该对话不一定是 jarvis-box Task 或 Run，不得要求 Task pointer 或受管 Task workspace 才能开始工作。
+## 升级到完整版
 
-## 写入边界
+以下任一触发时，读取 [runtime-governance.md](runtime-governance.md) 对应章节：
 
-- 写入**仅在**当前授权 target 或 worktree 内进行。
-- jarvis-box 管理的 env、service state、Task/Run artifact 及其识别出的 cache **不直接写**。
-- agent 不直接修改产品状态文件或凭据文件。
-- provider-native session handle（包括 Codex JSONL 的 `thread.started` / `thread_id`）属于 jarvis-box 私有 runtime 状态，不写入 company Jarvis 或公开 handoff；Task/Run identity 只使用 jarvis-box 实际返回的值。
+- 路径、snapshot、identity 或 authority 冲突；
+- Task 生命周期操作；
+- service、agent、connector 或 deployment 配置变更；
+- 凭据边界、Docker socket 或其他 host-root-equivalent 能力；
+- 跨 target writeback 或 runtime 恢复。
 
-## 升级到完整版的条件
-
-以下任一触发时，必须阅读 [runtime-governance.md](runtime-governance.md)：
-
-- 路径或身份冲突
-- Task 五个生命周期操作（start/continue/stop/recover/retry-writeback）
-- service 或 agent 配置变更
-- install-owned managed job 的配置、失败或恢复
-- fleet 维护操作
-- 涉及凭据边界
-- 跨 target writeback
-
-service restart 只恢复服务能力，不继续旧 Task。只有 Task 已被 live 状态标记为 `recovery-required` 时，才按证据显式执行 `tasks recover`。
+service restart 只恢复服务能力，不等于继续旧 Task。只有 live 状态明确要求恢复时，才按证据
+执行产品提供的恢复操作。

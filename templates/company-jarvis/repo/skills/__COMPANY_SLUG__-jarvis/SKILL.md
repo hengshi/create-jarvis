@@ -15,9 +15,12 @@ description: "{{COMPANY_NAME}} 企业 agent 统一入口。对属于公司已确
 
 Source-detected identity 不能覆盖公司身份。JARVIS 首先回答：当前任务属于哪个企业闭环、应最先加载哪种 skill、第一跳去哪能最快拿到 first proof、什么证据阈值触发升级、任务结束后是否需要 durable knowledge writeback。
 
-## 2. 强制 preflight
+## 2. 执行上下文
 
-开始任何任务前，必须先读 `references/runtime-governance-quick.md`。只有 quick 明确触发升级时才读 `references/runtime-governance.md` 对应节。
+先判断当前是 construction/onboarding、普通授权 checkout，还是 managed production。construction
+以外部 `BUILD-CONTEXT.md` 和当前 Git/source facts 为准，不要求 jarvis-box；managed production
+使用 runtime 已注入的 Company snapshot、Task identity 和授权 target。上下文缺失、冲突或需要
+诊断时才读 `references/runtime-governance-quick.md`，并按其条件升级到完整版。
 
 涉及 workflow disposition、执行、代码/文档修改、delegation、或声称完成时，必须读 `references/agent-engineering-quality-gate.md`。
 
@@ -59,9 +62,13 @@ Capability owner 可以是已确认的 product、source、process 或 repo owner
 - 进入代码或耐久文档实现前：按任务加载 `ponytail`、`writing-durable-docs` 或 `stop-slop`
 - 发现重复 agent failure 或 review pattern：`jarvis-self-improve-skill`
 
-前三个 company workflow 初始状态是 `draft-template`。路由前必须读取目标 skill 的模板状态：
-只有 `active` 才能承接真实任务；仍是 `draft-template` 时只进入客户 workflow onboarding，
-解释草稿并结合真实 source、角色、repo-local skill 和交付 policy 做定制验证。
+前三个 company workflow 初始状态是 `draft-template`。路由前必须读取目标 skill 的状态：
+
+- `draft-template`：只做客户 workflow onboarding；
+- `construction-ready`：只做建设环境中的受控验证；
+- `runtime-deployed` / `ready-for-shadow`：已固定运行时快照，等待 supervised shadow；
+- `shadowing`：在客户监督下处理代表性真实任务；
+- `active`：只在 deployment lock 所绑定的范围内承接生产任务。
 
 ## 4. 路由算法
 
@@ -104,7 +111,7 @@ construction/onboarding mode 可以用于理解、验证路由和收集客户 wo
 
 | Reference | 触发条件 |
 |---|---|
-| `runtime-governance-quick.md` | 任何工作流开始前强制预读 |
+| `runtime-governance-quick.md` | 执行上下文或边界不清、冲突、诊断时 |
 | `runtime-governance.md` | quick 明确触发升级时 |
 | `canonical-repo-fleet.md` | 查询已确认的 canonical repo fleet |
 | `jarvis-box.md` | jarvis-box 概念、服务模式 |

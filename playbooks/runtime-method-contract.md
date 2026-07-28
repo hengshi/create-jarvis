@@ -9,7 +9,7 @@ The customer starts with an already authenticated and explicitly authorized Host
 The Host Agent owns:
 
 - reading and pinning the create-jarvis method;
-- artifact inventory and access probes;
+- guiding customer source intake, then inventorying and probing only supplied pointers;
 - Company construction and Repository learning coordination;
 - customer Git publication;
 - reconciliation and workflow construction;
@@ -17,6 +17,8 @@ The Host Agent owns:
 - invoking formal runtime deployment when ready.
 
 Construction must work when `jarvis-box` is absent. Host paths, home directories and credentials are not production artifacts.
+
+The Host computer is not an evidence catalog. The initial customer request authorizes cloning the public method, not inspecting home contents, Agent history/configuration, shell state, unrelated repositories or previous runtime residue. Additional evidence access starts from customer-provided URLs or explicit paths.
 
 ## Create Jarvis method
 

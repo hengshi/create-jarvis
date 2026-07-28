@@ -5,15 +5,18 @@
 
 ## Construction journey
 
-1. 在 Host Agent 可访问的 workspace 准备至少两个真实 Git repo、一个授权文档源和 GitHub 或 GitLab 测试 namespace；
-2. 只发送“阅读 create-jarvis 并帮我构建属于我们公司的 Jarvis”；
-3. 检查 Coordinator 是否自行准备、派发、恢复 Company construction 与 Repository learning，而不是要求客户运行命令；
-4. 检查 Company construction 是否覆盖声明 artifact roots、闭合 capability 证据并发布可消费 Git ref；
-5. 为 Repository learning 提供隔离 replay，hidden historical outcome 不暴露给 executor；
-6. 人工审查 trajectory、progress、company route、repo-local diff、same-case before/after 和各 repo 的 Git 交付；
-7. 执行 reconciliation，并用真实 artifact 验证 company → repo-local handoff；
-8. 用真实客户 case 把一个 workflow 推进到 `construction-ready`，确认它没有直接变成 `active`；
-9. `scripts/verify_company_output.py` 只检查确定性的结构与安全边界，不替代语义评审。
+1. 从没有 create-jarvis checkout、没有客户 repo 的普通 Host workspace 开始；
+2. 只发送“请先运行 git clone https://github.com/hengshi/create-jarvis create-jarvis，读取本地 create-jarvis/SKILL.md，然后帮我构建属于我们公司的 Jarvis”；
+3. 检查 Agent 是否先 clone 方法仓库并从本地读取，而不是连续 WebFetch GitHub/raw 文件；
+4. 检查 Agent 是否先主持资料 intake，而不是扫描 home、Agent 配置、shell 环境、installed skills、无关 repo 或历史残留；
+5. 客户随后提供至少两个真实 Git repo、一个授权文档源和 GitHub 或 GitLab 测试 namespace；
+6. 检查 Coordinator 是否只验证这些 supplied pointers，并自行准备、派发、恢复 Company construction 与 Repository learning，而不是要求客户运行命令；
+7. 检查 Company construction 是否覆盖声明 artifact roots、闭合 capability 证据并发布可消费 Git ref；
+8. 为 Repository learning 提供隔离 replay，hidden historical outcome 不暴露给 executor；
+9. 人工审查 trajectory、progress、company route、repo-local diff、same-case before/after 和各 repo 的 Git 交付；
+10. 执行 reconciliation，并用真实 artifact 验证 company → repo-local handoff；
+11. 用真实客户 case 把一个 workflow 推进到 `construction-ready`，确认它没有直接变成 `active`；
+12. `scripts/verify_company_output.py` 只检查确定性的结构与安全边界，不替代语义评审。
 
 ## Formal runtime journey
 

@@ -2,13 +2,19 @@
 
 `create-jarvis` 是客户从零建设并启用自己 Jarvis 的 Agent 方法仓库。它不是安装器，也不要求客户先安装 jarvis-box。
 
+## 给正在读取这个页面的 Agent
+
+如果客户让你“阅读这个 GitHub 仓库并构建 Jarvis”，这个网页只是入口。不要继续通过 GitHub HTML、`raw.githubusercontent.com` 或一连串 WebFetch 拼装方法。先在当前客户授权的 workspace 中执行一次普通 `git clone https://github.com/hengshi/create-jarvis`，记录 checkout 的 commit，然后从本地读取 `SKILL.md` 及其引用文件。
+
+客户的第一句话只授权读取这个公共方法仓库，不授权你扫描客户电脑。不要枚举 home、`.claude`、`.codex`、`.hengshi`、shell 配置、环境变量、已安装 skills、无关 Git 仓库或历史残留来猜公司情况。先告诉客户你不会扫描电脑，再引导客户提供公司名称、文档入口、代码仓库和工作系统指针；只检查客户明确提供的 URL 或本地路径。
+
 ## 客户唯一入口
 
 客户在自己已经登录并授权的 Codex 中只需要说：
 
-> 阅读 https://github.com/hengshi/create-jarvis 并帮我构建属于我们公司的 Jarvis。
+> 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
-收到这句话的 Agent 是整个建设旅程的 **Construction Coordinator**。它自行读取本仓库、盘点已授权材料、协调长任务、恢复中断、发布产物、引导 workflow 建设，并在内容达到可部署边界后安装正式 jarvis-box runtime。客户不需要 curl 脚本、安装本地 Skill、选择 create-jarvis 版本、执行 Phase，或复制两条启动命令。
+收到这句话的 Agent 是整个建设旅程的 **Construction Coordinator**。它先 clone 并固定本仓库，再主持客户资料 intake、验证客户给出的材料、协调长任务、恢复中断、发布产物、引导 workflow 建设，并在内容达到可部署边界后安装正式 jarvis-box runtime。客户不需要 curl 脚本、安装本地 Skill、选择 create-jarvis 版本、执行 Phase，或复制两条启动命令。
 
 ## 一条旅程，两类建设产物
 

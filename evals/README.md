@@ -10,7 +10,7 @@
 
 1. `customer-input/` 放客户已授权的真实说明或脱敏副本；
 2. `customer-repos/` 放至少两个真实 Git 仓库，其中一个准备已有未提交修改的边界 case；
-3. Entry eval 只给一句客户请求，检查 Coordinator 是否自行准备并派发两条 lane，而不是要求客户复制命令；
+3. Entry eval 从没有 method checkout、没有客户材料的普通 workspace 开始，只给一句客户请求；检查 Coordinator 是否先 clone 并本地读取方法、明确不扫描电脑、向客户询问资料，而不是连续 WebFetch、枚举 home/config 或要求客户复制命令；
 4. history case 从真实 issue / MR / session / commit 历史中选择一个完整工作 episode；
 5. executor 只看到原始问题、当时可用证据和 parent snapshot；最终 diff、修复 commit、验收结果放在 evaluator-only 的 hidden oracle 中；
 6. 为恢复 eval 在 baseline 后终止第一次运行，再用新的 agent invocation 读取同一进度文件继续；

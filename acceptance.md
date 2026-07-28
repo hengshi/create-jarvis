@@ -3,14 +3,17 @@
 ## 一句话入口与恢复
 
 - 在没有 jarvis-box 的 Host 上，客户只给已授权 Codex canonical GitHub URL 和建设请求，Agent 即可开始。
-- Agent 自行读取并固定 method commit；客户不 curl、不安装 Skill、不选择版本、不运行 phase 或两条子任务命令。
+- Agent 先 clone canonical repo，固定 method commit，再从本地读取完整方法；它不通过 GitHub HTML/raw URL/WebFetch 逐文件拼装方法。客户不 curl、不安装 Skill、不选择版本、不运行 phase 或两条子任务命令。
 - 全新 journey 创建 `BUILD-CONTEXT.md`、两个 `RUN-*.md` 和 pointer-only `CONSTRUCTION-JOURNAL.md`。
 - 再次发送同一句话时，Agent 先找到 journal，切回记录的 method commit，验证 pointers 后继续，不重建或自动升级方法。
 - 没有子 Agent 时，由 Coordinator 顺序执行两个 lane；它不虚假承诺上下文隔离、后台进程或 heartbeat。
 
 ## Preparation
 
-- inventory 覆盖已授权 repo、文档和工作系统，记录准确 pointer、live access、revision、dirty state 和 write/delivery policy。
+- Agent 先明确告诉客户不会扫描电脑，再引导客户提供公司身份、repo、文档和工作系统指针；一个 pilot product/repo 即可启动。
+- 客户提供 pointers 前，Agent 不创建 phase/task 列表、`jarvis-build`、Company modules 或猜测的 repo scope。
+- inventory 只覆盖客户明确提供的 URL 或路径，记录准确 pointer、live access、revision、dirty state 和 write/delivery policy。
+- Agent 不枚举 home、Agent 配置/历史、shell profile、环境变量、installed skills、无关 repo 或旧 runtime 残留来推断公司身份与 source scope。
 - GitHub/GitLab、host、owner/namespace、Company Jarvis repo、visibility、default branch和 publication mode 有现场证据；有歧义时只问一个最小问题。
 - 每个代码 repo 的交付方式明确为 read-only、local commit、branch push 或 branch + PR/MR。
 - 文件不包含凭据、source dump、未解析占位符、`jarvis.toml` 或 bootstrap JSON 状态机。

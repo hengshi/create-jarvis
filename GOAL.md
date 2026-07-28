@@ -9,11 +9,11 @@
 
 ## 产品入口
 
-客户不安装 create-jarvis，也不先安装 jarvis-box。客户只让当前 Host Agent 阅读 canonical GitHub URL 并开始建设。Agent 自己完成方法读取、版本固定、工作目录发现、任务协调和恢复。
+客户不安装 create-jarvis，也不先安装 jarvis-box。客户只让当前 Host Agent 阅读 canonical GitHub URL 并开始建设。Agent 先把方法仓库 clone 到普通本地 checkout，固定 commit，再从本地读取完整方法；它不会通过连续 WebFetch 拼装仓库。Agent 主持客户资料 intake、任务协调和恢复，但不扫描客户电脑来猜公司环境。
 
 ## Construction Coordinator + 1 + 2
 
-收到客户请求的 Host Agent 是 Construction Coordinator。它先收集可验证的授权构件，再协调两个写入边界独立的长任务：
+收到客户请求的 Host Agent 是 Construction Coordinator。它先引导客户提供公司身份、docs、repo 和 work-system 指针，只验证这些明确提供的授权构件，再协调两个写入边界独立的长任务：
 
 - Company construction 建立公司级语义、能力、source、repo fleet 和路由，并发布 customer-owned Company Jarvis repo；
 - Repository learning 读取真实 code changes 和完整 episode，把可复用执行知识写回所属代码仓库。

@@ -24,14 +24,14 @@ Git revision 和外部交付引用；Agent 可以从这些证据恢复。
 
 客户只需把授权材料交给自己的 Codex、Claude 或其他可执行 Agent，并说：
 
-> 阅读 https://github.com/hengshi/create-jarvis 并帮我构建属于我们公司的 Jarvis。
+> 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
-Host Agent 是全程 Construction Coordinator。它检查当前可用能力、写入边界和访问授权，
+Host Agent 先把 create-jarvis clone 到本地并固定 commit，然后成为全程 Construction Coordinator。它先引导客户提供 docs、repo 和 work-system 指针，再检查这些指定材料的可用能力、写入边界和访问授权，
 但不要求客户先安装 jarvis-box，不要求填写 phase 表，也不把内部 eval-loop 方法讲给客户。
 
 ## 1. Preparation and dispatch
 
-Coordinator 浅扫客户提供的 docs、repo、issue/MR、CI/test 指针，确定：
+Coordinator 先主持一次简短资料 intake，再浅查客户明确提供的 docs、repo、issue/MR、CI/test 指针。它不扫描 Host home、Agent 配置或无关仓库来猜客户环境。随后确定：
 
 - 公司身份以及 `<company-slug>-jarvis` 的 GitHub/GitLab 发布目标；
 - 每个代码仓库的授权 checkout、写入方式、目标分支和交付策略；

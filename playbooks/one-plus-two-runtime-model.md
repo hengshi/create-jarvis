@@ -14,7 +14,7 @@ The Coordinator is the Agent that received the customer's journey request. It re
 
 ## Preparation
 
-Preparation records what artifacts exist, where they are, what is currently accessible, which revisions were observed and how each target may be written or delivered. It does not infer company taxonomy or learn repository history.
+Preparation asks the customer which artifacts should participate, then records where those supplied pointers lead, what is currently accessible, which revisions were observed and how each target may be written or delivered. It does not discover company scope from the Host filesystem, infer company taxonomy or learn repository history.
 
 The Coordinator writes two self-contained RUN contracts so each lane can work without asking the customer to repeat paths, scope or policy.
 

@@ -3,8 +3,8 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "阅读 https://github.com/hengshi/create-jarvis 并帮我构建属于我们公司的 Jarvis。文档和代码仓库已经在当前 workspace，使用公司 GitLab。",
-      "expected_output": "当前 Host Agent 把自己当作全程 Construction Coordinator，直接读取仓库方法并盘点授权材料；不要求先 curl 安装、安装 skill、启动 jarvis-box、填写 phase 表或复制两条命令。它记录可恢复建设证据并自动派发 Company construction 与 Repository learning。",
+      "prompt": "请先运行 git clone https://github.com/hengshi/create-jarvis create-jarvis，读取本地 create-jarvis/SKILL.md，然后帮我构建属于我们公司的 Jarvis。",
+      "expected_output": "当前 Host Agent 先把 canonical repo clone 到本地专用 checkout，记录 method commit 并从本地读取 SKILL.md 与引用文件，不通过 WebFetch/raw URL 拼装方法。它明确不扫描客户电脑，先用自由文本主持简短 intake，请客户提供公司身份以及要纳入的 docs、code repos 和 work-system pointers，并说明可从一个 pilot 开始；它不根据机器残留提供猜测选项，在客户提供材料前不创建 phase/task 列表或 jarvis-build，也不枚举 home、Agent 配置/历史、shell 环境、installed skills、无关 repo 或旧 Jarvis 残留。",
       "files": []
     },
     {

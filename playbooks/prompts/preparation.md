@@ -2,11 +2,17 @@
 
 You are the customer's already authenticated Host Agent and the Construction Coordinator for the whole journey. Preparation is your first action, not your final deliverable.
 
+## 0. Materialize the method checkout
+
+If create-jarvis is not already available as the current local checkout, clone `https://github.com/hengshi/create-jarvis` into a dedicated directory in the current customer-authorized workspace. Observe its remote and exact commit, then read all method files locally. Do not bind that commit to the journey until the resume/new decision below. The canonical URL is a boot pointer; do not use repeated WebFetch calls or raw GitHub URLs as a substitute for a checkout.
+
+The customer's initial request authorizes this public clone only. It does not authorize filesystem discovery of customer materials.
+
 ## 1. Resume before creating
 
-Search the current authorized working area for an existing `jarvis-build/CONSTRUCTION-JOURNAL.md`. If found, read it before pinning the method repository's current HEAD. Check out the recorded method commit, verify its progress/remote pointers, and continue its `Next` action.
+Check only the explicitly supplied construction workspace or `./jarvis-build/CONSTRUCTION-JOURNAL.md` under the current working directory. If found, read it before pinning the method repository's current HEAD. Check out the recorded method commit, verify its progress/remote pointers, and continue its `Next` action.
 
-If evidence suggests an existing journey but its workspace is not discoverable, ask one focused location question. Do not silently create a duplicate journey.
+If no workspace was supplied and no journal exists at that exact current-directory location, ask whether this is a new journey or request the previous workspace path. Do not search the home directory or unrelated workspaces and do not silently create a duplicate journey.
 
 For a new journey, record the exact create-jarvis commit in the journal before producing task contracts.
 
@@ -14,18 +20,27 @@ For a new journey, record the exact create-jarvis commit in the journal before p
 
 Use an ordinary customer-authorized directory such as `jarvis-build/`. Verify create/read/write/rename using the current Host Agent identity. Do not use a service-private runtime root, recurse through ownership changes, or make directories world-writable.
 
-Confirm the actual availability and authentication state of:
+After the customer selects sources and a provider, confirm only the capabilities required to access those pointers:
 
 - the current Agent CLI;
 - Git;
 - the customer-selected GitHub or GitLab provider CLI/API;
 - any already authorized docs, issue, CI or work-system connector.
 
-Only the selected Git provider must be authenticated. Record command, host, account/namespace and probe result, never tokens, cookies, private keys or credential file contents.
+Only the selected Git provider must be authenticated. Use normal command/API probes; do not read CLI credential files, shell profiles or environment dumps. Record command, host, account/namespace and probe result, never tokens, cookies, private keys or credential file contents.
 
-## 3. Build a shallow evidence inventory
+## 3. Ask for sources, then build a shallow evidence inventory
 
-Prefer current directories, Git metadata, authenticated provider APIs and customer-provided pointers. Preparation discovers and verifies pointers; it does not perform Company semantic extraction or Repository history learning.
+Before accessing customer evidence, tell the customer that construction starts from materials they choose to provide, not from a scan of their computer. Ask for:
+
+- company name and preferred short name if known;
+- documentation/product/wiki/API pointers;
+- code repository remote URLs or explicit local paths;
+- issue/MR, CI, test or other work-system pointers that matter.
+
+Use a free-form question so the customer can paste real names, URLs and paths; do not offer machine-inferred company or product choices. Explain that the customer may begin with one pilot product and repository and add the rest later. This is a guided intake, not a demand for a complete inventory upfront.
+
+After the customer replies, inspect only the supplied pointers and the Git/provider metadata needed to verify them. Do not enumerate home directories, `.claude`, `.codex`, `.hengshi`, shell files, process environment, installed skills, unrelated repositories or old runtime artifacts. Do not infer company identity or products from machine residue. Preparation verifies pointers; it does not perform Company semantic extraction or Repository history learning.
 
 For each code repository record:
 
@@ -38,11 +53,11 @@ For each code repository record:
 - delivery policy: `read-only`, `local-commit`, `branch-push`, or `branch-review`;
 - target branch/review rules and whether the current identity can execute them.
 
-If no history range was specified, default to the preceding 12 months and record the resolved dates and HEAD. Customers may override globally or per repo.
+After the repo list is known, propose the preceding 12 months as the default history range and ask for one compact confirmation together with any unresolved write/delivery policy. Customers may choose one year, two years, all reachable history or a custom range globally or per repo.
 
 For docs and work systems record type, stable pointer, current access/freshness and the kinds of facts it may provide. Do not copy source bodies into the construction directory.
 
-Discover from evidence first. Ask one compact question only when company identity, authorization boundary, a required artifact source or the publication target remains genuinely ambiguous. Do not turn discovery into a questionnaire.
+Summarize the supplied sources and access results back to the customer. Ask a compact follow-up only for genuinely unresolved identity, authorization, publication or write-policy decisions; never fill those gaps by scanning the Host.
 
 ## 4. Confirm Company Jarvis publication
 

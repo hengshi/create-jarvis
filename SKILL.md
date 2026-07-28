@@ -1,15 +1,21 @@
 ---
 name: create-jarvis
-description: Build, publish, deploy, and evolve a customer-owned Jarvis from the customer's authenticated Host Agent. Use whenever a customer asks to build their company Jarvis, inventory authorized company artifacts, learn repo-local skills from real Git history, reconcile company and repository knowledge, customize delivery workflows, deploy the formal jarvis-box runtime, resume an interrupted construction journey, or improve Jarvis from real delivery evidence. The default entry coordinates the whole journey; it does not stop after preparing commands for the customer.
+description: Build, publish, deploy, and evolve a customer-owned Jarvis from the customer's authenticated Host Agent. Use whenever a customer asks to build their company Jarvis, collect and verify customer-supplied company sources, learn repo-local skills from real Git history, reconcile company and repository knowledge, customize delivery workflows, deploy the formal jarvis-box runtime, resume an interrupted construction journey, or improve Jarvis from real delivery evidence. The default entry coordinates the whole journey; it does not stop after preparing commands for the customer.
 ---
 
 # Create Jarvis
 
 `create-jarvis` is the Agent-native construction journey. The customer-facing interface is one request, not an installer or phase CLI:
 
-> 阅读 https://github.com/hengshi/create-jarvis 并帮我构建属于我们公司的 Jarvis。
+> 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 The Agent receiving that request becomes the **Construction Coordinator**. It owns continuity from discovery through deployment and shadow promotion. `jarvis-box` appears only when the constructed knowledge and workflows are ready for the formal runtime.
+
+### Materialize the method before reading it
+
+The GitHub URL is a boot pointer, not a collection of pages to fetch. If this repository is not already the current local checkout, first clone it into a dedicated directory in the current customer-authorized workspace. Then record `git rev-parse HEAD` and read `SKILL.md` and referenced files from that checkout. Do not reconstruct the method through GitHub HTML, `raw.githubusercontent.com`, repeated WebFetch calls, or copied snippets.
+
+The initial one-line request authorizes this public clone. It does **not** authorize searching the customer's home directory, configuration, shell profiles, environment, Agent histories, installed skills, unrelated repositories or previous runtime remnants. Customer evidence begins with pointers the customer explicitly provides.
 
 ## Route the current invocation
 
@@ -34,18 +40,24 @@ Read, in order:
 
 ### Resume before starting over
 
-Before selecting the current repository HEAD as the method version, look for an existing construction workspace and `CONSTRUCTION-JOURNAL.md` in the current authorized working area. If found:
+Before selecting the current repository HEAD as the method version, check only the construction workspace explicitly named by the customer or the current directory's `jarvis-build/CONSTRUCTION-JOURNAL.md`. If found:
 
 1. read the journal;
 2. use the method commit recorded there;
 3. verify the referenced progress, remotes and revisions still exist;
 4. continue its `Next` action.
 
-Do not silently migrate an in-progress journey to a newer method revision. If no journal is discoverable, ask only whether an existing construction workspace should be resumed before creating a new one.
+Do not search the customer's home or unrelated directories for a journal. If no workspace was named and the current directory has no journal, ask whether this is a new journey or request the existing construction workspace path. Do not silently migrate an in-progress journey to a newer method revision.
+
+### Ask before discovering
+
+For a new journey, begin with a short guided intake. Ask the customer in free-form text for the company identity and the documentation, code repositories and work-system sources they want Jarvis to learn from. Accept remote URLs or explicit local paths, and explain that one pilot product/repository is enough to start if the complete fleet is not ready. Do not offer guessed company/product choices derived from the machine. After those sources are provided, probe only them, summarize what is accessible, and ask one compact follow-up for unresolved history range, publication target or write policy.
+
+Do not infer the company, product fleet or authorization boundary from artifacts found on the Host computer. The Host is an execution surface, not a customer evidence source.
 
 ### Preparation
 
-Preparation performs shallow, live inventory. It creates:
+Preparation turns customer-provided pointers into a shallow, verified inventory. It creates:
 
 ```text
 jarvis-build/

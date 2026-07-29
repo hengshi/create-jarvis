@@ -16,8 +16,8 @@ delivery facts. Resolve, without guessing:
   commit and repo-local entry skill;
 - the workflow skill paths, their source commits and the workflow being
   deployed;
-- the released jarvis-box image digest and, if selected, the uv-im-connector
-  image digest;
+- the released jarvis-box image digest and the uv-im-connector version/commit
+  bundled into that same image, as reported by the release metadata;
 - the formal Agent identity and credential profile.
 
 Do not deploy a Host dirty checkout, an unreviewed branch, a floating image
@@ -50,9 +50,11 @@ user's whole home, SSH agent or credential store into the runtime.
 
 ## 3. Prepare the private deployment home
 
-Use the released bundle's `compose.yaml` and `scripts/` from the same release.
-Do not clone jarvis-box source or run the legacy native installer. The private
-deployment home must contain:
+Download and verify the public jarvis-box release bundle, then use its
+`compose.yaml`, `scripts/`, templates and `CUSTOMER-OPERATIONS.md`. The script
+path is `<extracted-release>/scripts/deploy-production.sh`; it is not expected
+to exist in the deployment home. Do not clone jarvis-box source or run the
+legacy native installer. The private deployment home must contain:
 
 ```text
 <deployment-home>/
@@ -71,12 +73,15 @@ runtime evidence. Write `company-context.json` with strict schema v1, including
 the Company commit/tree digest, required repository refs/commits/entries,
 workflow paths, `authority: "high"`, and OCI references pinned by digest.
 
-`deployment.env` pins `JARVIS_IMAGE` (and `UVIM_IMAGE` when selected) and the
-absolute deployment home. `runtime.env` contains the runtime agent, provider
-allowlists, webhook/connector references and any provider configuration. Keep
-provider-native IM secrets in `connector.env`; they are not copied into
-jarvis-box. Enable the Docker socket only through the explicit deployment
-switch after the authorization checkpoint.
+`deployment.env` pins exactly one `JARVIS_IMAGE` digest and the absolute
+deployment home. The released image already contains both the jarvis-box and
+uv-im-connector binaries. Enabling `JARVIS_CONNECTOR_PROFILE=uvim` starts a
+second Compose service from that same image digest; there is no `UVIM_IMAGE`
+input. `runtime.env` contains the runtime agent, provider allowlists,
+webhook/connector references and any provider configuration. Keep
+provider-native IM secrets in `connector.env`; they are not copied into the
+jarvis-box service. Enable the Docker socket only through the explicit
+deployment switch after the authorization checkpoint.
 
 If a native-v1 installation is detected, do not treat it as a fresh install or
 overwrite it. Use the release's explicit migration/recovery path if one exists;
@@ -84,11 +89,12 @@ otherwise stop and report the blocker.
 
 ## 4. Start the locked runtime and authenticate
 
-Run the released deployment script from the bundle:
+Run the released deployment script from the extracted bundle (replace
+`<release-dir>` with that directory, not the deployment home):
 
 ```bash
-scripts/deploy-production.sh <deployment-home> start
-scripts/deploy-production.sh <deployment-home> shell
+<release-dir>/scripts/deploy-production.sh <deployment-home> start
+<release-dir>/scripts/deploy-production.sh <deployment-home> shell
 ```
 
 `start` is intentionally usable before Agent login. It removes stale
@@ -105,7 +111,7 @@ concrete failure.
 After authorization, run:
 
 ```bash
-scripts/deploy-production.sh <deployment-home> verify
+<release-dir>/scripts/deploy-production.sh <deployment-home> verify
 ```
 
 The probe must execute in the actual image and verify all of the following:

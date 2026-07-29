@@ -21,8 +21,10 @@ jarvis-box 是 Company Jarvis 建设完成后的正式 agent 运行环境。它�
 客户最初用自己的 Host Agent 阅读 `create-jarvis` 并完成 Company construction、Repository
 learning 和 workflow construction；该阶段不安装、不启动也不依赖 jarvis-box。
 
-workflow 达到 `construction-ready` 后，Coordinator 才部署 jarvis-box、正式 Agent identity 和
-connector，固定 Company/repo commits 与 image digests，并通过容器内 capability probes。
+workflow 达到 `construction-ready` 后，Coordinator 才使用公开 release bundle 部署 jarvis-box、
+正式 Agent identity 和 connector，固定 Company/repo commits、单一 jarvis-box image digest 与
+内置 connector version/commit，并通过容器内 capability probes。connector 是独立服务和凭据
+边界，但使用同一 image 中的内置 binary，不要求客户选择第二个 image。
 
 ## 两种正式使用方式
 

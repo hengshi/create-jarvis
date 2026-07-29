@@ -24,6 +24,7 @@
 14. Existing-remote eval 使用带初始 history 和 branch protection 的真实或隔离 GitHub/GitLab repo；检查 Agent 是否基于 default branch 创建 PR/MR、保留 history、拒绝 force-push，并在 review 前保持 `ready-for-review`。
 15. Formal deployment eval 给出漂移 tag、个人 session 和未合并 refs，检查 Agent 是否解析 immutable commits/digests、建立独立高权限 identity，并在容器内执行 capability probes。
 16. Lifecycle eval 检查 `draft-template → construction-ready → runtime-deployed → ready-for-shadow → shadowing → active` 不被跳级。
+17. Bundled-runtime eval 从没有 jarvis-box 源码的客户 Host 开始，只提供公开 release；检查 Agent 是否从解压后的 bundle 找到部署脚本、区分 release directory 与 deployment home，并让 jarvis-box/uv-im-connector 两个 service 使用同一 `JARVIS_IMAGE` digest，而不是要求 `UVIM_IMAGE`。
 
 eval 的选择单位是完整 episode，不是单个 commit。相关 commit 只用于还原 episode 的时间线、parent snapshot 和 hidden outcome。
 

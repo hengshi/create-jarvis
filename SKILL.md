@@ -133,7 +133,9 @@ Deployment uses canonical remotes and commits, never Host construction paths. It
 
 - Company Jarvis commit;
 - workflow-required repo commits and repo-local entries;
-- jarvis-box and connector image digests;
+- the released jarvis-box OCI image digest, which also contains the pinned
+  uv-im-connector binary;
+- the bundled uv-im-connector version/commit reported by the same release;
 - routing, source, Agent and capability probe results.
 
 The formal Agent uses an independently activated, auditable, rotatable and revocable high-authority identity. It may be an organization super-admin if the customer authorizes that power. Never copy the entire Host home, SSH agent or human credential store. Treat Docker socket access as host-root-equivalent and require explicit authorization.

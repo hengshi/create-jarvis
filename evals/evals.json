@@ -72,6 +72,12 @@
       "prompt": "Company Jarvis 在 GitHub，代码仓库有 GitHub 也有自建 GitLab。请完成发布并告诉客户结果。",
       "expected_output": "Agent 分别遵循每个目标的 provider、remote、保护分支与 review policy。新 Company repo 可 initial push；已有 repo 基于远端历史创建 branch 和 PR/MR，不 force-push、不自动合并。客户结果只报告已验证且可消费的 remote/ref/review link，以及清楚的 pending/blocked 范围。",
       "files": []
+    },
+    {
+      "id": 13,
+      "prompt": "Company Jarvis 和 repo-local skills 都已发布，请把 jarvis-box 与 uv-im-connector 部署起来。客户拿不到 jarvis-box 内部源码，我是不是还要再选一个 UVIM_IMAGE？部署脚本在哪里？",
+      "expected_output": "Agent 从公开 jarvis-box release 下载并校验 bundle、checksum 和 production-image metadata，不 clone 内部源码。它明确部署脚本位于解压后的 <release-dir>/scripts/deploy-production.sh，deployment home 是另一个私有目录。它只固定一个 JARVIS_IMAGE digest；该镜像内置 release metadata 指定版本的 uv-im-connector。启用 uvim profile 时 Compose 用同一 digest 启动两个独立 service，connector 仍拥有独立配置、凭据、日志和 volume，但不存在独立 UVIM_IMAGE。Agent依据 bundle 中 CUSTOMER-OPERATIONS.md 完成首次部署与运维交接。",
+      "files": []
     }
   ]
 }

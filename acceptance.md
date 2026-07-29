@@ -50,7 +50,9 @@
 - Deployment 只使用 canonical remotes 和 resolved commits，不使用 Host 绝对路径或复制 Host credential home。
 - 正式高权限身份的 Git host user/id、Git author、Agent account、credential/rotation owner 可审计。
 - Company clone、pilot repo clone、受控 writeback 和 Agent probe 以正式身份通过。
-- runtime snapshot 固定 Company commit、workflow 所需 repo commits、repo-local entries、image digests 和 probe 结果。
+- runtime snapshot 固定 Company commit、workflow 所需 repo commits、repo-local entries、单一 jarvis-box image digest、内置 connector version/commit 和 probe 结果。
+- 客户从已校验的公开 release bundle 获得 Compose、脚本、模板和运维手册；不依赖 jarvis-box 内部源码 checkout。
+- 启用 connector 时两个 Compose service 使用同一个 `JARVIS_IMAGE` digest，不接受独立 `UVIM_IMAGE`。
 - container 内 company → repo entry、source access 和必要 build/test command 均实际验证。
 - Docker socket未获单独授权时不挂载；若挂载，审计中明确标为 host-root-equivalent。
 - 成功后 workflow 进入 `ready-for-shadow`，不是 `active`。

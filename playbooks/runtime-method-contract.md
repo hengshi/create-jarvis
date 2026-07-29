@@ -77,7 +77,9 @@ Deployment converts construction evidence into runtime facts:
 - Host access → separately activated formal identity and source adapters;
 - construction validation → container-side routing/source/Agent/capability probes.
 
-The resulting deployment lock records exact revisions and image digests. It is production configuration, not a bootstrap phase state machine.
+The resulting deployment lock records exact revisions, one jarvis-box image
+digest, the bundled connector version and probe evidence. It is production
+configuration, not a bootstrap phase state machine.
 
 ## Customer-visible contract
 

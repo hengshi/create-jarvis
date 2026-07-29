@@ -20,10 +20,10 @@
 
 ## Formal runtime journey
 
-1. 使用 jarvis-box 项目发布的 multi-arch、digest-pinned production image 和一个真实 connector image；
+1. 使用 jarvis-box 项目发布并校验过的 release bundle，以及一个 multi-arch、digest-pinned production image；该 image 内置固定版本的真实 uv-im-connector；
 2. 固定 Company Jarvis 与所需 repo-local commits，建立独立高权限正式 identity；
 3. 运行容器内 Agent、Git provider、source、workspace read/write 和 Company routing probes；
-4. 检查 deployment lock 是否记录准确 commits、digests、identity 和 probe evidence；
+4. 检查两个 Compose service 是否使用同一 image digest，以及 deployment lock 是否记录准确 commits、单一 image digest、内置 connector version/commit、identity 和 probe evidence；
 5. 用监督的真实任务推进 `runtime-deployed → ready-for-shadow → shadowing`；
 6. 只有代表性任务稳定闭合并得到客户批准后才推进到 `active`；
 7. 后续 repo learning 发布新 ref 时，确认当前 active snapshot 不会隐式漂移。

@@ -32,6 +32,27 @@
 
 Construction Coordinator 使用客户当前 Host Agent 的真实文件、网络、Git 和 source 权限。它不依赖 jarvis-box，也不把建设阶段的人类凭据复制给正式数字员工。
 
+## Jarvis 生态中的身份与边界
+
+| 身份 / 产物 | 所有者与位置 | 负责什么 | 不是什么 |
+|---|---|---|---|
+| Jarvis 交付方 / 顾问 | 为客户讲解和陪跑的人 | 讲方法、帮助客户校准证据门槛和首个 workflow | 不替客户长期持有代码、账号或生产服务 |
+| 客户 | 自己拥有公司材料、Git 平台和运行环境 | 决定授权范围、发布目标、正式身份与生产运维策略 | 不是内部 jarvis-box 源码仓库的使用者 |
+| 客户 Host Agent | 客户已登录的 Codex / Claude | clone `create-jarvis`，主持建设、发布客户产物并完成部署交接 | 不是 jarvis-box server，也不是客户事实的来源 |
+| `create-jarvis` | 公共 GitHub 方法仓库 | 指导 Company construction、Repository learning、workflow construction、部署和 shadow | 不是安装器、daemon、镜像或客户知识库 |
+| `<company-slug>-jarvis` | 客户自己的 GitHub / GitLab repo | 保存公司身份、产品能力、source/repo 路由、跨模块关系和客户 workflow | 不是衡石内部 Jarvis 的副本，也不保存 repo 实现细节 |
+| repo-local skills | 客户各代码仓库 | 保存该仓库可验证、可复用的实现与回归知识 | 不是 Company Jarvis，也不是 commit message 汇总 |
+| customer workflow skills | 客户 Company Jarvis | 把客户真实角色、权限、review/test/release/acceptance 串成 bugfix/feature 等闭环 | 通用 starter 只是模板，不能直接冒充已上岗 workflow |
+| Hengshi Jarvis | 衡石自己的成熟 Company Jarvis | 是衡石业务和研发工作流的运行实例，可用于理解最终形态 | 不是客户模板、客户事实或需要复制的仓库 |
+| jarvis-box 内部源码 | 交付方私有 GitLab | 开发、测试和发布 jarvis-box | 客户部署不需要、也不应取得该源码 |
+| jarvis-box 公共发布面 | GitHub Releases / 公共下载地址 | 向客户交付 release bundle、校验文件、镜像 digest 和版本说明 | 不要求客户 clone GitHub 源码来运维 |
+| jarvis-box release bundle | 客户下载并解压的只读版本目录 | 提供 `compose.yaml`、部署脚本、模板和 `CUSTOMER-OPERATIONS.md` | 不是客户私有 deployment home |
+| jarvis-box OCI image | 公共 registry 中固定 digest 的镜像 | 内置 jarvis-box、固定版本 uv-im-connector、Agent CLI 和工具链 | 不是两个由客户自行搭配的产品镜像 |
+| jarvis-box service | 正式 Compose 中的主服务 | Task/Run、Agent 执行、Company context、日志与诊断 | 不是 construction 工作台 |
+| uv-im-connector service | 正式 Compose 中可选的 IM 边界 | 使用独立凭据、配置、日志和 volume 连接飞书/企微等 IM | 二进制虽独立演进，但不要求客户选择第二个 image |
+
+因此，正式部署是“一个 release bundle + 一个固定 image digest + 一个或两个 Compose service”。启用 IM 时，两个 service 运行同一个 image 中的不同 binary；客户只维护一个镜像版本。
+
 ### Company Jarvis construction
 
 输出是客户拥有并发布在其 GitHub 或 GitLab 上的 `<company-slug>-jarvis` repo。它保存公司级身份、产品能力、source、repo fleet、跨模块关系、路由和客户 workflow，不复制代码仓库中的实现真相。
@@ -86,6 +107,8 @@ draft-template
 
 - `create-jarvis` 负责建设旅程、知识分层、历史学习、workflow construction、正式部署 handoff 和 shadow promotion。
 - `jarvis-box` 是后续正式高权限数字员工 runtime，不是客户建设工作台。
+- 客户从 jarvis-box 公共 release bundle 获得部署脚本和完整运维文档，不 clone 私有源码。`scripts/deploy-production.sh` 位于解压后的 release 目录；客户私有的 deployment home 只保存配置、不可变 Company snapshot、凭据引用、持久化数据和 deployment lock。
+- 正式镜像同时内置 jarvis-box 与固定版本的 uv-im-connector。Compose 可启动两个独立服务，但两者使用同一个 `JARVIS_IMAGE` digest，不存在客户选择的 `UVIM_IMAGE`。
 - 正式 runtime 使用独立、可审计、可轮换、可撤销的高权限身份。身份可以按客户授权拥有超级管理员能力；独立身份的目的不是降权，而是与建设阶段的人类身份分开治理。
 - `jarvis-box server` 与它启动的 Agent 属于同一个高权限信任域；IM provider 原生凭据属于独立的 connector。
 

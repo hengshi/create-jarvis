@@ -116,7 +116,8 @@ START → WORK → VERIFY → END
 只有目标 workflow 已达到 `construction-ready` 后，Coordinator 才部署正式运行时：
 
 - 选择已发布的 Company Jarvis commit 和每个必需 repo-local commit；
-- 选择固定 digest 的 jarvis-box 与 uv-im-connector images；
+- 下载并校验 jarvis-box 公共 release bundle，选择一个固定 digest 的正式 image；
+- 从同一 release metadata 固定内置 uv-im-connector 的 version/commit；
 - 创建独立、可审计、可轮换和可撤销的正式 Agent identity；
 - 为该 identity 完成所选 GitHub/GitLab、Agent provider 和 source 的授权；
 - 部署持久化 agent home、runtime state 和 connector state；
@@ -127,8 +128,10 @@ Host Agent 与正式 Jarvis Agent 都是高权限执行主体。正式 jarvis-bo
 这不是低权限沙箱；独立 identity 只用于审计、轮换和撤销。Docker socket 等
 host-root-equivalent 能力仍必须显式选择。
 
-探针通过后 workflow 依次进入 `runtime-deployed`、`ready-for-shadow`。部署锁记录准确 commits、
-image digests、identity 和 probe evidence。
+正式 Compose 用同一个 `JARVIS_IMAGE` digest 启动 jarvis-box 服务和可选的 uv-im-connector
+服务；二者进程、凭据、日志和 volume 边界独立，但客户不选择第二个 connector image。探针通过后
+workflow 依次进入 `runtime-deployed`、`ready-for-shadow`。部署锁记录准确 commits、单一 image
+digest、内置组件版本、identity 和 probe evidence。
 
 ## 6. Shadow and activation
 

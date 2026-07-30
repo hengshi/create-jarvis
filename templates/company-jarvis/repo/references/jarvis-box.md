@@ -1,83 +1,54 @@
-# Jarvis Box — 使用者视图
+# jarvis-box integration boundary
 
-**状态**：参考 | **版本**：1.0
+**Status**: reference scaffold | **Maturity**: `unresolved`
 
----
+jarvis-box is the formal managed runtime used after a customer workflow becomes `construction-ready`. It does not perform initial Company/repository construction.
 
-## 是什么
+## Ownership boundary
 
-jarvis-box 是 Company Jarvis 建设完成后的正式 agent 运行环境。它不负责首次 construction。
-产品负责：
+jarvis-box owns:
 
-- **service 管理**：启停、健康检查、日志。
-- **agent 路由**：当前 agent 的选择、启用、排序和诊断。
-- **Task/Run 管理**（仅受管任务）：Task 生命周期、Run 证据、事件审计。
-- **Company context 注入**：把 deployment lock 固定的 Company/repo snapshot 注入业务任务。
-- **day-2 诊断**：`doctor`、`monitor`、`logs`、`tasks verify/diagnose/reconcile`。
-- **install-owned maintenance**：由当前 release 和 host scheduler 托管的 runtime sync、Jarvis maintenance、session self-improvement、Task workspace cleanup。
+- runtime binaries and packaged toolchain;
+- injected execution contract;
+- Task/Run control plane, workspaces, logs and state;
+- Company snapshot and repo materialization mechanics;
+- diagnostics, update/rollback and operator runbook;
+- selected connector integration.
 
-## 与 construction 的边界
+Company Jarvis owns customer knowledge, routing, workflows and the cross-runtime constitution. This file records only customer-visible integration facts and pointers; it does not reproduce jarvis-box commands, internal lifecycle rules, environment variables or runbook content.
 
-客户最初用自己的 Host Agent 阅读 `create-jarvis` 并完成 Company construction、Repository
-learning 和 workflow construction；该阶段不安装、不启动也不依赖 jarvis-box。
+## Construction and deployment boundary
 
-workflow 达到 `construction-ready` 后，Coordinator 才使用公开 release bundle 部署 jarvis-box、
-正式 Agent identity 和 connector，固定 Company/repo commits、单一 jarvis-box image digest 与
-内置 connector version/commit，并通过容器内 capability probes。connector 是独立服务和凭据
-边界，但使用同一 image 中的内置 binary，不要求客户选择第二个 image。
+Company/repository construction and reconciliation run from the customer-authorized Host Agent without jarvis-box. Formal runtime onboarding uses a verified public release bundle and public runtime interface to:
 
-## 两种正式使用方式
+1. pin the Company and required repo-local commits;
+2. pin a released OCI image digest and bundled component versions;
+3. activate a separate formal high-authority identity;
+4. install and start the service;
+5. run container-side Agent, source, routing and read/write probes;
+6. create an immutable deployment lock and enter `ready-for-shadow`.
 
-### 直接正式 Agent 对话
+## Observed customer integration
 
-用户可直接启动已注入 Company context 的正式 agent 对话执行授权工作。这不一定是 jarvis-box
-Task，不经过 Task/Run 生命周期。Agent 在授权工作树内正常读写。
+Fill this table during formal runtime onboarding from the installed release and live probes.
 
-### 受管 Task
+| Fact | Observed value/pointer | Evidence | State |
+|---|---|---|---|
+| public release source and version | UNRESOLVED | UNRESOLVED | unresolved |
+| public operator documentation | UNRESOLVED | UNRESOLVED | unresolved |
+| deployment owner/home | UNRESOLVED | UNRESOLVED | unresolved |
+| pinned image digest | UNRESOLVED | UNRESOLVED | unresolved |
+| Company snapshot commit/digest | UNRESOLVED | UNRESOLVED | unresolved |
+| required repo refs | UNRESOLVED | UNRESOLVED | unresolved |
+| formal identity/authority boundary | UNRESOLVED | UNRESOLVED | unresolved |
+| connector boundary | UNRESOLVED | UNRESOLVED | unresolved |
+| deployment lock | UNRESOLVED | UNRESOLVED | unresolved |
+| current workflow maturity | UNRESOLVED | UNRESOLVED | unresolved |
 
-由 jarvis-box Task 启动的会话，有明确的 task_id、workspace 和 Run 记录。此时应用 Task/Run 生命周期：Task 状态可查询、Run 证据可追溯、writeback 由产品管理。
+Use the installed release's own public help and operator documentation for commands and recovery. If this file conflicts with live installed behavior, stop, use the runtime-owned source for operations, and update only the customer integration facts here with evidence.
 
-**关键区别**：不要对普通 agent 对话要求 Task pointer 或 workspace——那是受管 Task 才有的概念。
+## Governance
 
-## 稳定入口
-
-以下入口用途稳定，具体参数以当前 `--help` 输出为准：
-
-| 入口 | 用途 |
-|------|------|
-| `jarvis-box --help` | 命令可用性的权威入口 |
-| `jarvis-box version` | 确认安装版本 |
-| `jarvis-box init` | 打印 setup readiness snapshot 和已确认路径 |
-| `jarvis-box status` | 运行时状态快照 |
-| `jarvis-box doctor` | 健康检查（只报告，不修改） |
-| `jarvis-box monitor` | 近期活动摘要 |
-| `jarvis-box agent` | agent 配置（current/list/set/enable/disable/order/unset/doctor/smoke） |
-| `jarvis-box tasks` | Task 管理（list/show/events/logs/verify/diagnose/reconcile/start/continue/stop/recover/retry-writeback/reap/clean） |
-| `jarvis-box logs` | 服务日志查看 |
-| `jarvis-box start/stop/restart` | 服务生命周期 |
-
-Task 只有 `start`、`continue`、`stop`、`recover`、`retry-writeback` 五个生命周期操作。`reap`、`clean` 是维护操作；`reconcile` 只生成 dry-run 计划。service restart 不自动继续 Task。
-
-当前 CLI 和 `--help` 是 command shape 的权威。install-owned managed jobs 的权威来自当前 release 文档/安装产物、host scheduler、`/server` crons 和 job logs。company Jarvis 不重新实现这些能力。
-
-jarvis-box production image 提供 runtime agent CLI、Git/provider/source 工具、可写 workspace 和
-持久化 agent home/state。正式容器按 root 运行；这不是低权限沙箱，正式 identity 应具备目标 workflow
-所需的高权限，但凭据通过 provider/secret boundary 管理，不写入 Company repo。
-
-## 环境变量
-
-以下变量由 jarvis-box 管理，不从静态 Company repo 猜测：
-
-- `JARVIS_RUNTIME_ROOT`
-- `JARVIS_ENV_FILE`
-- `JARVIS_STATE_DIR`
-- `JARVIS_WORKSPACE_ROOT`
-- `JARVIS_LOG_DIR`
-
-## 治理文档
-
-按需阅读：
-
-1. **[runtime-governance-quick.md](runtime-governance-quick.md)** — 上下文与诊断边界速查。
-2. **[runtime-governance.md](runtime-governance.md)** — 完整治理规范。
-3. **[canonical-repo-fleet.md](canonical-repo-fleet.md)** — fleet 操作规范。
+- Read [runtime-governance-quick.md](runtime-governance-quick.md) for the cross-runtime preflight.
+- Read [runtime-governance.md](runtime-governance.md) for customer paths, sync, tools, authority, handoff and cleanup.
+- Read [canonical-repo-fleet.md](canonical-repo-fleet.md) for canonical repository identities and materialization boundaries.

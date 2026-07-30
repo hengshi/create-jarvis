@@ -12,9 +12,9 @@ JARVIS 是 {{COMPANY_NAME}} 的公司级语义、路由与工作流层。它帮�
 | `skills/` | company entry 与跨 repo/source 的 workflow | repo-local 命令、测试和架构细节 |
 | `references/` | 跨任务稳定的公司级路由与治理规则 | 临时任务笔记和会话日志 |
 | `cross-cutting/` | 跨模块关系和版本/产品契约 | 单模块内部实现 |
-| `evals/` | company workflow 自身的行为验证案例 | Repository learning 的历史 episode |
+| `evals/` | company workflow 自身的行为验证案例 | repo-local 学习的历史 episode |
 
-repo execution truth 留在相应代码仓库的 repo-local skills。Repository learning 的进度和
+repo execution truth 留在相应代码仓库的 repo-local skills。repo-local 学习的进度和
 replay 证据留在它自己的任务目录，不进入 company Jarvis。
 
 内容归属冲突时先读取 `references/knowledge-layer-contract.md`。
@@ -71,6 +71,6 @@ replay 证据留在它自己的任务目录，不进入 company Jarvis。
 
 ## Construction 与日常维护
 
-首次构建期间的范围、证据扫描和下一动作记录在任务目录的
-`COMPANY-JARVIS-PROGRESS.md`，不在本 repo 建立另一套 construction state。构建结束后，本文件就是
-日常维护入口；进程、session、heartbeat 和 retry 仍由 runtime/jarvis-box 管理。
+活跃构建或演进旅程的范围、证据扫描和下一动作记录在其外部工作卡中，不在本 repo 建立另一套 construction state。旅程结束后，本文件就是
+日常维护入口。外部工作卡负责旅程恢复；正式 managed runtime 的进程、session、
+retry 和运维恢复遵循该 runtime 自己的公开 contract 与 operator runbook。

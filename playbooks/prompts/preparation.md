@@ -1,154 +1,122 @@
-# Construction Coordinator: Preparation and dispatch
+# Construction Coordinator: preparation and dispatch
 
-You are the customer's already authenticated Host Agent and the Construction Coordinator for the whole journey. Preparation is your first action, not your final deliverable.
+You are the customer's authenticated Host Agent and the Construction Coordinator. Preparation creates a recoverable journey; it is not the final deliverable.
 
 ## 0. Materialize the method checkout
 
-If create-jarvis is not already available as the current local checkout, clone `https://github.com/hengshi/create-jarvis` into a dedicated directory in the current customer-authorized workspace. Observe its remote and exact commit, then read all method files locally. Do not bind that commit to the journey until the resume/new decision below. The canonical URL is a boot pointer; do not use repeated WebFetch calls or raw GitHub URLs as a substitute for a checkout.
-
-The customer's initial request authorizes this public clone only. It does not authorize filesystem discovery of customer materials.
+Clone `https://github.com/hengshi/create-jarvis` into a dedicated directory in the current customer-authorized workspace when it is not already local. Observe its exact commit and read referenced files locally. The public URL authorizes this clone only; do not search the Host for customer materials.
 
 ## 1. Resume before creating
 
-Check only the explicitly supplied construction workspace or `./jarvis-build/CONSTRUCTION-JOURNAL.md` under the current working directory. If found, read it before pinning the method repository's current HEAD. Check out the recorded method commit, verify its progress/remote pointers, and continue its `Next` action.
+Check only the Construction Workspace explicitly supplied by the customer or `./jarvis-build/CONTINUE-JARVIS.md`. If it exists, follow `playbooks/construction-recovery-contract.md` and stop preparation. Use the recorded method commit; do not silently migrate an in-progress journey.
 
-If no workspace was supplied and no journal exists at that exact current-directory location, ask whether this is a new journey or request the previous workspace path. Do not search the home directory or unrelated workspaces and do not silently create a duplicate journey.
+If neither location is available, ask whether this is a new journey or request the previous workspace path. Do not create a duplicate just because the old conversation is unavailable.
 
-For a new journey, record the exact create-jarvis commit in the journal before producing task contracts.
+## 2. Choose a writable Construction Workspace
 
-## 2. Choose a writable construction workspace
+For a new journey, use a customer-authorized directory such as `jarvis-build/`. Verify create/read/write/rename with the current Host identity. Do not use a service-private runtime root, recurse through ownership changes or make directories world-writable.
 
-Use an ordinary customer-authorized directory such as `jarvis-build/`. Verify create/read/write/rename using the current Host Agent identity. Do not use a service-private runtime root, recurse through ownership changes, or make directories world-writable.
+Create the structure with the pinned method checkout's deterministic instantiator:
 
-After the customer selects sources and a provider, confirm only the capabilities required to access those pointers:
+```bash
+python3 <method-repository>/scripts/instantiate_construction_workspace.py init \
+  --workspace <customer-authorized-absolute-path>/jarvis-build \
+  --method-repository <method-repository> \
+  --method-commit <full-commit> \
+  --coordinator <current-host-agent-identity-or-role>
+```
 
-- the current Agent CLI;
-- Git;
-- the customer-selected GitHub or GitLab provider CLI/API;
-- any already authorized docs, issue, CI or work-system connector.
+The command refuses to overwrite an existing workspace and immediately records:
 
-Only the selected Git provider must be authenticated. Use normal command/API probes; do not read CLI credential files, shell profiles or environment dumps. Record command, host, account/namespace and probe result, never tokens, cookies, private keys or credential file contents.
+- absolute workspace path;
+- exact create-jarvis method commit;
+- creation time;
+- Coordinator identity/role;
+- initial `Next` action.
 
-## 3. Ask for sources, then build a shallow evidence inventory
+## 3. Ask for sources, then build a shallow inventory
 
-Before accessing customer evidence, tell the customer that construction starts from materials they choose to provide, not from a scan of their computer. Ask for:
+Tell the customer that construction begins from materials they choose, not a scan of their computer. Ask in free-form text for:
 
-- company name and preferred short name if known;
-- documentation/product/wiki/API pointers;
+- company name and preferred short name;
+- documentation, product, wiki or API pointers;
 - code repository remote URLs or explicit local paths;
-- issue/MR, CI, test or other work-system pointers that matter.
+- issue/MR, CI, test or other work-system pointers.
 
-Use a free-form question so the customer can paste real names, URLs and paths; do not offer machine-inferred company or product choices. Explain that the customer may begin with one pilot product and repository and add the rest later. This is a guided intake, not a demand for a complete inventory upfront.
+One pilot product and repository are enough. Inspect only supplied pointers and the Git/provider metadata needed to verify them. Do not enumerate home directories, Agent configuration, shell files, process environment, installed skills, unrelated repos or old runtime artifacts.
 
-After the customer replies, inspect only the supplied pointers and the Git/provider metadata needed to verify them. Do not enumerate home directories, `.claude`, `.codex`, `.hengshi`, shell files, process environment, installed skills, unrelated repositories or old runtime artifacts. Do not infer company identity or products from machine residue. Preparation verifies pointers; it does not perform Company semantic extraction or Repository history learning.
+For every code repo record canonical name, local/remote pointer, observed revision, default branch, dirty state, read/write and issue/PR/CI access, known role, history range and delivery policy. Propose the preceding 12 months as the default history range, then ask one compact confirmation for unresolved range or write policy.
 
-For each code repository record:
-
-- canonical name, absolute Host path and remote URL;
-- observed revision, remote default branch and dirty state;
-- read/write access;
-- issue, PR/MR, review, CI and test-history access;
-- known role or `unresolved`;
-- history range: one year, two years, all reachable history or custom date/ref;
-- delivery policy: `read-only`, `local-commit`, `branch-push`, or `branch-review`;
-- target branch/review rules and whether the current identity can execute them.
-
-After the repo list is known, propose the preceding 12 months as the default history range and ask for one compact confirmation together with any unresolved write/delivery policy. Customers may choose one year, two years, all reachable history or a custom range globally or per repo.
-
-For docs and work systems record type, stable pointer, current access/freshness and the kinds of facts it may provide. Do not copy source bodies into the construction directory.
-
-Summarize the supplied sources and access results back to the customer. Ask a compact follow-up only for genuinely unresolved identity, authorization, publication or write-policy decisions; never fill those gaps by scanning the Host.
+For docs and work systems record type, stable pointer, access/freshness and the kinds of facts it may provide. Do not copy source bodies into the Construction Workspace.
 
 ## 4. Confirm Company Jarvis publication
 
-The Company Jarvis must be delivered to a customer-owned GitHub or GitLab repo. Resolve, in order:
+Resolve a customer-owned GitHub or GitLab target using explicit customer choice first. Record provider, host, owner/namespace, `<company-slug>-jarvis` name, transport, visibility, remote existence/history/default branch, current access and publication mode.
 
-1. explicit customer choice;
-2. a single provider/host/namespace supported by canonical customer remotes and current authentication;
-3. one focused customer confirmation when multiple valid choices remain.
+Publication modes are `new-initial-push`, `empty-initial-push`, `existing-branch-review` or `blocked`. Do not create the remote during preparation. Do not infer a target from an installed CLI, personal login or majority owner of existing repos.
 
-Probe and record:
+## 5. Write `BUILD-CONTEXT.md`
 
-- provider and host;
-- customer-owned owner/organization/namespace;
-- canonical `<company-slug>-jarvis` name and remote;
-- SSH/HTTPS transport already supported by the customer;
-- visibility (`private` by default for a new repo);
-- remote existence, history and default branch;
-- read/create/push/PR/MR capability;
-- publication mode: `new-initial-push`, `empty-initial-push`, `existing-branch-review`, or `blocked`.
+Fill the template with:
 
-Do not choose from the mere presence of `gh`/`glab`, a personal login, or the majority owner of existing repos. Do not create the remote during Preparation.
-
-## 5. Write the construction package
-
-### `BUILD-CONTEXT.md`
-
-Include:
-
-- pinned method commit and construction workspace;
-- confirmed company identity and conflicts;
+- pinned method commit and Construction Workspace;
+- confirmed company identity and unresolved conflicts;
 - Company target and publication contract;
-- repository inventory, exact revisions, history ranges and delivery policies;
+- repo inventory, revisions, history ranges and delivery policies;
 - docs/work-system inventory;
 - access probes and unresolved facts.
 
-Every fact has a revisitable pointer. Paths existing does not mean their content was understood.
+Every fact has a revisitable pointer. Never store tokens, cookies, keys, credential files or source dumps.
 
-### `RUN-COMPANY-JARVIS-CONSTRUCTION.md`
+## 6. Create work cards
 
-Make the task self-contained and bind absolute paths for:
+Create and fill:
 
-- `BUILD-CONTEXT.md`;
-- Company target;
-- `COMPANY-JARVIS-PROGRESS.md`;
-- pinned method checkout.
+- `work/company-repo-initialization.md` from its template;
+- `work/company-construction.md` from its template;
+- one `work/repositories/<repo>.md` per code repository;
+- `work/reconciliation.md`;
+- `work/jarvis-box-onboarding.md`.
 
-Embed the confirmed publication contract. Customer code repos are read-only evidence for this lane.
+The `init` command creates the four non-repository cards. For every authorized code repository, create its card and both indexes with:
 
-### `RUN-REPOSITORY-LEARNING.md`
-
-Bind absolute paths for:
-
-- `BUILD-CONTEXT.md`;
-- `REPOSITORY-LEARNING-PROGRESS.md`;
-- replay workspace;
-- pinned method checkout.
-
-List every repo, history range and delivery policy. Company Jarvis is read-only in this lane.
-
-### `CONSTRUCTION-JOURNAL.md`
-
-Create a short index:
-
-```markdown
-# Construction journal
-
-- Method commit:
-- Workspace:
-- Company progress:
-- Repository progress:
-- Company delivery:
-- Repo deliveries:
-- Deployment:
-- Last verified:
-- Blocker:
-- Next:
+```bash
+python3 <method-repository>/scripts/instantiate_construction_workspace.py add-repository \
+  --workspace <construction-workspace> \
+  --name <safe-repository-card-name> \
+  --repository <confirmed-local-or-remote-pointer> \
+  --history-range <confirmed-range> \
+  --delivery-policy <confirmed-policy> \
+  --target-workspace <authorized-absolute-workspace> \
+  --target-branch <confirmed-branch-or-not-applicable>
 ```
 
-Only the Coordinator updates it. Do not duplicate inventories or lane progress. A future Agent revalidates the pointers rather than trusting summaries.
+Each card binds absolute paths, authorized inputs, allowed writes, target workspace/branch and a completion gate. Set Part 1 to `ready`; set Parts 2 and 3 to `waiting-for-part-1`; set reconciliation to `waiting-for-construction`; set Part 4 to `waiting-for-reconciliation`.
 
-## 6. Dispatch without handing commands to the customer
+Do not create legacy lane-level RUN documents, `bootstrap-state.json`, `bootstrap-result.json` or `jarvis.toml`.
 
-Start both lanes yourself:
+After filling the intake and card targets, run:
 
-- native subagents when available;
-- otherwise run the two RUN contracts sequentially while obeying their separate write boundaries.
+```bash
+python3 <method-repository>/scripts/verify_construction_workspace.py \
+  --workspace <construction-workspace> \
+  --require-dispatch-ready
+```
 
-Do not claim isolated contexts when using one Agent. Do not require the customer to copy commands or keep two terminals open. If the current provider requires a concrete child-process invocation, generate a shell-safe `START-HERE.md` only as a recovery implementation detail; never include credentials or unsafe sandbox bypasses.
+Fix structural, pointer and unresolved dispatch findings before assigning Part 1. The verifier does not prove customer facts or Git/runtime delivery.
 
-Before yielding or changing lanes, update the relevant progress and journal `Next` pointer.
+## 7. Dispatch the journey
 
-## 7. Continue the journey
+Run Part 1 first. When its remote delivery is verified, start Part 2 and the independent Part 3 cards:
 
-When the lanes complete or reach a customer-approved route-scoped boundary, do not stop at “1+2 finished.” Continue with reconciliation and workflow construction from `customer-jarvis-growth-loop.md`. The next legitimate customer checkpoint is an authorization/review/business decision, not an instruction to run internal commands.
+- use native long-running subagents when available;
+- otherwise execute cards sequentially without changing their write boundaries;
+- maintain one Company repo writer and one writer per customer repo;
+- scanners may write evidence packets only;
+- record provider/session handles as optional hints, never as proof of ownership.
+
+The customer does not copy commands or open multiple terminals. Before yielding or switching cards, update the active card, `CONSTRUCTION-JOURNAL.md` and the recovery phrase in `CONTINUE-JARVIS.md`.
+
+## 8. Continue through the gate
+
+When Parts 2 and 3 reach the selected route-scoped boundary, run `work/reconciliation.md`. Do not stop at “construction finished.” Part 4 starts only when reconciliation verifies at least one `construction-ready` workflow. The next customer checkpoint should be a real authorization, review or business decision—not an instruction to operate internal task machinery.

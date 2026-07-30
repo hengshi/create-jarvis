@@ -1,15 +1,22 @@
-# Formal jarvis-box deployment
+# Part 4: jarvis-box installation and onboarding
 
-Use this lane only after the Company Jarvis remote, the required repo-local
-skill refs and at least one customer workflow are `construction-ready`.
-Construction itself must not depend on jarvis-box. The result of this lane is
+Use this work card only after `work/reconciliation.md` verifies the Company
+Jarvis remote, the required repo-local skill refs and at least one customer
+workflow at `construction-ready`.
+Construction itself must not depend on jarvis-box. The result of this work card is
 an immutable deployment set and a `ready-for-shadow` runtime; it is not a
 promise that a future business task has already been completed.
 
+Read `work/jarvis-box-onboarding.md` first. After every material checkpoint—
+release download, checksum verification, image pin, service start,
+authentication, runtime verification and shadow handoff—record the verified
+fact and `Next` in that card before continuing.
+
 ## 1. Freeze the handoff
 
-Read `CONSTRUCTION-JOURNAL.md`, both lane progress files and the actual remote
-delivery facts. Resolve, without guessing:
+Read `CONSTRUCTION-JOURNAL.md`, `work/reconciliation.md`, the required Company
+and repository work cards, and the actual remote delivery facts. Resolve,
+without guessing:
 
 - the Company Jarvis provider, remote and approved commit;
 - every required code repository's canonical remote, fetchable ref, exact
@@ -24,6 +31,10 @@ Do not deploy a Host dirty checkout, an unreviewed branch, a floating image
 tag, or a local skill that has not been published to a real GitHub/GitLab
 ref. A deployment lock must point to real revisions that another operator can
 fetch.
+
+If the Reconciliation Gate or workflow evidence cannot be reverified, mark
+the onboarding card blocked and return to reconciliation. Do not start a
+partial production runtime to compensate for missing construction evidence.
 
 The `workflows` entries in `company-context.json` use `ready-for-shadow` as the
 deployment target. This does not rewrite the Company workflow skill's
@@ -87,6 +98,9 @@ If a native-v1 installation is detected, do not treat it as a fresh install or
 overwrite it. Use the release's explicit migration/recovery path if one exists;
 otherwise stop and report the blocker.
 
+Record the extracted release path, release version, checksum evidence, chosen
+deployment home and pinned image digest in the onboarding card before start.
+
 ## 4. Start the locked runtime and authenticate
 
 Run the released deployment script from the extracted bundle (replace
@@ -105,6 +119,10 @@ provider-native Codex/Claude, `gh`/`glab`, source and registry logins. Do not
 run routine `jarvis-box version/status/agent current`; the injected Company
 context is the business routing input. Use doctor/status only to diagnose a
 concrete failure.
+
+After `start`, record the observed service and health state before
+authentication. After each provider activation, record only
+account/host/capability probe facts—never credential values.
 
 ## 5. Verify the real runtime
 
@@ -132,15 +150,30 @@ interactively inside a running container and then call the deployment
 reproducible.
 
 Only after every probe passes does the script atomically write
-`lock/deployment-lock.json` and restart jarvis-box. The server then reports
-`deployment_ready: true` and accepts business work in `ready-for-shadow` mode.
-If verification fails, no new lock is written and the server remains locked.
+`lock/deployment-lock.json` and restart jarvis-box. If verification fails, no
+new lock is written and the server remains locked.
+
+Compare stable behavior observed during installation and verification with
+Company `references/runtime-governance.md`. Write back only customer-level
+facts such as the formal managed-runtime boundary, stable public operations
+entry and verified handoff behavior. Do not copy jarvis-box's injected
+execution contract, control-plane implementation or operator runbook into the
+Company repo. Before a governance writeback, acquire the Company repo's single
+writer ownership; if another writer is live or ownership is unknown, save an
+evidence packet and hand it to that writer instead. Deliver and verify any
+governance writeback under the Company Git policy. If that writeback changes
+the Company commit after a successful verification, the first lock is not the
+final onboarding result: rematerialize the clean Company snapshot, update its
+digest/context and rerun the complete runtime verification. Only the lock that
+pins the resulting Company commit may be reported as `ready-for-shadow`.
 
 ## 6. Shadow and later promotion
 
 Record the resulting lock path, exact revisions, identity and probe output in
-the construction journal. Keep the workflow at `ready-for-shadow` until the
-customer supervises representative real tasks. Mark it `shadowing` while
+`work/jarvis-box-onboarding.md`. The Coordinator then updates the construction
+journal from that verified card. Keep the workflow
+at `ready-for-shadow` until the customer supervises representative real tasks.
+Mark it `shadowing` while
 evidence accumulates; promote to `active` only after routing, repo-local
 execution, verification and END closure are stable and the customer approves.
 

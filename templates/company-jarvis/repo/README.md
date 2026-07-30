@@ -97,9 +97,10 @@ JARVIS 提供四个可验证的职责面：
 
 ## 执行上下文
 
-construction/onboarding 不依赖 jarvis-box，以外部 BUILD-CONTEXT 和当前 Git/source facts 为准。
-managed production 使用 runtime 注入的不可变 Company snapshot。上下文缺失、冲突或需要诊断时
-才读 `references/runtime-governance-quick.md`（触发升级条件时再读完整版）。
+每次任务先读 `references/runtime-governance-quick.md` 并判定执行 surface。construction/onboarding
+不依赖 jarvis-box，以外部 Construction Workspace 和当前 Git/source facts 为准；managed production
+使用 runtime 注入的不可变 Company snapshot。路径、同步、工具、权限、handoff、cleanup 或 runtime
+integration 涉及时升级到完整版。
 
 ## 二级路由条件
 

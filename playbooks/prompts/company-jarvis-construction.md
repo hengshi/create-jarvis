@@ -1,8 +1,17 @@
-# Company Jarvis construction agent task
+# Part 2: Company Jarvis construction
 
-你的唯一目标，是依据 `BUILD-CONTEXT.md` 中已授权的客户证据，构建或继续构建客户自己的 company Jarvis repo，并在验证后把它发布到客户确认的 GitHub 或 GitLab。
+你的唯一目标，是从 Part 1 已交付的 Company Jarvis 骨架继续，依据 `BUILD-CONTEXT.md` 中已授权的客户证据构建客户自己的 company Jarvis repo，并在验证后把它发布到客户确认的 GitHub 或 GitLab。
 
 你不是在“把模板文件填满”，也不是要机械复制另一个公司已经运行数月后才形成的文件数量。你的交付物应是一个对**本次声明授权范围与记录深度 coverage-complete、且所有结论 evidence-backed** 的公司语义与路由中枢：新的 Agent 能据此理解客户是谁、有哪些产品能力、事实去哪里找、任务先查什么、何时进入哪个 repo，以及哪些结论仍未被证明。
+
+## Navigation
+
+- [目标与写入边界](#本轮-construction-完成后应该具备什么)
+- [证据发现](#证据发现四个视角数量自适应)
+- [Construction loop](#construction-loop)
+- [Runtime governance](#8-建设并验证-runtime-governance)
+- [验证与发布](#11-验证语义与待发布内容)
+- [完成、阻塞与客户结果](#完成标准)
 
 ## 本轮 construction 完成后应该具备什么
 
@@ -16,18 +25,19 @@ Company Jarvis 至少能回答：
 6. 一个真实任务从哪个 module/source 开始，什么 first proof 决定是否进入哪个 repo；
 7. 哪些跨 module / repo 关系有真实证据，哪些仍是 unresolved；
 8. 一条新知识应留在 company module、cross-cutting、source route、repo-local skill 还是当前任务中。
+9. 所有 Host Agent 与正式 managed runtime 应遵守什么客户级执行宪法，相关机制是否已经安装并验证。
 
-当前客户证据足以形成的 module knowledge、source route、跨模块关系和公司级决策，应在本轮完成，不能以“以后会成熟”为由跳过。成熟客户 workflow、额外 references 和专用 tools 则必须按各自证据形成；不能为了模仿另一个成熟 Jarvis 而按数量制造。完整成长路径见 `playbooks/customer-jarvis-growth-loop.md`。
+当前客户证据足以形成的 module knowledge、source route、跨模块关系和公司级决策，应在本轮完成，不能以“以后会成熟”为由跳过。成熟客户 workflow、额外 references 和专用 tools 则必须按各自证据形成；不能为了模仿另一个成熟 Jarvis 而按数量制造。只有需要判断跨 Part 生命周期或向客户解释整体成长路径时，才读取 `playbooks/customer-jarvis-growth-loop.md` 的相关章节。
 
 ## 写入边界
 
-- 主要写入目标只有任务文件指定的 company Jarvis target，以及 `BUILD-CONTEXT.md` 明确确认的同一个 customer-owned GitHub/GitLab remote。
-- 任务目录中只维护 `COMPANY-JARVIS-PROGRESS.md`，以及确有并行扫描需要时的临时 evidence packet；不要建立 construction 状态机。
-- 客户代码仓库、文档和工作系统都是只读证据；不要在其中创建 repo-local skills、branch、commit 或 MR/PR。
+- 主要写入目标是任务文件指定的 Company Jarvis target、`BUILD-CONTEXT.md` 明确确认的 customer-owned GitHub/GitLab remote，以及客户明确批准并记录在 context/card 中的 Host runtime foundation 安装目标。
+- 任务目录中只更新 `work/company-construction.md` 和确有并行扫描需要时的 task-local evidence packet；delegated worker 把 verified card pointer 报给 Coordinator，由 Coordinator 单独更新 `CONSTRUCTION-JOURNAL.md`。不要建立 construction 状态机。
+- 客户代码仓库、文档和工作系统都是只读证据；不要在其中创建 repo-local skills、branch、commit 或 MR/PR。Host runtime 也不是默认可扫描/写入区域；先请客户提供现有 runtime root/tool/sync pointer 或明确批准的发现与安装目标。
 - 不运行 Repository learning 的 history eval loop。Company construction 可以定向读取 issue、MR/PR、commit diff 和测试来证明公司级事实，但不遍历历史来训练 repo-local skill。
 - 不创建 `jarvis.toml`、`bootstrap-state.json` 或 `bootstrap-result.json`。
 - 当前是 Host Agent 的 construction context，不要求 jarvis-box 已安装，也不执行 `jarvis-box version/status/agent current`。生成的 company 指针必须允许 construction/onboarding 在普通授权 checkout 中继续；正式 runtime 诊断只在后续 managed-production context 中触发。
-- runtime-owned 通用方法不复制进 company repo；当前 Host Agent 已有对应方法时可以使用，没有时按本 method pack 的自包含合同完成。
+- jarvis-box 的 injected execution contract、control plane 和 operator runbook 不复制进 company repo。Company `runtime-governance.md` 是客户跨 runtime 宪法，必须在本任务中从 scaffold 建设为客户特定、可验证的规则。
 - base 中的 issue post-check、bugfix 和 feature-delivery workflow 必须保持 `draft-template`。本任务不能把通用母版冒充客户已经验证的 workflow。
 - 发布不是可选的额外动作。只能严格按 `BUILD-CONTEXT.md` 中已经确认的 provider、host、owner/namespace、repo、visibility、default branch 和 publication mode 执行；缺少或冲突时先标 blocker，不能猜测或降级为只交本地目录。
 
@@ -48,13 +58,13 @@ Company Jarvis 至少能回答：
 
 先读取：
 
-1. 当前 `RUN-COMPANY-JARVIS-CONSTRUCTION.md`；
+1. 当前 `work/company-construction.md`；
 2. `BUILD-CONTEXT.md`；
-3. 已存在的 `COMPANY-JARVIS-PROGRESS.md`；
+3. `CONSTRUCTION-JOURNAL.md`；
 4. company target 当前内容和 Git 状态；
 5. 本 method pack 中本任务明确引用的模板、脚本与 reference。
 
-若 progress 不存在，创建一个普通 Markdown 工作日志，至少包含：
+若 work card 缺少恢复事实，先补齐：
 
 - target、固定的输入 revision 和写入策略；
 - artifact/source 覆盖表；
@@ -66,9 +76,9 @@ Company Jarvis 至少能回答：
 - 最后验证过的 evidence pointer；
 - 下一动作。
 
-每闭合一个 module 或 source 的证据单元就更新 progress。恢复时先验证最后一个完成项的 pointer 和 revision 仍然成立，再从 `Next` 继续；不要因为新开了 session 就重扫已经闭合的范围。
+每闭合一个 module、source 或 runtime-governance obligation 就更新 work card 和 evidence pointer。恢复时先验证最后一个完成项的 pointer 和 revision 仍然成立，再从 `Next` 继续；不要因为新开 session 就重扫已经闭合的范围。
 
-`COMPANY-JARVIS-PROGRESS.md` 是给后续 Agent 阅读的工作日志，不是机器协议。不要为它写 parser、cursor schema 或状态迁移代码。
+work card 是给后续 Agent 阅读的工作合同，不是机器协议。不要为它写 parser、cursor schema 或状态迁移代码。
 
 ## 核心工作单位：capability，不是 repo，也不是扫描 Agent
 
@@ -187,18 +197,18 @@ Company Jarvis 至少能回答：
 - 没有双锚点的候选保持 `defer`，不生成一个装满 `UNRESOLVED` 的 module 目录；
 - confirmed module/source 名称原样保留，不擅自翻译、缩写或改大小写。
 
-### 3. 渲染最小 base
+### 3. 核验 Part 1 scaffold
 
-当 company name、slug 和 product identity 足以确认后，使用本 method pack 的 `scripts/instantiate_company_jarvis.py base` 创建或补齐骨架。为脚本准备的 render input 只是一次普通调用输入，不是 construction state；其事实仍以 `BUILD-CONTEXT.md`、progress 和客户证据为准。
+先核验 `work/company-repo-initialization.md` 记录的本地与远端 commit，确认当前 target 基于 Part 1 的真实交付。若 scaffold 不存在、未通过 verifier 或 remote ref 不可解析，返回 Part 1 修复，不在 Part 2 重新初始化另一个 Company repo。
 
-`base` 只负责安全、一致地生成：
+Part 1 的 `base` 只负责安全、一致地生成：
 
 - company entry 与通用目录；
 - company knowledge-layer / routing references；
 - 三个 `draft-template` workflow；
 - 空的 tools/evals/cross-cutting 容器。
 
-它没有证明任何客户语义。重复运行时必须保留客户已经编辑的内容。
+它没有证明任何客户语义。Part 2 可以用 `instantiate_company_jarvis.py module/source` 增加证据支持的容器，但不得用重复 base 渲染覆盖已经编辑的客户内容。
 
 ### 4. 逐 capability 做 evidence closure
 
@@ -251,7 +261,7 @@ Company Jarvis 至少能回答：
 - docs / operational surface；
 - verification surface。
 
-一个 repo 可以承担多个 surface；capability authority 也可能不是 repo。Company construction 与 Repository learning 可以并行，因此 repo-local skill 尚未生成不是 company construction 的失败。记录当前真实入口；不存在时明确写 `pending Repository learning`，后续 1+2 reconciliation 再替换。
+一个 repo 可以承担多个 surface；capability authority 也可能不是 repo。Company construction 与 Repository learning 可以并行，因此 repo-local skill 尚未生成不是 company construction 的失败。记录当前真实入口；不存在时明确写 `pending Repository learning`，后续 Reconciliation Gate 再替换。
 
 ### 7. 建 cross-cutting 因果边
 
@@ -267,7 +277,32 @@ Company Jarvis 至少能回答：
 
 不要把完整调用栈、symbol map、逐文件修改清单或 repo 测试命令复制到 cross-cutting；这些属于 repo-local。没有真实跨模块证据时，保持空状态，不根据目录依赖图发明业务关系。
 
-### 8. 收束 company entry
+### 8. 建设并验证 runtime governance
+
+读取 Part 1 中的 `references/runtime-governance.md`、quick reference、`references/canonical-repo-fleet.md` 和 `tools/`。它们是待客户化的宪法骨架，不是 jarvis-box 内部文档。
+
+只从客户明确提供或随后明确授权的 Host runtime、组织规则和操作证据中发现并决定。若 `BUILD-CONTEXT.md` 尚无 Host runtime discovery/write scope，先向客户说明所需信息和写入目的并取得授权；不得枚举 home、shell profile、Agent config 或旧 runtime residue 来猜：
+
+- canonical runtime root，以及 repo cache、task workspace、environment、state、evidence 各自的存储职责；
+- task start 时如何同步 Company Jarvis、repo fleet 和稳定工具；
+- canonical checkout 与一次性 task worktree/workspace 的隔离规则；
+- 哪些工具必须从稳定路径调用，谁负责 install、sync、upgrade 和 rollback；
+- credential、write、branch/MR、handoff、cleanup 与 multi-Agent single-writer 边界；
+- Host construction context 与 jarvis-box managed-production context 如何共享公司宪法而不共享人类 home 或凭据。
+
+不要复制 HENGSHI 的 `~/.hengshi`、`pullall` 或其他名字到普通客户。客户已经存在等价机制时，记录真实路径、owner、调用方式和 evidence；没有机制但当前宪法要求时，在明确授权范围内创建最小工具或同步入口，安装到客户决定的稳定位置并实际运行验证。
+
+每条 obligation 使用以下证据状态之一：
+
+- `unresolved`：模板问题尚未回答；
+- `documented`：规则有证据且不需要安装机制；
+- `implemented`：机制已存在但尚未完成验证；
+- `verified`：行为已观察，evidence pointer 可复核；
+- `pending-runtime-foundation`：规则依赖尚未建立的客户 runtime 机制。
+
+只写说明但没有所需工具、安装或验证时，不能标 `verified`。正式 jarvis-box 尚未安装不是 Part 2 blocker；与它相关的行为在 Part 4 通过公开 release/runtime 接口观察后回写。不得在这里模拟、复制或重新设计 jarvis-box 的 execution contract、control plane 和 operator runbook。
+
+### 9. 收束 company entry
 
 最后更新 canonical company entry skill 和 README，使它们只声明已经证明的范围：
 
@@ -282,7 +317,7 @@ Company Jarvis 至少能回答：
 
 不要为了模仿成熟 Jarvis 而自动生成额外 workflow、reference 或 tool。只有当前客户证据证明它是跨任务、可复用且 primary home 确实在 company 层时才创建。
 
-### 9. 用真实 artifact 做 routing probes
+### 10. 用真实 artifact 做 routing probes
 
 从已读取的客户材料中选择少量、彼此不同的真实 artifact 或任务线索，至少覆盖：
 
@@ -298,9 +333,9 @@ Company Jarvis 至少能回答：
 4. 不应进入的 false owner；
 5. 可验证的 pointer。
 
-把期望、实际 route、差异和修正记录在 progress；适合长期回归且不暴露敏感内容的 case 再写入 company `evals/`。修正 routing 后重跑失败 probe。不要用关键词存在、文件数量或 Python `assertIn` 代替这项行为验证。
+把期望、实际 route、差异和修正记录在 work card/evidence；适合长期回归且不暴露敏感内容的 case 再写入 company `evals/`。修正 routing 后重跑失败 probe。不要用关键词存在、文件数量或 Python `assertIn` 代替这项行为验证。
 
-### 10. 验证语义与待发布内容
+### 11. 验证语义与待发布内容
 
 运行本 method pack 的 `scripts/verify_company_output.py` 检查它能确定判断的结构、安全、secret、模板 token 和写入边界。它通过只表示结构边界通过，不表示 company 语义正确。
 
@@ -310,6 +345,8 @@ Company Jarvis 至少能回答：
 - source routes 的访问方法可执行或有明确 blocked/recovery；
 - repo role 和 capability surface 不来自猜测；
 - entry 与 cross-cutting 没有复制 repo-local implementation truth；
+- runtime governance 的每项已声明行为都有 maturity 与 evidence，所需 Host runtime foundation 已验证或明确 pending；
+- runtime governance 没有复制 jarvis-box 内部 execution contract、control plane 或 operator runbook；
 - routing probes 已通过或把真实缺口写为 unresolved；
 - 三套 starter workflow 仍为 `draft-template`；
 - 客户 repo 未被修改；
@@ -317,7 +354,7 @@ Company Jarvis 至少能回答：
 
 发布前再检查本地 Git 状态和准备提交的完整 diff，确认只包含 company Jarvis 目标文件，没有临时 evidence packet、客户 raw source dump、credential、未渲染 token 或无关 worktree 变化。结构 verifier 通过不能替代这项 diff 与语义审查。
 
-### 11. 发布到客户选择的 GitHub 或 GitLab
+### 12. 发布到客户选择的 GitHub 或 GitLab
 
 语义与待发布内容验证完成后，再按 publication mode 执行：
 
@@ -336,7 +373,7 @@ Company Jarvis 至少能回答：
 3. 不自动合并。PR/MR 未合并时把 construction 标为 `ready-for-review`，向客户给出唯一 review URL；不能宣称 canonical default branch 已经包含交付。
 4. 客户合并后再次验证 default branch commit，再标记 `completed`。
 
-把 provider、remote URL、visibility、default branch、publication mode、本地/远端 branch、commit SHA、PR/MR URL 与状态、最后验证命令及结果写入 `COMPANY-JARVIS-PROGRESS.md`。不得记录 token 或其他凭据。
+把 provider、remote URL、visibility、default branch、publication mode、本地/远端 branch、commit SHA、PR/MR URL 与状态、最后验证命令及结果写入 `work/company-construction.md`。不得记录 token 或其他凭据。
 
 ## 完成标准
 
@@ -346,11 +383,12 @@ Company Jarvis 至少能回答：
 - 所有已授权 source/repo 都已读取并在 coverage 表中有状态，不可访问项有恢复条件；
 - 每个 included software module 都完成产品锚点 + 实现锚点 + first proof/verification contract；
 - repo fleet、capability surfaces 和已有跨模块因果边都有 evidence pointer；
+- runtime governance 已从 scaffold 形成客户特定宪法，每项 obligation 的 maturity 与 evidence 可复核；所需 Host runtime mechanism 已验证或明确标为 `pending-runtime-foundation`；
 - canonical entry 能通过代表性 routing probes；
 - 结构 verifier 通过，语义检查已记录；
 - workflow 全部保持 `draft-template`；
 - customer-owned GitHub/GitLab remote 可达，且已验证的 commit 已进入新/空 repo 的 default branch；已有 repo 则在合并前明确保持 `ready-for-review`，合并并复验后才是 `completed`；
-- progress 写明当前构建边界、未解决项，以及 Repository learning / workflow onboarding 的下一步。
+- work card 写明当前构建边界、未解决项，以及 Repository learning / reconciliation 的下一步。
 
 “所有模板文件都有文字”“扫描过所有 commit message”“生成了很多 skills/tools”都不是完成标准。
 
@@ -363,4 +401,4 @@ Company Jarvis 至少能回答：
 - provider/host/namespace、repo create/push 权限或现有远端保护策略无法确认：允许继续独立的本地语义构建，但 publication 保持 blocked，整体不能标记完成；
 - 只有当 blocker 使最小 company entry 无法形成时，才阻塞整体任务。
 
-结束时只向客户说明：company Jarvis 当前可用到什么边界、正式 remote URL（或唯一 publication blocker）、需要 review 的 PR/MR URL（如有）、Repository learning 的独立状态不可由本任务声称，以及 1+2 完成后需要进行 workflow onboarding。不得声称数字员工已经正式上岗。
+结束时只向客户说明：Company Jarvis 当前可用到什么边界、runtime governance 哪些行为已验证或仍缺 foundation、正式 remote URL（或 publication blocker）、需要 review 的 PR/MR URL（如有），以及 Reconciliation Gate 的下一步。不得代替独立 Repository learning card 声称完成，也不得声称数字员工已经正式上岗。

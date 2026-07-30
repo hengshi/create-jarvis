@@ -1,6 +1,6 @@
 # 工具索引
 
-公司 Jarvis 自己拥有的高信号可复用辅助工具索引。不复制 repo-local 或 jarvis-box/install-owned capability。
+公司 Jarvis 自己拥有的高信号可复用辅助工具索引，也登记 Company runtime governance 要求的客户级 Host 工具。不复制 repo-local 或 jarvis-box/install-owned capability。
 
 ---
 
@@ -9,6 +9,7 @@
 - 能节省 agents 重复劳动的客户特有辅助脚本
 - 稳定的查询或检查辅助工具
 - 与重复 workflow 绑定的操作手册
+- 客户 runtime governance 要求、由客户维护的 sync/workspace/handoff 辅助工具
 
 ## 什么不适合放在这里
 
@@ -40,6 +41,8 @@
 - **验证方式**：如何确认工具仍然可用且行为正确。
 - **状态**：记录当前实际可用性及其验证证据。
 
+状态使用 `unresolved`、`documented`、`implemented`、`verified` 或 `pending-runtime-foundation`。需要安装机制的工具只有在稳定入口实际安装并运行验证后才能写 `verified`。
+
 ---
 
 ## 调度任务
@@ -56,6 +59,8 @@
 - 脚本应有明确的单点用途
 - 每个工具在本文件登记一条记录
 - 工具在被 agents 调用前应经过验证
+- 临时 construction checkout 不能冒充长期稳定调用入口
+- install、sync、upgrade 与 rollback owner 必须明确
 
 ---
 

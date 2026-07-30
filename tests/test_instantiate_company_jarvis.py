@@ -72,6 +72,10 @@ class CompanyJarvisInstantiationTests(unittest.TestCase):
             ".github/copilot-instructions.md",
             ".gitignore",
             "SKILL.md",
+            "references/canonical-repo-fleet.md",
+            "references/runtime-governance.md",
+            "references/runtime-governance-quick.md",
+            "tools/README.md",
             "skills/acme-claude-e2e-jarvis/SKILL.md",
             "skills/acme-claude-e2e-workflow-issue-post-check/SKILL.md",
             "skills/acme-claude-e2e-workflow-bugfix-loop/SKILL.md",
@@ -142,7 +146,20 @@ class CompanyJarvisInstantiationTests(unittest.TestCase):
     def test_generated_tree_has_no_unrendered_or_reference_company_tokens(self) -> None:
         completed = self.run_base()
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        forbidden = ("{{", "HENGSHI", "hengshi", "henglabs", "gitlab.hengshi.org", "~/.hengshi")
+        forbidden = (
+            "{{",
+            "HENGSHI",
+            "hengshi",
+            "henglabs",
+            "gitlab.hengshi.org",
+            "~/.hengshi",
+            "Part 1",
+            "Part 2",
+            "Part 3",
+            "Part 4",
+            "Reconciliation Gate",
+            "Repository learning",
+        )
         violations: list[str] = []
         for path in self.home.rglob("*"):
             if not path.is_file() or path.suffix.lower() not in {".json", ".md", ".sh"}:
@@ -225,20 +242,27 @@ class CompanyJarvisInstantiationTests(unittest.TestCase):
         self.assertTrue(result["errors"])
         self.assertFalse(target.exists())
 
-    def test_missing_or_non_string_identity_fails_cleanly(self) -> None:
-        for replacement in (None, {"name": "Acme Analytics"}):
-            def mutate(value: dict, replacement=replacement) -> None:
-                if replacement is None:
-                    value["company"].pop("product_identity")
-                else:
-                    value["company"]["product_identity"] = replacement
+    def test_missing_product_identity_remains_explicitly_unresolved(self) -> None:
+        def mutate(value: dict) -> None:
+            value["company"].pop("product_identity")
 
-            with self.subTest(replacement=replacement):
-                self.write_input(mutate)
-                completed = self.run_base()
-                self.assertNotEqual(completed.returncode, 0)
-                self.assertNotRegex(completed.stderr, r"Traceback")
-                self.assertFalse(self.home.exists())
+        self.write_input(mutate)
+        completed = self.run_base()
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn(
+            "UNRESOLVED — establish from customer evidence",
+            (self.home / "README.md").read_text(encoding="utf-8"),
+        )
+
+    def test_non_string_product_identity_fails_cleanly(self) -> None:
+        def mutate(value: dict) -> None:
+            value["company"]["product_identity"] = {"name": "Acme Analytics"}
+
+        self.write_input(mutate)
+        completed = self.run_base()
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertNotRegex(completed.stderr, r"Traceback")
+        self.assertFalse(self.home.exists())
 
 
 if __name__ == "__main__":

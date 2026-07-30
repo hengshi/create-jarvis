@@ -8,9 +8,10 @@ Subcommands:
     package --input <...> --kind <generic-source|generic-workflow>
             --name <slot-prefixed output name>
 
-The base command installs only company-owned entry/workflow skills. Generic
-method skills are runtime-owned and must not be copied into a customer repo.
-Long-task progress stays outside the generated repo in ordinary Markdown.
+The base command installs only company-owned entry/workflow skills and the
+cross-runtime governance scaffold. Generic method skills and jarvis-box
+internals must not be copied into a customer repo. Construction work cards
+stay outside the generated repo in ordinary Markdown.
 """
 
 from __future__ import annotations
@@ -98,9 +99,15 @@ def extract_globals(input_data: dict) -> dict:
     )
     company_slug = validate_name(company_slug, "company slug")
 
-    product_identity = require_string(
-        company.get("product_identity", ""),
-        "PRODUCT_IDENTITY — company.product_identity",
+    product_identity_value = company.get("product_identity", "")
+    if not isinstance(product_identity_value, str):
+        print(
+            "ERROR: PRODUCT_IDENTITY — company.product_identity must be a string",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    product_identity = product_identity_value.strip() or (
+        "UNRESOLVED — establish from customer evidence"
     )
 
     scope = input_data.get("scope")
@@ -157,7 +164,7 @@ def extract_globals(input_data: dict) -> dict:
             return "- none-yet (populate from observed repository evidence)"
         return "\n".join(
             f"- `{_repo_basename(project)}` — VCS project `{project}`; "
-            "repo-local entry unresolved until observed; use `pending Repository learning` when absent"
+            "repo-local entry unresolved until observed; use `pending repo-local entry` when absent"
             for project in items
         )
 

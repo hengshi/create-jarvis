@@ -17,10 +17,11 @@ Source-detected identity 不能覆盖公司身份。JARVIS 首先回答：当前
 
 ## 2. 执行上下文
 
-先判断当前是 construction/onboarding、普通授权 checkout，还是 managed production。construction
-以外部 `BUILD-CONTEXT.md` 和当前 Git/source facts 为准，不要求 jarvis-box；managed production
-使用 runtime 已注入的 Company snapshot、Task identity 和授权 target。上下文缺失、冲突或需要
-诊断时才读 `references/runtime-governance-quick.md`，并按其条件升级到完整版。
+每次任务先读 `references/runtime-governance-quick.md`，再判断当前是 construction/onboarding、
+普通授权 checkout，还是 managed production。construction 以外部 Construction Workspace 和当前
+Git/source facts 为准，不要求 jarvis-box；managed production 使用 runtime 已注入的 Company
+snapshot、Task identity 和授权 target。涉及路径、同步、工具、权限、handoff、cleanup 或 runtime
+integration 时按 quick 升级到完整版。
 
 涉及 workflow disposition、执行、代码/文档修改、delegation、或声称完成时，必须读 `references/agent-engineering-quality-gate.md`。
 
@@ -111,10 +112,10 @@ construction/onboarding mode 可以用于理解、验证路由和收集客户 wo
 
 | Reference | 触发条件 |
 |---|---|
-| `runtime-governance-quick.md` | 执行上下文或边界不清、冲突、诊断时 |
-| `runtime-governance.md` | quick 明确触发升级时 |
+| `runtime-governance-quick.md` | 每次任务 preflight |
+| `runtime-governance.md` | quick 指定的路径、同步、工具、权限、handoff、cleanup 或 integration 场景 |
 | `canonical-repo-fleet.md` | 查询已确认的 canonical repo fleet |
-| `jarvis-box.md` | jarvis-box 概念、服务模式 |
+| `jarvis-box.md` | 正式 runtime 的客户 integration facts 与公开 operator pointer |
 
 ### 路由 / 所有权
 

@@ -1,106 +1,167 @@
-# 运行时治理 — 完整规范
+# Runtime governance — customer cross-runtime constitution
 
-**状态**：强制 | **版本**：1.0
+**Status**: binding scaffold | **Maturity**: `unresolved`
 
----
+This document defines how this company's Host Agents and formal managed runtimes find canonical assets, create isolated work, synchronize durable knowledge, hand off execution and close safely. It is owned by the Company Jarvis repo.
 
-## 1. 真值来源
+It is not a copy of any runtime's internal execution contract, control plane or operator runbook. A runtime such as jarvis-box implements its own mechanics and must comply with the customer-level boundaries recorded here through its public behavior.
 
-agent 按事实域选择真值来源，不用一个来源覆盖另一个来源负责的事实：
+## 1. Maturity and evidence
 
-1. **外部 `BUILD-CONTEXT.md` 与当前 Git/source facts** — construction/learning 的构件、revision 与写入范围。
-2. **runtime 注入的 Company snapshot、Task identity 与 deployment lock** — managed production 的当前授权上下文。
-3. **source / repo contract** — source 访问与具体 repo 执行规则。
-4. **当前 CLI 输出与 `--help`** — 需要诊断或运维时确认命令是否存在及 command shape。
-5. **live `jarvis-box status` / `agent current` / `doctor`** — 仅用于 managed production 的缺失、冲突和故障诊断。
+This scaffold begins unresolved. The Company knowledge owner must replace unresolved rows from observed customer facts and establish any required Host runtime foundation. Formal runtime onboarding may add stable managed-runtime facts observed through the public runtime interface.
 
-同一事实在负责该事实域的来源间冲突时停止并记录冲突，不擅自选一个覆盖。正常任务由 runtime
-在进入 Agent 前解析并注入上下文，不要求每次会话自行运行状态命令。
+Use only these evidence states:
 
-## 2. 执行上下文与写入边界
+| State | Meaning |
+|---|---|
+| `unresolved` | the constitutional question has not been answered |
+| `documented` | an evidence-backed rule needs no installed mechanism |
+| `implemented` | the required mechanism exists but verification is incomplete |
+| `verified` | behavior was observed and a revisitable evidence pointer is recorded |
+| `pending-runtime-foundation` | the rule depends on a missing customer runtime mechanism |
 
-### 2.1 上下文判定
+Do not mark prose `verified`. A command, tool or sync behavior is verified only after it runs in the intended context and its result is recorded.
 
-每次会话判定执行上下文（详见 [runtime-governance-quick.md](runtime-governance-quick.md)）：
+## 2. Runtime surfaces
 
-- **Construction / onboarding**：由 Host Agent 在普通授权 checkout 中构建客户资产，以外部 BUILD-CONTEXT 和 Git facts 为准，不依赖 jarvis-box。
-- **普通 operator checkout**：人工 clone 的工作树，无 Task 身份。合法，记录授权工作树，不伪造 Task 状态。
-- **已授权 repo checkout**：有明确授权记录的工作树，在授权范围内读写。
-- **受管 Task workspace**：存在可验证 Task identity 时，按 Task/Run 生命周期处理。
+| Surface | Purpose | Canonical entry | Owner | Evidence | State |
+|---|---|---|---|---|---|
+| Host construction runtime | build and evolve customer assets before formal deployment | UNRESOLVED | UNRESOLVED | UNRESOLVED | unresolved |
+| Ordinary authorized checkout | customer-directed work outside a managed Task | UNRESOLVED | UNRESOLVED | UNRESOLVED | unresolved |
+| Formal managed runtime | operate deployed Company/repo snapshots | UNRESOLVED | UNRESOLVED | UNRESOLVED | unresolved |
 
-用户直接启动 agent 对话建设或执行授权工作是**合法且预期**的使用方式。该对话不一定是
-jarvis-box Task 或 Run。只有 runtime 注入了可验证 Task identity 时才应用 Task/Run 生命周期和
-受管 workspace 语义。
+An ordinary Agent conversation is legal when the customer authorized its checkout and scope. Do not invent managed Task/Run identity when no runtime injected it.
 
-### 2.2 写入边界
+## 3. Canonical runtime root and storage roles
 
-| 区域 | 权限 | 说明 |
-|------|------|------|
-| 当前授权 target / worktree | 读写 | 代码编辑、构建产出 |
-| jarvis-box 管理的 state/env/cache | 不直接写 | 由产品命令管理 |
-| 凭据文件 | 不写 | 密钥和配置由运维管理 |
-| 其他 target 或 worktree | 禁止 | 除非跨 target writeback 已明确授权 |
+Record the customer's real equivalents. Do not copy paths from another company.
 
-## 3. 命令分类
+| Role | Canonical location or resolver | Mutability | Owner | Evidence | State |
+|---|---|---|---|---|---|
+| runtime root | UNRESOLVED | policy-defined | UNRESOLVED | UNRESOLVED | unresolved |
+| Company Jarvis checkout/snapshot | UNRESOLVED | policy-defined | UNRESOLVED | UNRESOLVED | unresolved |
+| repository cache | UNRESOLVED | cache only | UNRESOLVED | UNRESOLVED | unresolved |
+| disposable task workspace/worktree | UNRESOLVED | task-scoped | UNRESOLVED | UNRESOLVED | unresolved |
+| environment/config | UNRESOLVED | operator-managed | UNRESOLVED | UNRESOLVED | unresolved |
+| runtime state/logs | UNRESOLVED | runtime-managed | UNRESOLVED | UNRESOLVED | unresolved |
+| construction/replay evidence | UNRESOLVED | journey/task-scoped | UNRESOLVED | UNRESOLVED | unresolved |
 
-### 3.1 观测类命令（按需可用）
+Repository cache is not an editing target unless a customer-specific contract explicitly says otherwise. Runtime-managed state, environment and credential locations are never edited as ordinary source files.
 
-`version`、`status`、`init`、`doctor`、`monitor`、`logs`、`latest`、`agent current/list/doctor/smoke`、`tasks list/json/index/verify/diagnose/show/events/logs`。它们用于诊断和运维，不是普通业务会话的固定 preflight。
+## 4. Task-start synchronization
 
-### 3.2 Task 的五个生命周期操作
+Before durable work starts, the active surface must resolve current Company knowledge, repository identities and stable tools through a customer-owned synchronization contract.
 
-`tasks start/continue/stop/recover/retry-writeback` 是会改变 Task、Run 或 provider delivery 的五个产品操作。仅在 Task identity、授权、目标和恢复方式明确时执行。
+| Obligation | Entry/tool | Failure behavior | Evidence | State |
+|---|---|---|---|---|
+| materialize/synchronize Company Jarvis | UNRESOLVED | stop or use explicitly pinned snapshot | UNRESOLVED | unresolved |
+| materialize/synchronize canonical repo fleet | UNRESOLVED | report unavailable repos; do not guess paths | UNRESOLVED | unresolved |
+| resolve stable company tools | UNRESOLVED | mark required tool unavailable | UNRESOLVED | unresolved |
+| report resolved revisions | UNRESOLVED | block writes when truth is ambiguous | UNRESOLVED | unresolved |
 
-- `continue` 在同一 Task 中创建后续 Run；它不是普通 Agent progress 恢复。
-- `continue` 可以由 jarvis-box 使用已保存的 provider-native session handle 继续同一 agent 会话；该 handle 属于 runtime 私有状态。即使 Codex 输出 JSONL `thread.started` / `thread_id`，也不能把它复制到 company Jarvis、construction artifact 或公开 handoff。
-- Task 的 `task_id`、`run_id`、workspace 和 session 状态只记录 jarvis-box 实际返回或公开暴露的值。UI/feed 对 lane display id 的解析是产品内部兼容行为，不允许 agent 根据目录名、lane 名或字符串拼接自行生成 Task/Run identity。
-- `recover` 只用于 live 状态已确认的 `recovery-required` 进程观察链丢失。
-- `retry-writeback` 只重试已有 provider delivery，不运行 agent，也不做 skill/file 写回。
-- service restart 不推断旧 Task 应继续；需要恢复时由 operator 读取证据后显式选择生命周期操作。
+If a required sync entry or stable tool does not exist, the customer runtime foundation owner creates, installs and verifies the smallest customer-owned mechanism or marks it `pending-runtime-foundation`. Company Jarvis records the contract and source; it does not copy a runtime-owned implementation.
 
-### 3.3 配置与维护操作
+## 5. Checkout and workspace isolation
 
-`agent set/enable/disable/order/unset`、`tasks reap/clean`、`setup gitlab`、`start/stop/restart` 会改变配置、保留期或服务状态，但不增加 Task 生命周期操作。执行前确认授权范围、操作目标和失败恢复方式。
+- Canonical checkouts and caches establish identity and revision truth; task edits occur only in an explicitly authorized working tree/workspace.
+- A target has one writer at a time. Scanners return evidence packets and do not concurrently edit a shared target.
+- Default branches come from the current remote/VCS source, not a hard-coded branch or the current checkout name.
+- Existing customer changes are preserved. New work uses the customer's branch/worktree policy and never force-overwrites history.
+- Host construction paths are not production snapshot identifiers. Formal deployment consumes canonical remotes and exact commits.
 
-`tasks reconcile` 只生成 dry-run 计划，不执行计划中的 mutation。Company construction 或 Repository learning 从各自 progress 文件继续，不伪造 Task/Run。
+| Rule | Customer-specific decision | Evidence | State |
+|---|---|---|---|
+| canonical checkout/cache use | UNRESOLVED | UNRESOLVED | unresolved |
+| task workspace/worktree creation | UNRESOLVED | UNRESOLVED | unresolved |
+| branch and review policy | UNRESOLVED | UNRESOLVED | unresolved |
+| concurrent writer detection | UNRESOLVED | UNRESOLVED | unresolved |
+| cleanup/retention | UNRESOLVED | UNRESOLVED | unresolved |
 
-## 4. 密钥与凭据
+## 6. Stable tools and ownership
 
-- 密钥、agent credentials、runtime state **不写入** company 或 repo artifact。
-- jarvis-box 自身的 runtime 配置属于 `JARVIS_ENV_FILE` 或外部密钥管理器；agent vendor 的登录凭据由对应 CLI/keychain/外部凭据系统管理，jarvis-box 不安装或复制这些凭据。
-- 不在 event、prompt、result、progress、日志或 workspace 文件中暴露密钥。
-- Private resume handle 不进入公共 artifact。
+Company-specific tools are indexed in `tools/README.md`. For every required tool record:
 
-## 5. 分支真值
+- stable invocation path or resolver;
+- source owner and installation owner;
+- install, sync, upgrade and rollback boundary;
+- required identity/permissions and secret boundary;
+- verification command or behavior;
+- evidence state.
 
-- repo 默认分支从当前 source route 对应的 remote HEAD 或 VCS metadata 获取，不假定 remote 名称，也不写死分支名。
-- 工作修改在授权 working tree 内进行。
-- cache 仅在 live product 确认时按其只读合同使用。
+Do not depend on a temporary construction checkout as the long-term invocation path. Do not copy tools already owned by jarvis-box or another runtime; record their public entry and responsibility boundary instead.
 
-## 6. 会话交接
+## 7. Credentials and authority
 
-会话结束时只保留当前任务需要且有证据的 context。不设固定字段 schema——交接内容取决于任务实际需要和已确认状态。
+- Credentials, Agent login state, private resume handles and runtime state never enter Company/repo artifacts or Construction Workspace files.
+- Host construction uses the customer's explicitly authorized identity.
+- Formal runtime uses a separately activated, auditable, rotatable and revocable identity.
+- Docker socket, Host home and Host SSH agent access are never implicit. Docker socket access is host-root-equivalent.
+- Provider-native IM credentials remain inside the connector boundary.
 
-交接只保留继续任务所需的信息，例如当前执行上下文、已确认路径、关键命令结果、未执行项和阻塞原因。
+| Authority decision | Customer rule | Evidence | State |
+|---|---|---|---|
+| Host Agent scope | UNRESOLVED | UNRESOLVED | unresolved |
+| formal Agent scope | UNRESOLVED | UNRESOLVED | unresolved |
+| cross-target writeback | UNRESOLVED | UNRESOLVED | unresolved |
+| host-root-equivalent capability | UNRESOLVED | UNRESOLVED | unresolved |
 
-## 7. Install-owned Managed Jobs
+## 8. Handoff and recovery
 
-jarvis-box release 可以通过主机或外部 scheduler 托管 runtime sync、company Jarvis maintenance、session self-improvement 和 Task workspace cleanup。它们是维护入口，不是隐藏的用户 Task 队列。
+A durable handoff records only revisitable facts needed to continue:
 
-初始化 day-2 运营时，从以下证据确认当前版本和当前机器实际拥有的 jobs：
+- task or work-card identity;
+- authorized target and current working tree/workspace;
+- exact source/repository revisions;
+- last verified checkpoint and evidence;
+- delivered branch/commit/PR/MR or deployment lock;
+- blocker and concrete `Next`.
 
-1. 当前安装版本及其 release 文档/安装产物；
-2. host scheduler 或 `/server` crons 视图；
-3. 对应 job log、最近 activity、退出状态和 artifact pointer。
+Provider/session handles are private hints, not durable truth. Reattach a live writer; replace only a writer known to have ended. Unknown ownership blocks a duplicate writer.
 
-每个实际 job 记录 identity、产品 owner、触发机制、观测入口、最近状态、失败信号和恢复动作。公开 `jarvis-box --help` 只证明 CLI command shape；它不单独证明 host job 是否已安装或运行。company Jarvis 不复制 install-owned 脚本，也不把内部脚本入口伪装成公共 CLI。
+| Handoff behavior | Customer entry | Evidence | State |
+|---|---|---|---|
+| construction journey recovery | external `jarvis-build/CONTINUE-JARVIS.md` | UNRESOLVED | unresolved |
+| ordinary checkout handoff | UNRESOLVED | UNRESOLVED | unresolved |
+| formal managed-runtime handoff | UNRESOLVED | UNRESOLVED | unresolved |
 
-## 8. 会话关闭
+## 9. Cleanup and closure
 
-结束时诚实记录：
+Before closure:
 
-- 实际执行的命令和状态
-- 未执行项及阻塞原因
-- 若有错误涉及 runtime root、Task identity 或 credential，标记为 blocked 并说明原因
+1. verify the exact target and write boundary;
+2. record commands/actions actually executed and their results;
+3. publish or explicitly disposition local changes;
+4. retain required evidence and remove only task-owned disposable work according to policy;
+5. record unexecuted items, blockers and `Next`;
+6. never edit runtime state or fabricate events to hide an error.
 
-不得伪造 Task event 或直接编辑状态文件来掩盖错误。发现越界写入或凭据暴露风险时，停止后续变更，保留可审计事实。
+| Cleanup obligation | Customer mechanism | Evidence | State |
+|---|---|---|---|
+| disposable workspace cleanup | UNRESOLVED | UNRESOLVED | unresolved |
+| stale branch/worktree handling | UNRESOLVED | UNRESOLVED | unresolved |
+| evidence retention/redaction | UNRESOLVED | UNRESOLVED | unresolved |
+| runtime state/log retention | UNRESOLVED | UNRESOLVED | unresolved |
+
+## 10. Formal managed-runtime integration
+
+The formal runtime owns its binaries, injected execution contract, control plane, Task/Run state, diagnostics and operator runbook. This constitution records only customer-level integration facts observed through the public interface:
+
+| Fact | Observed value | Evidence | State |
+|---|---|---|---|
+| public release/operations entry | UNRESOLVED | UNRESOLVED | unresolved |
+| Company snapshot resolution | UNRESOLVED | UNRESOLVED | unresolved |
+| repo fleet resolution | UNRESOLVED | UNRESOLVED | unresolved |
+| identity/credential boundary | UNRESOLVED | UNRESOLVED | unresolved |
+| handoff and writeback boundary | UNRESOLVED | UNRESOLVED | unresolved |
+
+Use the installed runtime's own public help and operator documentation for operations. Do not reproduce internal command catalogs here. A service restart does not imply continuation of old work; recovery follows observed runtime state and the runtime-owned runbook.
+
+## Completion gate
+
+This constitution is customer-specific only when:
+
+- every applicable obligation has a customer decision and revisitable evidence;
+- required Host runtime mechanisms are installed and verified, or explicitly `pending-runtime-foundation` with an owner and recovery action;
+- paths and tool names belong to this customer rather than another company's example;
+- Host, ordinary checkout and formal managed-runtime boundaries are consistent;
+- no credentials, private runtime state or jarvis-box internals were copied into Company Jarvis.

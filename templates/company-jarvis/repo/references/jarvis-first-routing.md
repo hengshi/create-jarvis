@@ -49,7 +49,7 @@ version: 1.0
 |------|--------------|-----------------|-------------|----------------|
 | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED | UNRESOLVED |
 
-repo 名来自实际 checkout identity。repo-local entry 必须是当前可解析路径；尚未生成时明确写 `pending Repository learning`。角色与 first proof 均能回指 source/repo evidence。
+repo 名来自实际 checkout identity。repo-local entry 必须是当前可解析路径；尚未生成时明确写 `pending repo-local entry`。角色与 first proof 均能回指 source/repo evidence。
 
 ---
 

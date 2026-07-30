@@ -11,11 +11,11 @@ description: >
 
 **当前状态：`draft-template`**
 
-这是 `1+2` 阶段预装的教学与改造起点。Agent 应先向客户确认是否需要 post-check、issue
+这是供客户校准的教学起点，不是已经确认的客户流程。Agent 应先向客户确认是否需要 post-check、issue
 从哪里进入、谁有 disposition 权限、怎样交接 bugfix/feature、哪些动作允许回写，再保留、
 改写或删除下方通用 gate。
 
-至少一个客户真实或等价受控 issue case 在建设环境验证 intake、判断、route 和 handoff 后，
+至少一个客户真实或等价受控 issue case 验证 intake、判断、route 和 handoff 后，
 将本节改为 `construction-ready`。正式 runtime 固定 revisions 并通过 probes 后依次进入
 `runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督下执行时为 `shadowing`。
 只有 shadow 稳定闭合并获客户批准后才改为 `active`。`draft-template` 期间只用于 onboarding。

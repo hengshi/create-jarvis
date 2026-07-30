@@ -44,12 +44,12 @@ artifact / task evidence
 当 company route 命中 execution repo：
 
 1. 读取该 repo 当前真实存在的 `AGENTS.md`、root skill 或其他入口；
-2. 不存在 repo-local skill 时明确记录 `pending Repository learning`，不能发明路径；
+2. 不存在 repo-local skill 时明确记录 `pending repo-local entry`，不能发明路径；
 3. 由 repo-local guidance 选择具体 layer、symbol、command 和 test home；
 4. 回到当前源码/测试验证 guidance 是否仍成立；
 5. task-specific 结论留在当前 artifact，稳定 repo pattern 才写回 repo-local。
 
-Company construction 与 Repository learning 都完成后，1+2 reconciliation 必须把 pending handoff 替换为实际入口并重新验证路由。
+Company knowledge 与当前 route scope 所需的 repo-local knowledge 交付后，必须把 pending handoff 替换为实际入口并重新验证路由。
 
 ## Overlap test
 

@@ -11,11 +11,11 @@ description: >
 
 **当前状态：`draft-template`**
 
-这是 `1+2` 阶段预装的教学与改造起点，不是已经确认的客户流程。Agent 应逐项向客户解释
+这是供客户校准的教学起点，不是已经确认的客户流程。Agent 应逐项向客户解释
 本草稿的 START → WORK → VERIFY → END、handoff 和 gate，再用 company Jarvis、repo-local
 skills 以及客户真实 issue、分支、review、test、release policy 替换其中的通用假设。
 
-至少一个客户真实或等价受控 bugfix case 在建设环境验证 route、patch、verification 和 closure
+至少一个客户真实或等价受控 bugfix case 已验证 route、patch、verification 和 closure
 后，将本节改为 `construction-ready`。正式 runtime 固定 Company/repo/image revisions 并通过
 capability probes 后依次进入 `runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督
 下执行时为 `shadowing`。只有 shadow 稳定闭合并获客户批准后才改为 `active`。

@@ -1,163 +1,182 @@
 ---
 name: create-jarvis
-description: Build, publish, deploy, and evolve a customer-owned Jarvis from the customer's authenticated Host Agent. Use whenever a customer asks to build their company Jarvis, collect and verify customer-supplied company sources, learn repo-local skills from real Git history, reconcile company and repository knowledge, customize delivery workflows, deploy the formal jarvis-box runtime, resume an interrupted construction journey, or improve Jarvis from real delivery evidence. The default entry coordinates the whole journey; it does not stop after preparing commands for the customer.
+description: Build, publish, deploy, resume, and evolve a customer-owned Jarvis from the customer's authenticated Host Agent. Use for Company Jarvis repository initialization, company knowledge and cross-runtime governance construction, independent repo-local skill learning, reconciliation, jarvis-box installation and onboarding, interrupted journey recovery, or later evidence-driven evolution.
 ---
 
 # Create Jarvis
 
-`create-jarvis` is the Agent-native construction journey. The customer-facing interface is one request, not an installer or phase CLI:
+`create-jarvis` is the reusable construction method. The customer-facing entry is one request:
 
 > 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
-The Agent receiving that request becomes the **Construction Coordinator**. It owns continuity from discovery through deployment and shadow promotion. `jarvis-box` appears only when the constructed knowledge and workflows are ready for the formal runtime.
+The authenticated Host Agent receiving that request is the **Construction Coordinator**. It owns continuity across repository initialization, long-running construction tasks, reconciliation, formal runtime onboarding, interruption recovery and shadow promotion.
 
-### Materialize the method before reading it
+## Materialize and pin the method
 
-The GitHub URL is a boot pointer, not a collection of pages to fetch. If this repository is not already the current local checkout, first clone it into a dedicated directory in the current customer-authorized workspace. Then record `git rev-parse HEAD` and read `SKILL.md` and referenced files from that checkout. Do not reconstruct the method through GitHub HTML, `raw.githubusercontent.com`, repeated WebFetch calls, or copied snippets.
+The GitHub URL is a boot pointer, not a set of pages to fetch. Clone this repository into a dedicated directory in the customer-authorized workspace, record `git rev-parse HEAD`, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
 
-The initial one-line request authorizes this public clone. It does **not** authorize searching the customer's home directory, configuration, shell profiles, environment, Agent histories, installed skills, unrelated repositories or previous runtime remnants. Customer evidence begins with pointers the customer explicitly provides.
+The initial request authorizes this public clone only. It does not authorize searching the customer home, shell profiles, Agent histories, installed skills, unrelated repositories or old runtime remnants. Customer evidence starts with explicit URLs or paths supplied by the customer.
+
+## Fixed ownership model
+
+| Owner | Responsibility |
+|---|---|
+| create-jarvis | reusable method, templates, construction steps, evidence gates and recovery protocol |
+| Construction Workspace | the current journey's context, work cards, checkpoints, journal and evidence |
+| Company Jarvis repo | customer knowledge, cross-runtime constitution, routes, sources, workflows and company tools |
+| Customer code repo | repo execution truth and repo-local skills |
+| jarvis-box | formal runtime implementation, injected execution contract, control plane, state and operator runbook |
+
+Do not move jarvis-box implementation material into create-jarvis or the Company Jarvis repo. Do not remove `runtime-governance.md` from Company Jarvis: it is the customer's cross-runtime constitution, not a jarvis-box internal template.
 
 ## Route the current invocation
 
-Determine the role from durable artifacts, not from an assumed phase number:
+Route from durable artifacts, not an assumed phase number:
 
-- Journey request with no existing journal: start a new **Construction Coordinator** journey.
-- Journey request with an existing `CONSTRUCTION-JOURNAL.md`: resume the recorded journey using its pinned method commit.
-- `RUN-COMPANY-JARVIS-CONSTRUCTION.md`: execute only the **Company construction lane**.
-- `RUN-REPOSITORY-LEARNING.md`: execute only the **Repository learning lane**.
-- Constructed company/repo assets with workflow work remaining: continue **reconciliation / workflow construction**.
-- `construction-ready` workflow and a deployable runtime release: continue **formal runtime deployment**.
-- Deployed candidate handling real work: continue **shadow delivery / promotion / evolution**.
+- No named workspace and no `jarvis-build/CONTINUE-JARVIS.md`: start guided intake for a new journey.
+- Existing Construction Workspace: resume it before creating anything.
+- A named work card: execute only that card within its read/write boundary.
+- Completed Part 1 with open company construction: continue Part 2.
+- Open `work/repositories/*.md` cards: continue the independent Part 3 tasks.
+- Parts 2 and 3 at a route-scoped boundary: run reconciliation and workflow construction.
+- Reconciliation passed and at least one workflow is `construction-ready`: continue Part 4.
+- Deployed candidate processing real work: continue shadow, promotion or evidence-driven evolution.
 
-## Construction Coordinator
+## Load only the current route
 
-Read, in order:
+Read `playbooks/construction-journey-model.md` once when taking ownership of a journey. Then load only the material required by the durable route:
 
-1. `playbooks/customer-jarvis-growth-loop.md`
-2. `playbooks/one-plus-two-runtime-model.md`
-3. `playbooks/runtime-method-contract.md`
-4. `playbooks/prompts/preparation.md`
+| Route | Read now |
+|---|---|
+| New journey | `playbooks/prompts/preparation.md` |
+| Existing Construction Workspace | `playbooks/construction-recovery-contract.md`, then the current work card and its prompt |
+| Part 1 card | `playbooks/prompts/company-repo-initialization.md` and the Company template README it names |
+| Part 2 card | `playbooks/prompts/company-jarvis-construction.md`; load only its explicitly needed templates/references |
+| Part 3 repository card | `playbooks/prompts/repository-learning.md` and the replay templates needed by the current episode |
+| Reconciliation card | `playbooks/prompts/reconciliation.md` and the delivered cards/refs in its selected route scope |
+| Part 4 card | `playbooks/runtime-method-contract.md` and `playbooks/prompts/formal-runtime-deployment.md` |
+| Shadow/promotion/evolution | the relevant section of `playbooks/customer-jarvis-growth-loop.md` plus the active workflow/deployment lock |
 
-### Resume before starting over
+Do not preload every playbook. Load `playbooks/customer-jarvis-growth-loop.md` only when the current decision crosses parts, selects a maturity transition or needs the customer-visible lifecycle. Load `playbooks/runtime-method-contract.md` only for runtime ownership/integration questions or Part 4.
 
-Before selecting the current repository HEAD as the method version, check only the construction workspace explicitly named by the customer or the current directory's `jarvis-build/CONSTRUCTION-JOURNAL.md`. If found:
+## Resume before starting over
 
-1. read the journal;
+Check only the Construction Workspace explicitly named by the customer or `./jarvis-build/CONTINUE-JARVIS.md`. If it exists:
+
+1. read `CONTINUE-JARVIS.md`;
 2. use the method commit recorded there;
-3. verify the referenced progress, remotes and revisions still exist;
-4. continue its `Next` action.
+3. read `CONSTRUCTION-JOURNAL.md`, `BUILD-CONTEXT.md` and the current work card;
+4. verify actual files, Git state, remote refs, external deliveries and jarvis-box state;
+5. determine whether the prior writer is live, ended or unknown;
+6. reattach when live, replace only when ended, and block duplicate writers when ownership is unknown;
+7. continue the card's last verified checkpoint and `Next` action;
+8. update the card and journal before yielding.
 
-Do not search the customer's home or unrelated directories for a journal. If no workspace was named and the current directory has no journal, ask whether this is a new journey or request the existing construction workspace path. Do not silently migrate an in-progress journey to a newer method revision.
+Provider process or session handles are hints, never proof. Do not search unrelated directories for a workspace. Do not silently migrate an in-progress journey to a newer create-jarvis commit.
 
-### Ask before discovering
+If the customer needs a recovery instruction, use:
 
-For a new journey, begin with a short guided intake. Ask the customer in free-form text for the company identity and the documentation, code repositories and work-system sources they want Jarvis to learn from. Accept remote URLs or explicit local paths, and explain that one pilot product/repository is enough to start if the complete fleet is not ready. Do not offer guessed company/product choices derived from the machine. After those sources are provided, probe only them, summarize what is accessible, and ask one compact follow-up for unresolved history range, publication target or write policy.
+> 继续构建我们的 Jarvis。建设工作区是 `<path>/jarvis-build`。请读取 `CONTINUE-JARVIS.md` 和 `CONSTRUCTION-JOURNAL.md`，核验现有交付事实后从记录的 Next 继续，不要重新初始化已存在的工作。
 
-Do not infer the company, product fleet or authorization boundary from artifacts found on the Host computer. The Host is an execution surface, not a customer evidence source.
+## Guided intake and preparation
 
-### Preparation
+For a new journey, ask in free-form text for company identity and the documentation, code repositories and work-system sources Jarvis should learn. One pilot product or repository is enough. Probe only supplied pointers, summarize access, and ask one compact follow-up for unresolved history range, publication target or write policy.
 
-Preparation turns customer-provided pointers into a shallow, verified inventory. It creates:
+Preparation runs `scripts/instantiate_construction_workspace.py init` against the pinned
+`templates/construction-workspace/` and uses `add-repository` for each authorized code repo:
 
 ```text
 jarvis-build/
+├── CONTINUE-JARVIS.md
 ├── CONSTRUCTION-JOURNAL.md
 ├── BUILD-CONTEXT.md
-├── RUN-COMPANY-JARVIS-CONSTRUCTION.md
-└── RUN-REPOSITORY-LEARNING.md
+├── work/
+│   ├── company-repo-initialization.md
+│   ├── company-construction.md
+│   ├── repositories/<repo>.md
+│   ├── reconciliation.md
+│   └── jarvis-box-onboarding.md
+└── evidence/
 ```
 
-`BUILD-CONTEXT.md` records exact pointers, revisions, access probes and write/delivery policy. For the Company Jarvis remote it records provider, host, owner/namespace, canonical repo, visibility, default branch, current history and publication mode. For every code repo it records whether an accepted result must remain read-only, be committed locally, be pushed to a branch, or be delivered through PR/MR.
+`BUILD-CONTEXT.md` records exact pointers, observed revisions, access probes and delivery policy without credentials or source dumps. Each work card records objective, authorized inputs, allowed writes, target repo/workspace/branch, optional provider/session handle, status, last verified checkpoint, delivered artifacts, blocker, `Next` and verification time.
 
-Do not store source dumps or credentials. Do not create `bootstrap-state.json`, `bootstrap-result.json` or `jarvis.toml`.
+Do not create `bootstrap-state.json`, `bootstrap-result.json` or `jarvis.toml`. These Markdown files are recovery facts, not a parser contract or runtime state service.
 
-### Dispatch the two lanes
+## Dispatch and writer ownership
 
-After writing the task contracts, the Coordinator starts both lanes itself:
+The Coordinator starts or resumes work; the customer never has to copy child commands or open multiple terminals.
 
-- use native subagents when available;
-- otherwise execute the two RUN contracts sequentially in the same Agent, preserving role and write boundaries;
-- never require the customer to open two terminals or understand the commands.
+- Part 1 has one Company repo writer.
+- Part 2 keeps one integrator as the only Company repo writer; scanners return evidence packets only.
+- Part 3 has one independent card and at most one writer per customer code repo.
+- Parts 2 and 3 may run concurrently when native long-running agents exist; otherwise execute cards sequentially.
+- Part 4 starts only after its reconciliation prerequisite is verified.
 
-Only generate `START-HERE.md` when a provider-native child invocation is genuinely needed as a recovery fallback. It is not a normal customer deliverable.
+Before pausing, changing writer or ending a session, update the current work card and journal. Never promise daemon, heartbeat, process survival or native reattachment the Host provider does not actually support.
 
-The Company integrator is the only writer to the Company Jarvis target. Each customer code repo has at most one Repository learning writer at a time. Scanning workers may return evidence packets but do not concurrently edit a shared target.
+## Part 1 — Company repository initialization
 
-Before yielding or changing lane, update that lane's progress and the journal pointer. Do not promise daemon, heartbeat, process survival or native resume that the current Host Agent does not actually provide.
+Follow `playbooks/prompts/company-repo-initialization.md`.
 
-## Company Jarvis construction lane
+Instantiate the Company Jarvis template, resolve identity and publication placeholders, validate the scaffold, and deliver it according to the customer's Git policy. A new or empty remote may receive its initial default branch; an existing remote must preserve history and use a branch plus PR/MR.
 
-Read only the shared context, this lane's RUN contract, the Company construction section of the growth loop, `playbooks/prompts/company-jarvis-construction.md`, and explicitly referenced templates.
+The scaffold includes `runtime-governance.md` and its quick reference. At this point they define required questions and unresolved fields; they are not yet evidence that the customer's runtime foundation exists.
 
-Write only:
+## Part 2 — Company Jarvis construction
 
-- the Company Jarvis target;
-- its customer-confirmed GitHub/GitLab remote according to publication policy;
-- `COMPANY-JARVIS-PROGRESS.md`;
-- task-local evidence packets.
+Follow `playbooks/prompts/company-jarvis-construction.md`.
 
-Customer code repos are read-only evidence in this lane. Establish capability taxonomy from product evidence; disposition every candidate; close product, implementation and verification anchors for included capabilities; then construct source routes, repo fleet, capability surfaces, cross-cutting relations and company entry. Repository learning's eval loop cannot substitute for company semantic construction.
+Build company identity, product capability modules, source routes, canonical repo fleet, cross-cutting relations, workflows, references, company tools and runtime governance from customer evidence. Customer code repos are read-only evidence in this part.
 
-Validate content before publication. New/empty remotes may receive an initial default branch; existing remotes must preserve history and use a branch plus PR/MR. Record remote, branch, commit, PR/MR and remote verification. A local directory alone is not delivery.
+Runtime governance must mature through:
 
-Starter workflows remain `draft-template`.
+```text
+template scaffold
+  → customer runtime discovery
+  → customer-specific constitution
+  → installed and verified runtime behavior
+```
 
-## Repository learning lane
+Discover the customer's real Host runtime root, storage roles, repo cache/workspace rules, task-start sync, stable tools, checkout isolation, handoff, cleanup, credentials and write boundaries. If the constitution requires customer-specific Host tools or sync mechanisms, create, install and verify them within authorization. Otherwise mark the affected rule `pending-runtime-foundation`; prose alone is not completion.
 
-Read only the shared context, this lane's RUN contract, the Repository learning section of the growth loop, `playbooks/prompts/repository-learning.md`, and the replay templates needed by the current episode.
+Disposition every capability candidate and close product, implementation and verification anchors. Starter workflows remain `draft-template` until customized and exercised.
 
-Write only repo-local skill deltas permitted by each repo's delivery policy, `REPOSITORY-LEARNING-PROGRESS.md`, and task-local replay evidence. Never modify the Company Jarvis repo from this lane.
+## Part 3 — Independent repository learning
 
-One progress table covers all repos. The customer may select one year, two years, all reachable history, or a custom date/ref. Inspect actual code changes throughout the selected range; commit messages are navigation only. Preserve a delta only after same-case replay proves an improvement and adjacent regression remains acceptable.
+Follow `playbooks/prompts/repository-learning.md` once per `work/repositories/<repo>.md` card.
 
-For every repo, record the delivered branch/commit/PR/MR and whether the result is approved/merged, candidate-only, read-only, or blocked. A dirty local delta is not a consumable repo skill.
+Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Reconstruct complete episodes and preserve a minimal repo-local delta only after same-case replay improves behavior and adjacent regression remains acceptable.
+
+Each repository delivers its own commit, branch and PR/MR or an explicit read-only/blocked result. Never edit the Company Jarvis repo from a repository card. A dirty local worktree is not a consumable skill delivery.
 
 ## Reconciliation and workflow construction
 
-When both lanes finish or reach a customer-approved route-scoped boundary, the Coordinator:
+Follow `work/reconciliation.md` and `playbooks/prompts/reconciliation.md`. Read the reconciliation section of the growth loop only when selecting or explaining the route-scoped lifecycle boundary.
 
-1. reads both progress files and remote delivery facts;
-2. resolves each usable repo-local entry at a real pinned ref;
-3. replaces `pending Repository learning` routes only when the target is actually readable;
-4. reruns Company → repo-local routing probes;
-5. retains unresolved repos and history honestly;
-6. customizes starter workflows with the customer's real sources, roles, routing, branch/review/test/release policy and closure evidence.
+Verify the Company Jarvis delivery and every repo-local ref before consuming them. Resolve usable repo pointers, retain incomplete coverage honestly, rerun Company → module/source → repo-local routing probes, and customize a route-scoped workflow with the customer's real roles, sources, branch/review/test/release policy and closure evidence.
 
-A workflow becomes `construction-ready` only when its required modules, sources and repositories have current-revision validation and at least one controlled or real case passes. This does not make it production-active.
+A workflow is `construction-ready` only when its required Company and repo-local revisions are delivered and at least one controlled or real case passes. This is the gate for Part 4, not production activation.
 
-## Formal deployment and immutable snapshot
+## Part 4 — jarvis-box install, start and onboarding
 
-After at least one workflow is `construction-ready`, follow `playbooks/prompts/formal-runtime-deployment.md`.
+Follow `playbooks/prompts/formal-runtime-deployment.md` and `work/jarvis-box-onboarding.md`.
 
-Deployment uses canonical remotes and commits, never Host construction paths. It binds an immutable validation set:
+Use only jarvis-box's public release and runtime interfaces. Pin canonical Company/repo commits and the released image digest; create a separate auditable identity; download, verify, install, start, authorize and probe the formal runtime. jarvis-box itself owns its injected execution contract, control plane and operator runbook.
 
-- Company Jarvis commit;
-- workflow-required repo commits and repo-local entries;
-- the released jarvis-box OCI image digest, which also contains the pinned
-  uv-im-connector binary;
-- the bundled uv-im-connector version/commit reported by the same release;
-- routing, source, Agent and capability probe results.
+Stable runtime facts observed during installation may be written back to Company runtime governance. Do not speculate about internals or duplicate the jarvis-box runbook. After successful container-side probes, advance the selected workflow to `ready-for-shadow`.
 
-The formal Agent uses an independently activated, auditable, rotatable and revocable high-authority identity. It may be an organization super-admin if the customer authorizes that power. Never copy the entire Host home, SSH agent or human credential store. Treat Docker socket access as host-root-equivalent and require explicit authorization.
+## Shadow delivery and evolution
 
-After successful container-side probes, change the workflow to `ready-for-shadow`. Later learning writes new refs and cannot mutate the deployed snapshot in place.
+Representative customer-supervised tasks advance `ready-for-shadow → shadowing → active`. Promotion requires stable routing, repo-local execution, verification and END closure, durable writeback of hidden customer steps, an exact deployment lock and customer approval.
 
-## Shadow delivery and promotion
-
-`ready-for-shadow` workflows process representative real tasks under customer supervision. Mark a workflow `shadowing` while this evidence is accumulating. Promote it to `active` only when:
-
-- routing, repo-local execution, verification and END closure are stable across representative tasks;
-- hidden customer steps have been written to the correct durable owner and replayed;
-- the customer approves production use;
-- the active deployment lock identifies the exact revisions that passed.
-
-No initial prompt can manufacture future production evidence. When no representative task exists yet, stop honestly at `ready-for-shadow` and explain the next business event needed.
+No initial construction request can manufacture future production evidence. Without a representative task, stop honestly at `ready-for-shadow` and name the next business event.
 
 ## Non-negotiable boundaries
 
-- Construction does not require jarvis-box.
-- Company knowledge stores company semantics and routes; repository execution truth stays repo-local.
-- Eval loop is an internal learning method, never the delivered skill.
-- Publication and deployment use real remote revisions, not uncommitted Host paths.
-- Runtime-owned generic methods are not copied into Company Jarvis.
-- The customer sees delivered repos/PRs, usable scope, approval/blockers and the next business result—not phases, oracle, cursor, replay internals or child-process commands.
+- Construction works without jarvis-box until Part 4.
+- Company Jarvis stores company semantics, routes and cross-runtime governance; repository execution truth stays repo-local.
+- jarvis-box internals stay in jarvis-box.
+- Eval/replay is an internal learning method, not the delivered skill.
+- Publication and deployment use verified remote revisions, not uncommitted Host paths.
+- The customer sees delivered repos/PRs, usable scope, approvals, blockers and the next business result—not internal phase or child-process mechanics.

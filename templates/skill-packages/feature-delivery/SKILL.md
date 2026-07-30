@@ -10,11 +10,11 @@ version: "2.0.0"
 
 **当前状态：`draft-template`**
 
-这是 `1+2` 阶段预装的教学与改造起点，不是已经确认的客户流程。Agent 应向客户解释动态
+这是供客户校准的教学起点，不是已经确认的客户流程。Agent 应向客户解释动态
 START → WORK → VERIFY → END，再用 company Jarvis、repo-local skills，以及客户真实的需求
 入口、决策角色、branch/review/test/release policy 和交付凭证替换通用假设。
 
-至少一个客户真实或等价受控 feature case 在建设环境验证从需求到交付闭合后，将本节改为
+至少一个客户真实或等价受控 feature case 验证从需求到交付闭合后，将本节改为
 `construction-ready`。正式 runtime 固定 Company/repo/image revisions 并通过 capability probes
 后依次进入 `runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督下执行时为
 `shadowing`。只有 shadow 稳定闭合并获客户批准后才改为 `active`。

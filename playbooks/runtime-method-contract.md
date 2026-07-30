@@ -1,86 +1,94 @@
 # Construction and formal runtime boundary
 
-This contract prevents the customer construction journey and the production digital-employee runtime from becoming one product surface.
+This contract separates the customer construction journey, the customer's cross-runtime constitution and the production digital-employee implementation.
 
 ## Host Construction Agent
 
-The customer starts with an already authenticated and explicitly authorized Host Codex or equivalent Agent. It may have broad or administrator-level access. That is an intentional construction authority, not a jarvis-box service identity.
-
-The Host Agent owns:
+The customer starts with an already authenticated, explicitly authorized Host Agent. It may have administrator-level access. The Host Agent owns:
 
 - reading and pinning the create-jarvis method;
-- guiding customer source intake, then inventorying and probing only supplied pointers;
-- Company construction and Repository learning coordination;
-- customer Git publication;
+- guiding customer source intake and probing supplied pointers;
+- maintaining the Construction Workspace and recovery facts;
+- initializing and publishing the Company Jarvis repo;
+- coordinating Company construction and independent repository learning;
+- creating and verifying customer-specific Host runtime foundations required by Company governance;
 - reconciliation and workflow construction;
-- preparing the immutable deployment set;
-- invoking formal runtime deployment when ready.
+- invoking formal runtime onboarding when its gate is satisfied.
 
-Construction must work when `jarvis-box` is absent. Host paths, home directories and credentials are not production artifacts.
+Construction through reconciliation must work when `jarvis-box` is absent. Host paths, home directories and credentials are not production artifacts.
 
-The Host computer is not an evidence catalog. The initial customer request authorizes cloning the public method, not inspecting home contents, Agent history/configuration, shell state, unrelated repositories or previous runtime residue. Additional evidence access starts from customer-provided URLs or explicit paths.
+The Host computer is not an evidence catalog. The initial request authorizes cloning the public method, not inspecting home contents, Agent history/configuration, shell state, unrelated repositories or previous runtime residue.
 
-## Create Jarvis method
+## create-jarvis method
 
-This repository owns instructions, templates and evidence gates for:
+This repository owns reusable instructions, templates and evidence gates for:
 
-- Coordinator, Company construction and Repository learning;
-- historical episode replay and minimal repo-local skill writeback;
-- Company/repo reconciliation;
-- customer workflow construction and maturity;
-- formal deployment handoff, supervised shadow and promotion.
+- the four-part construction journey;
+- Construction Workspace creation and interruption recovery;
+- historical episode replay and minimal repo-local writeback;
+- Company/repo reconciliation and workflow maturity;
+- formal jarvis-box download, installation, startup and onboarding;
+- supervised shadow and promotion.
 
-It does not create an OS service user, run a daemon, promise process survival, manage container lifecycle after handoff, or maintain a parallel Task/Run state service.
+It does not own a customer's durable knowledge, run a construction daemon, promise process survival, or implement jarvis-box's control plane.
+
+## Company runtime governance
+
+The Company Jarvis repo owns `runtime-governance.md`: the customer-specific constitution shared by Host Agents and formal managed runtimes. It governs the customer's canonical runtime root, cache/workspace/state roles, task-start synchronization, stable tools, checkout isolation, handoff, cleanup, credentials and write boundaries.
+
+Part 1 creates its template scaffold. Part 2 discovers customer facts, decides the constitution, installs any required Host mechanisms and verifies behavior. Missing mechanisms are marked `pending-runtime-foundation`; documentation alone cannot claim an installed runtime foundation.
+
+The constitution may refer to jarvis-box through its public behavior. It does not copy jarvis-box's injected execution contract, control plane or operator runbook.
 
 ## Formal jarvis-box runtime
 
-jarvis-box is installed only after at least one workflow is `construction-ready`. It owns the production execution surface:
+jarvis-box is installed only after reconciliation passes and at least one workflow is `construction-ready`. It owns the production execution surface:
 
 - batteries-included Agent and operational toolchain;
-- Task/Run lifecycle, workspaces, logs, diagnostics and writeback;
+- injected execution contract;
+- Task/Run lifecycle and control plane;
+- workspaces, logs, diagnostics and runtime state;
 - immutable Company Jarvis materialization and Agent discovery;
 - repo checkout/cache and repo-local skill discovery;
-- selected IM connector integration;
-- runtime update/rollback through the external deployment owner.
+- operator runbook and selected IM connector integration;
+- runtime update and rollback through the deployment owner.
 
-Runtime-owned generic methods do not belong in the customer Company repo. Company-specific workflows and policies do not belong in the public runtime image.
+Runtime implementation details stay in jarvis-box. Company-specific knowledge and policies stay in Company Jarvis. Repo execution truth stays in each customer code repo.
 
 ## High-authority identity model
 
 Both construction and production Agents are high-authority execution subjects. The formal jarvis-box container runs as root; this is not a low-privilege sandbox. Identity separation exists for audit, rotation and revocation.
 
-- The formal Agent identity is activated separately so it can be audited, rotated and revoked independently of the Host user.
+- The formal Agent identity is activated separately from the Host user.
 - It may have organization super-admin authority when the customer explicitly chooses that model.
-- jarvis-box server and its Agent share one trusted authority boundary unless a separate executor is introduced later.
-- IM provider-native credentials remain in the connector boundary. Jarvis owns only the connector capability needed to communicate.
-- Docker socket, host SSH agent or host home access is never implicit. Docker socket authorization is recorded as host-root-equivalent.
+- jarvis-box server and its Agent share one trusted authority boundary unless another executor is introduced.
+- IM provider-native credentials remain in the connector boundary.
+- Docker socket, Host SSH agent and Host home access are never implicit. Docker socket authorization is host-root-equivalent.
 
 ## Construction files
 
-The method uses ordinary Markdown:
+The method uses ordinary Markdown in `jarvis-build/`:
 
-- `BUILD-CONTEXT.md`
-- `RUN-COMPANY-JARVIS-CONSTRUCTION.md`
-- `RUN-REPOSITORY-LEARNING.md`
-- `CONSTRUCTION-JOURNAL.md`
-- one progress document per lane
+- `CONTINUE-JARVIS.md` for the recovery entry;
+- `BUILD-CONTEXT.md` for authorized pointers and delivery policy;
+- `CONSTRUCTION-JOURNAL.md` for coordinated pointers and current work;
+- one work card per construction unit;
+- task-local evidence packets.
 
-They do not contain credentials and do not become runtime state. `START-HERE.md` is optional recovery material, not a default customer handoff.
+These files contain no credentials and never become jarvis-box runtime state.
 
 ## Deployment conversion
 
-Deployment converts construction evidence into runtime facts:
+Part 4 converts construction evidence into runtime facts:
 
 - Host path → canonical remote plus resolved commit;
-- local skill delta → approved/candidate Git ref;
+- local skill delta → delivered and resolvable Git ref;
 - Company entry → immutable runtime snapshot and discovery links;
 - Host access → separately activated formal identity and source adapters;
 - construction validation → container-side routing/source/Agent/capability probes.
 
-The resulting deployment lock records exact revisions, one jarvis-box image
-digest, the bundled connector version and probe evidence. It is production
-configuration, not a bootstrap phase state machine.
+The deployment lock records exact revisions, the jarvis-box image digest, bundled component versions, identity and probe evidence. Stable runtime behavior observed during onboarding may be written back into Company governance with evidence. It does not move jarvis-box internals into Company Jarvis.
 
 ## Customer-visible contract
 
-Show the customer delivered repositories/PRs, usable scope, authorization or review checkpoints, blockers and the next business result. Do not expose internal Phase names, eval/oracle terminology, progress schemas or child-process commands unless they are required to recover a concrete failure.
+Show delivered repositories and PRs/MRs, usable scope, approval checkpoints, blockers and the next business result. When pausing, show the Construction Workspace path and recovery phrase. Do not expose internal replay/oracle terminology or provider child-process mechanics unless required to recover a concrete failure.

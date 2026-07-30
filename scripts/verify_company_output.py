@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Check deterministic company-Jarvis output boundaries.
 
-This verifier intentionally does not judge company semantics, Repository
-learning quality, task progress, or phase state. Those require real agent
-episodes. It only catches structural and filesystem mistakes a program can
-decide reliably.
+This verifier intentionally does not judge company semantics, runtime-
+governance maturity, Repository learning quality, work-card progress or
+workflow maturity. Those require real evidence. It only catches structural
+and filesystem mistakes a program can decide reliably.
 """
 
 from __future__ import annotations
@@ -27,6 +27,10 @@ REQUIRED_COMPANY_FILES = (
     "SKILL.md",
     "references/jarvis-first-routing.md",
     "references/knowledge-layer-contract.md",
+    "references/canonical-repo-fleet.md",
+    "references/runtime-governance.md",
+    "references/runtime-governance-quick.md",
+    "tools/README.md",
 )
 
 OBSOLETE_ROOT_CONTRACTS = (

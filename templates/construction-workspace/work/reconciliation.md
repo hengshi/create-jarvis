@@ -1,9 +1,9 @@
 # Work card: Reconciliation Gate
 
-- Objective: reconcile delivered Company and repo-local knowledge and prove a route-scoped workflow construction-ready
-- Completion gate: immutable refs resolve, routing probes pass and at least one customer-specific workflow passes a controlled or real case
-- Authorized inputs: Company and repository delivery refs, build context, work-card evidence
-- Allowed writes: Company target/approved remote, this card, task-local evidence
+- Objective: reconcile delivered Jarvis and repo-local knowledge and prove a route-scoped workflow verified
+- Completion gate: exact delivered refs resolve, routing probes pass and at least one customer-specific workflow passes a controlled or real case
+- Authorized inputs: Jarvis and repository delivery refs, build context, work-card evidence
+- Allowed writes: Jarvis target/approved remote, this card, task-local evidence
 - Target repository: `unresolved`
 - Target workspace: `unresolved`
 - Target branch: `unresolved`
@@ -21,9 +21,9 @@ Method: `playbooks/prompts/reconciliation.md` from the pinned create-jarvis comm
 
 ## Checkpoints
 
-- [ ] Required Company and repo-local remote refs resolve
+- [ ] Required Jarvis and repo-local remote refs resolve
 - [ ] Pending handoffs are replaced only where real entries exist
-- [ ] Company-to-repo routing probes pass
+- [ ] Jarvis-to-repo routing probes pass
 - [ ] Incomplete fleet/history boundaries remain explicit
 - [ ] One workflow has customer-specific START, WORK, VERIFY and END
 - [ ] One controlled or real case passes at pinned revisions

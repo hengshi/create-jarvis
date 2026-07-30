@@ -250,24 +250,24 @@ def root_for(workspace: Path) -> Path:
     return workspace.parent
 
 
-def instantiate_company(root: Path, method: Path, repositories: list[str]) -> tuple[Path, Path, str]:
-    company = root / "workspaces" / "acme-labs-jarvis"
-    company.parent.mkdir(parents=True, exist_ok=True)
-    render_input = root / "customer-input" / "company-render-input.json"
+def instantiate_jarvis(root: Path, method: Path, repositories: list[str]) -> tuple[Path, Path, str]:
+    jarvis = root / "workspaces" / "acme-labs-jarvis"
+    jarvis.parent.mkdir(parents=True, exist_ok=True)
+    render_input = root / "customer-input" / "jarvis-render-input.json"
     write(
         render_input,
         json.dumps(
             {
                 "schema_version": 1,
-                "company": {
+                "jarvis": {
                     "name": "Acme Labs",
                     "slug": "acme-labs",
-                    "product_identity": "Acme Commerce",
+                    "purpose": "Acme Commerce",
                     "owner": "platform-engineering",
                 },
                 "paths": {
-                    "target": str(company),
-                    "workspace_root": str(company.parent),
+                    "target": str(jarvis),
+                    "workspace_root": str(jarvis.parent),
                 },
                 "scope": {
                     "modules": ["billing"],
@@ -283,7 +283,7 @@ def instantiate_company(root: Path, method: Path, repositories: list[str]) -> tu
     run(
         [
             sys.executable,
-            str(method / "scripts" / "instantiate_company_jarvis.py"),
+            str(method / "scripts" / "instantiate_jarvis.py"),
             "base",
             "--input",
             str(render_input),
@@ -292,7 +292,7 @@ def instantiate_company(root: Path, method: Path, repositories: list[str]) -> tu
     run(
         [
             sys.executable,
-            str(method / "scripts" / "instantiate_company_jarvis.py"),
+            str(method / "scripts" / "instantiate_jarvis.py"),
             "module",
             "--input",
             str(render_input),
@@ -300,11 +300,11 @@ def instantiate_company(root: Path, method: Path, repositories: list[str]) -> tu
             "billing",
         ]
     )
-    git_init_existing(company)
-    company_commit = git_commit(company, "initialize Acme Labs Jarvis")
+    git_init_existing(jarvis)
+    jarvis_commit = git_commit(jarvis, "initialize Acme Labs Jarvis")
     remote = root / "remotes" / "acme-labs-jarvis.git"
-    attach_bare_remote(company, remote)
-    return company, remote, company_commit
+    attach_bare_remote(jarvis, remote)
+    return jarvis, remote, jarvis_commit
 
 
 def git_init_existing(repo: Path) -> None:
@@ -313,66 +313,66 @@ def git_init_existing(repo: Path) -> None:
 
 def fill_common_context(
     workspace: Path,
-    company: Path,
-    company_remote: Path,
-    company_commit: str,
+    jarvis: Path,
+    jarvis_remote: Path,
+    jarvis_commit: str,
 ) -> None:
     context = workspace / "BUILD-CONTEXT.md"
     for label, value in (
-        ("Company legal/display name", "Acme Labs"),
-        ("Company slug", "acme-labs"),
+        ("Jarvis legal/display name", "Acme Labs"),
+        ("Jarvis slug", "acme-labs"),
         ("Provider/host", "local Git fixture"),
         ("Owner/namespace", "acme-eval"),
         ("Repository", "acme-labs-jarvis"),
-        ("Canonical remote", str(company_remote)),
+        ("Canonical remote", str(jarvis_remote)),
         ("Existing history/default branch", "initial commit on main"),
         ("Publication mode", "new-initial-push"),
-        ("Write/review capability probe", f"main pushed at {company_commit}"),
+        ("Write/review capability probe", f"main pushed at {jarvis_commit}"),
     ):
         replace_field(context, label, value)
 
-    initialization = workspace / "work" / "company-repo-initialization.md"
+    initialization = workspace / "work" / "jarvis-repo-initialization.md"
     for label, value in (
-        ("Target repository", str(company_remote)),
-        ("Target workspace", str(company)),
+        ("Target repository", str(jarvis_remote)),
+        ("Target workspace", str(jarvis)),
         ("Target branch", "main"),
         ("Writer", "fixture Part 1 writer (ended)"),
         ("Status", "complete"),
-        ("Last verified checkpoint", f"remote main resolves {company_commit}"),
-        ("Delivered artifacts", f"{company_remote} main {company_commit}"),
-        ("Evidence", f"git ls-remote {company_remote} refs/heads/main"),
+        ("Last verified checkpoint", f"remote main resolves {jarvis_commit}"),
+        ("Delivered artifacts", f"{jarvis_remote} main {jarvis_commit}"),
+        ("Evidence", f"git ls-remote {jarvis_remote} refs/heads/main"),
         ("Blocker", "none"),
-        ("Next", "Start Company construction and independent repository cards"),
+        ("Next", "Start Jarvis construction and independent repository cards"),
     ):
         replace_field(initialization, label, value)
     set_checked(initialization)
 
-    construction = workspace / "work" / "company-construction.md"
+    construction = workspace / "work" / "jarvis-construction.md"
     for label, value in (
-        ("Target repository", str(company_remote)),
-        ("Target workspace", str(company)),
-        ("Target branch", "create-jarvis/company-construction"),
+        ("Target repository", str(jarvis_remote)),
+        ("Target workspace", str(jarvis)),
+        ("Target branch", "create-jarvis/jarvis-construction"),
         ("Status", "ready"),
         ("Blocker", "none"),
-        ("Next", "Assign the single Company integrator"),
+        ("Next", "Assign the single Jarvis integrator"),
     ):
         replace_field(construction, label, value)
 
     journal = workspace / "CONSTRUCTION-JOURNAL.md"
     for label, value in (
-        ("Current work card", "work/company-construction.md"),
-        ("Company delivery", f"main {company_commit}"),
+        ("Current work card", "work/jarvis-construction.md"),
+        ("Jarvis delivery", f"main {jarvis_commit}"),
         ("Blocker", "none"),
-        ("Next", "Execute work/company-construction.md"),
+        ("Next", "Execute work/jarvis-construction.md"),
     ):
         replace_field(journal, label, value)
     text = journal.read_text(encoding="utf-8")
     text = text.replace(
-        "| `work/company-repo-initialization.md` | ready | unassigned | workspace created | assign Company writer |",
-        f"| `work/company-repo-initialization.md` | complete | fixture writer ended | remote main {company_commit} | start Part 2/3 |",
+        "| `work/jarvis-repo-initialization.md` | ready | unassigned | workspace created | assign Jarvis writer |",
+        f"| `work/jarvis-repo-initialization.md` | complete | fixture writer ended | remote main {jarvis_commit} | start Part 2/3 |",
     ).replace(
-        "| `work/company-construction.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
-        "| `work/company-construction.md` | ready | unassigned | Part 1 remote verified | assign Company integrator |",
+        "| `work/jarvis-construction.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
+        "| `work/jarvis-construction.md` | ready | unassigned | Part 1 remote verified | assign Jarvis integrator |",
     )
     journal.write_text(text, encoding="utf-8")
 
@@ -381,9 +381,9 @@ def build_new_journey(root: Path) -> dict[str, object]:
     storefront, storefront_head = create_order_repo(root, "storefront", "ordering")
     fulfillment, fulfillment_head = create_order_repo(root, "fulfillment", "shipping")
     write(fulfillment / "CUSTOMER-NOTE.md", "preserve this uncommitted note\n")
-    company_remote = root / "remotes" / "acme-labs-jarvis.git"
-    company_remote.parent.mkdir(parents=True, exist_ok=True)
-    run(["git", "init", "--bare", "--initial-branch=main", str(company_remote)])
+    jarvis_remote = root / "remotes" / "acme-labs-jarvis.git"
+    jarvis_remote.parent.mkdir(parents=True, exist_ok=True)
+    run(["git", "init", "--bare", "--initial-branch=main", str(jarvis_remote)])
     write(
         root / "customer-docs" / "product-overview.md",
         "# Acme Commerce\n\nStorefront accepts orders; fulfillment owns shipment state. "
@@ -392,12 +392,12 @@ def build_new_journey(root: Path) -> dict[str, object]:
     write(
         root / "customer-input" / "customer-brief.md",
         f"# Customer brief\n\n"
-        f"Company: Acme Labs (`acme-labs`). Owner: platform-engineering.\n\n"
+        f"Jarvis: Acme Labs (`acme-labs`). Owner: platform-engineering.\n\n"
         f"Authorized document: `{root / 'customer-docs' / 'product-overview.md'}`.\n\n"
         f"Authorized repositories:\n\n"
         f"- storefront: `{storefront}` at `{storefront_head}`; all reachable history; branch-push to fixture origin.\n"
         f"- fulfillment: `{fulfillment}` at `{fulfillment_head}`; all reachable history; preserve its dirty customer note; branch-push to fixture origin.\n\n"
-        f"Company target: local Git remote `{company_remote}`, private-equivalent, new initial push to `main`; target workspace `{root / 'workspaces' / 'acme-labs-jarvis'}`.\n\n"
+        f"Jarvis target: local Git remote `{jarvis_remote}`, private-equivalent, new initial push to `main`; target workspace `{root / 'workspaces' / 'acme-labs-jarvis'}`.\n\n"
         "No Host runtime discovery pointers are supplied yet. Record that boundary; do not scan outside these paths. "
         "Prepare the journey, execute Part 1 only, then stop at a recoverable verified checkpoint.\n",
     )
@@ -405,13 +405,13 @@ def build_new_journey(root: Path) -> dict[str, object]:
         "case": "new-journey",
         "customer_brief": str(root / "customer-input" / "customer-brief.md"),
         "repositories": [str(storefront), str(fulfillment)],
-        "company_remote": str(company_remote),
+        "jarvis_remote": str(jarvis_remote),
     }
 
 
 def build_runtime_governance(root: Path, method: Path, commit: str) -> dict[str, object]:
     repo, repo_head = create_order_repo(root, "commerce-api", "commerce API")
-    company, company_remote, company_commit = instantiate_company(
+    jarvis, jarvis_remote, jarvis_commit = instantiate_jarvis(
         root, method, [str(repo)]
     )
     workspace = init_workspace(root, method, commit)
@@ -422,15 +422,18 @@ def build_runtime_governance(root: Path, method: Path, commit: str) -> dict[str,
         "commerce-api",
         "create-jarvis/repo-learning-commerce-api",
     )
-    fill_common_context(workspace, company, company_remote, company_commit)
+    fill_common_context(workspace, jarvis, jarvis_remote, jarvis_commit)
     host_runtime = root / "host-runtime"
     (host_runtime / "bin").mkdir(parents=True)
     (host_runtime / "cache").mkdir()
+    codex_discovery = host_runtime / "agent-home" / ".codex" / "skills"
+    codex_discovery.mkdir(parents=True)
     write(
         host_runtime / "README.md",
         "# Authorized Host runtime root\n\nThe customer authorizes create/read/write under this directory only. "
-        "A stable customer-owned sync entry is required under `bin/`. It must materialize the Company Jarvis "
-        "and commerce-api canonical remotes into `cache/`, preserve non-fast-forward safety, and print the exact resolved commits.\n",
+        "A stable Jarvis-owned bootstrap/sync and doctor entry is required under `bin/`. It must sync the approved Jarvis "
+        f"remote into `cache/`, materialize the Jarvis entry into the supplied Codex discovery root `{codex_discovery}`, "
+        "preserve the prior verified material on dirty/non-fast-forward failure, and print the exact resolved commit.\n",
     )
     context = workspace / "BUILD-CONTEXT.md"
     for label, value in (
@@ -444,25 +447,26 @@ def build_runtime_governance(root: Path, method: Path, commit: str) -> dict[str,
     write(
         root / "customer-docs" / "runtime-requirements.md",
         f"# Acme Host runtime requirements\n\n"
-        f"Canonical Company remote: `{company_remote}`. Canonical commerce-api remote: `{root / 'remotes' / 'commerce-api.git'}`.\n\n"
-        "Every Host task must sync both sources before durable work, refuse to overwrite a dirty cache, "
-        "and report exact commits. Credentials stay outside Company Jarvis and the Construction Workspace. "
+        f"Approved Jarvis remote: `{jarvis_remote}`. Approved ref: `refs/heads/main`. Agent HOME: `{host_runtime / 'agent-home'}`. "
+        f"Codex discovery root: `{codex_discovery}`.\n\n"
+        "Every Host task must quick-sync the Jarvis source before durable work, preserve the prior verified cache/discovery material on failure, "
+        "and report the exact commit. Credentials stay outside Jarvis and the Construction Workspace. "
         "No jarvis-box installation is authorized in this case.\n",
     )
     write(
         root / "customer-input" / "customer-brief.md",
         f"# Resume instruction\n\nContinue the journey at `{workspace}` using its pinned method commit. "
         f"Execute Part 2 only. The authorized customer docs are `{root / 'customer-docs' / 'runtime-requirements.md'}` "
-        f"and `{host_runtime / 'README.md'}`. You may write only the Company target, its approved remote, the active card/evidence, "
-        f"and `{host_runtime}`. Build and behaviorally verify the missing Host runtime foundation, publish the Company result, "
+        f"and `{host_runtime / 'README.md'}`. You may write only the Jarvis target, its approved remote, the current card/evidence, "
+        f"and `{host_runtime}`. Build and behaviorally verify the missing Host runtime foundation, publish the Jarvis result, "
         "then stop with a recoverable checkpoint. Do not install or imitate jarvis-box.\n",
     )
     return {
         "case": "runtime-governance",
         "workspace": str(workspace),
-        "company": str(company),
-        "company_remote": str(company_remote),
-        "company_initial_commit": company_commit,
+        "jarvis": str(jarvis),
+        "jarvis_remote": str(jarvis_remote),
+        "jarvis_initial_commit": jarvis_commit,
         "repository": str(repo),
         "repository_head": repo_head,
         "host_runtime": str(host_runtime),
@@ -471,10 +475,10 @@ def build_runtime_governance(root: Path, method: Path, commit: str) -> dict[str,
 
 def build_repository_reconciliation(root: Path, method: Path, commit: str) -> dict[str, object]:
     repo, history = create_invoice_history(root)
-    company, company_remote, company_commit = instantiate_company(
+    jarvis, jarvis_remote, jarvis_commit = instantiate_jarvis(
         root, method, [str(repo)]
     )
-    route = company / "modules" / "billing" / "overview.md"
+    route = jarvis / "modules" / "billing" / "overview.md"
     route.write_text(
         route.read_text(encoding="utf-8")
         + "\n## Invoice webhook execution\n\n- repo: invoice-service\n"
@@ -482,8 +486,8 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         "- first proof: customer issue ACME-17 and current repository history\n",
         encoding="utf-8",
     )
-    company_commit = git_commit(company, "record pending invoice-service handoff")
-    run(["git", "push", "origin", "main"], cwd=company)
+    jarvis_commit = git_commit(jarvis, "record pending invoice-service handoff")
+    run(["git", "push", "origin", "main"], cwd=jarvis)
 
     workspace = init_workspace(root, method, commit)
     add_repo_card(
@@ -493,15 +497,15 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         "invoice-service",
         "create-jarvis/repo-learning-invoice-service",
     )
-    fill_common_context(workspace, company, company_remote, company_commit)
+    fill_common_context(workspace, jarvis, jarvis_remote, jarvis_commit)
 
-    construction = workspace / "work" / "company-construction.md"
+    construction = workspace / "work" / "jarvis-construction.md"
     for label, value in (
-        ("Writer", "fixture Company integrator (ended)"),
+        ("Writer", "fixture Jarvis integrator (ended)"),
         ("Status", "complete"),
-        ("Last verified checkpoint", f"Company main resolves {company_commit}"),
-        ("Delivered artifacts", f"Company main {company_commit}"),
-        ("Evidence", f"git ls-remote {company_remote} refs/heads/main"),
+        ("Last verified checkpoint", f"Jarvis main resolves {jarvis_commit}"),
+        ("Delivered artifacts", f"Jarvis main {jarvis_commit}"),
+        ("Evidence", f"git ls-remote {jarvis_remote} refs/heads/main"),
         ("Blocker", "none"),
         ("Next", "Run invoice-service card, then reconciliation"),
     ):
@@ -519,7 +523,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
     journal = workspace / "CONSTRUCTION-JOURNAL.md"
     for label, value in (
         ("Current work card", "work/repositories/invoice-service.md"),
-        ("Company delivery", f"main {company_commit}"),
+        ("Jarvis delivery", f"main {jarvis_commit}"),
         ("Repository deliveries", "none; invoice-service ready"),
         ("Reconciliation", "waiting-for-construction"),
         ("Blocker", "none"),
@@ -529,8 +533,8 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
     journal.write_text(
         journal.read_text(encoding="utf-8")
         .replace(
-            "| `work/company-construction.md` | ready | unassigned | Part 1 remote verified | assign Company integrator |",
-            f"| `work/company-construction.md` | complete | fixture integrator ended | Company main {company_commit} | run repository card |",
+            "| `work/jarvis-construction.md` | ready | unassigned | Part 1 remote verified | assign Jarvis integrator |",
+            f"| `work/jarvis-construction.md` | complete | fixture integrator ended | Jarvis main {jarvis_commit} | run repository card |",
         )
         .replace(
             "| `work/repositories/invoice-service.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
@@ -558,15 +562,15 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         f"`{root / 'customer-input' / 'issue-ACME-17.md'}` and the replay at "
         f"`{root / 'customer-input' / 'replay_duplicate_webhook.py'}`. Inspect real patches and code across all reachable history; "
         "preserve the uncommitted CUSTOMER-NOTE.md. Deliver the smallest durable repo-local guidance through the recorded branch policy. "
-        "Then run Reconciliation Gate: replace the pending Company handoff with the delivered entry, prove the route with the same controlled "
-        "case, customize the bugfix workflow enough to move it to construction-ready if evidence supports it, publish the Company ref, and stop. "
-        "Do not mark the workflow active and do not install jarvis-box.\n",
+        "Then run Reconciliation Gate: replace the pending Jarvis handoff with the delivered entry, prove the route with the same controlled "
+        "case, customize the bugfix workflow enough to move it to verified if evidence supports it, publish the Jarvis ref, and stop. "
+        "Do not invent another workflow deployment status and do not install jarvis-box.\n",
     )
     return {
         "case": "repository-reconciliation",
         "workspace": str(workspace),
-        "company": str(company),
-        "company_remote": str(company_remote),
+        "jarvis": str(jarvis),
+        "jarvis_remote": str(jarvis_remote),
         "repository": str(repo),
         "repository_remote": str(root / "remotes" / "invoice-service.git"),
         "history": history,

@@ -1,20 +1,20 @@
 ---
 name: jarvis-self-improve-skill
 description: >
-  Company Jarvis self-improvement 方法。读取 jarvis-box 支持的
+  Jarvis self-improvement 方法。读取 jarvis-box 支持的
   agent session 和高信号 review trajectory，判断是否存在可复用、可验证的缺口，
   并把结果路由到正确的 durable owner。
 ---
 
-# Company Jarvis Self-Improvement
+# Jarvis Self-Improvement
 
-这是 company Jarvis 的方法论 skill，不是 collector、scheduler、数据库或运行时实现。
+这是 Jarvis 的方法论 skill，不是 collector、scheduler、数据库或运行时实现。
 session 收集、agent registry、定时触发和运行目录由 jarvis-box install 提供；本 skill
 只负责读取已授权证据、归因失败、选择写回归属和验证结果。
 
 ## 强制预读
 
-进入此 skill 前，先从当前已加载的 company entry 定位 active company Jarvis root，再读取：
+进入此 skill 前，先从当前已加载的 Jarvis entry 定位当前 Jarvis root，再读取：
 
 - `references/runtime-governance-quick.md`
 - `references/agent-engineering-quality-gate.md`
@@ -38,8 +38,8 @@ session 收集、agent registry、定时触发和运行目录由 jarvis-box inst
 1. 重建每条候选 trajectory：用户意图、agent 选择、实际命令、失败、恢复路径和最终结果。
 2. 按 broken control point 分类：runtime、routing、repo-local execution、skill drift、tool/hook、test/review gate 或 external one-off。
 3. 在写 prose 前选择 intervention：`skill_rule`、`repo_tool`、`runtime_launcher`、`script_or_hook`、`test_fixture`、`review_gate`、`docs` 或 `no_change`。
-4. 对重复或高影响模式选择唯一 primary home：repo-local、company Jarvis、jarvis-box runtime、脚本/工具、测试或文档。
-5. 保持 repo execution truth 在 repo-local；不要把单仓库命令或客户私有事实写入 company Jarvis。
+4. 对重复或高影响模式选择唯一 primary home：repo-local、Jarvis、jarvis-box runtime、脚本/工具、测试或文档。
+5. 保持 repo execution truth 在 repo-local；不要把单仓库命令或客户私有事实写入 Jarvis。
 
 ### VERIFY
 
@@ -65,6 +65,6 @@ session 收集、agent registry、定时触发和运行目录由 jarvis-box inst
 ## 边界
 
 - 不复制 jarvis-box 的 collector、scheduler、agent routing、workspace cleanup 或 service lifecycle 实现。
-- 不把 raw transcript、reviewer identity、secret、PII、私有机器路径或源代码写入 company Jarvis。
+- 不把 raw transcript、reviewer identity、secret、PII、私有机器路径或源代码写入 Jarvis。
 - 不把一次性外部故障或单条未经验证的建议提升为 durable rule。
 - broad backfill / RL 请求必须分片、可恢复，并为每条候选保留 accounted status。

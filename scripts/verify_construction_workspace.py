@@ -24,14 +24,14 @@ REQUIRED_FILES = (
     "CONSTRUCTION-JOURNAL.md",
     "CONTINUE-JARVIS.md",
     "evidence/README.md",
-    "work/company-repo-initialization.md",
-    "work/company-construction.md",
+    "work/jarvis-repo-initialization.md",
+    "work/jarvis-construction.md",
     "work/reconciliation.md",
     "work/jarvis-box-onboarding.md",
 )
 CORE_WORK_CARDS = (
-    "work/company-repo-initialization.md",
-    "work/company-construction.md",
+    "work/jarvis-repo-initialization.md",
+    "work/jarvis-construction.md",
     "work/reconciliation.md",
     "work/jarvis-box-onboarding.md",
 )
@@ -61,7 +61,7 @@ TEXT_SUFFIXES = frozenset(
 )
 TOKEN_RE = re.compile(r"\{\{[A-Z][A-Z0-9_]*\}\}")
 ANGLE_PLACEHOLDER_RE = re.compile(
-    r"<(?:absolute-path(?:-or-host|-or-remote)?|full-commit|timestamp|branch|range|policy|company-target|unresolved|repo)>"
+    r"<(?:absolute-path(?:-or-host|-or-remote)?|full-commit|timestamp|branch|range|policy|jarvis-target|unresolved|repo)>"
 )
 SECRET_RE = re.compile(
     r"(?im)^\s*(?:api[_-]?key|access[_-]?token|password|private[_-]?key|secret)\s*[:=]\s*['\"]?[A-Za-z0-9_./+=-]{12,}"
@@ -356,12 +356,12 @@ class Verifier:
 
     def verify_dispatch_ready(self) -> None:
         build = self.read("BUILD-CONTEXT.md")
-        initialization = self.read("work/company-repo-initialization.md")
+        initialization = self.read("work/jarvis-repo-initialization.md")
         if build is None or initialization is None:
             return
         for label in (
-            "Company legal/display name",
-            "Company slug",
+            "Jarvis legal/display name",
+            "Jarvis slug",
             "Provider/host",
             "Owner/namespace",
             "Repository",
@@ -379,7 +379,7 @@ class Verifier:
                 self.add(
                     "major",
                     "dispatch_target_unresolved",
-                    f"company initialization card: {label} is unresolved",
+                    f"jarvis initialization card: {label} is unresolved",
                 )
         repo_root = self.workspace / "work" / "repositories"
         cards = sorted(repo_root.glob("*.md")) if repo_root.is_dir() else []

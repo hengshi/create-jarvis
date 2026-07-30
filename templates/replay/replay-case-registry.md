@@ -22,7 +22,7 @@ cursor 只负责导航、断点恢复和去重，不承担先分类整个历史�
 
 | Case ID | Episode Pointer | Cutoff | START Construction | Eligibility | Current Skills | Contamination | Last Run | Result | Decision | Next Action |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `<case-id>` | `<commit/MR/issue/incident/ticket pointer>` | `<cutoff ref>` | direct-pre-fix / parent-observed / reconstructed-from-outcome-subject | eligible-direct / eligible-reconstructed / ineligible-leaky / needs-better-start | `<current skill pointers>` | yes / no / regression-only | `<date/run-id or 未执行>` | `<matched / partial / mismatched / blocked / invalid>` | `<no_skill_gap / task-local / repo-local / company-jarvis / source-skill / workflow-skill / upstream / defer>` | `<next action>` |
+| `<case-id>` | `<commit/MR/issue/incident/ticket pointer>` | `<cutoff ref>` | direct-pre-fix / parent-observed / reconstructed-from-outcome-subject | eligible-direct / eligible-reconstructed / ineligible-leaky / needs-better-start | `<current skill pointers>` | yes / no / regression-only | `<date/run-id or 未执行>` | `<matched / partial / mismatched / blocked / invalid>` | `<no_skill_gap / task-local / repo-local / jarvis / source-skill / workflow-skill / upstream / defer>` | `<next action>` |
 
 ## Queue Rules
 
@@ -38,5 +38,5 @@ cursor 只负责导航、断点恢复和去重，不承担先分类整个历史�
 - seed 未到请求边界时必须记录 owner 和可执行 resume entry；full-range 到 boundary 前保持 `in-progress`。
 - 只有 Replay eligibility 为 `eligible-direct` / `eligible-reconstructed` 的 case，在 visible/hidden 分离并完成 CLI/isolation checks 后，Status 才能写 `ready-for-replay`。
 - canonical eligibility：`eligible-direct`、`eligible-reconstructed`、`ineligible-leaky`、`needs-better-start`；readiness/execution 使用独立 Status 字段。
-- 优先写回 repo-local 或 company-local，除非 lesson 是 company-neutral methodology。
+- 优先写回 repo-local 或 jarvis-local，除非 lesson 是 customer-neutral methodology。
 - 现有 guidance 已足够时记录 `no_skill_gap`，不扩展 skill。

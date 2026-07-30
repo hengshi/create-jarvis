@@ -6,7 +6,7 @@ description: >
 
 # {{SOURCE_NAME}} 源访问
 
-此 skill 是 source-helper，不是 repo-local skill。唯一事实入口为 `{{COMPANY_SLUG}}-jarvis/sources/{{SOURCE_NAME}}/README.md`。
+此 skill 是 source-helper，不是 repo-local skill。唯一事实入口为 `{{JARVIS_SLUG}}-jarvis/sources/{{SOURCE_NAME}}/README.md`。
 
 只负责：
 - 路由与访问状态
@@ -21,7 +21,7 @@ description: >
 
 ## START
 
-1. 读取 `{{COMPANY_SLUG}}-jarvis/sources/{{SOURCE_NAME}}/README.md`，确认源类型、访问方式、认证入口和当前访问状态。
+1. 读取 `{{JARVIS_SLUG}}-jarvis/sources/{{SOURCE_NAME}}/README.md`，确认源类型、访问方式、认证入口和当前访问状态。
 2. 从 README 获取本次查询的具体检索入口（clone URL、API endpoint、文档路径等）。
    如 README 中未填实，记录阻塞状态和恢复条件，停止执行。
 3. 如源尚不可访问（`needs-access` / `needs-credentials` / `request-pending`），记录阻塞状态和恢复条件，停止执行。
@@ -40,7 +40,7 @@ observed: <日期 / commit hash / 文档版本>
 ```
 
 4. 输出前执行脱敏：不复制源原文、凭据、PII、内部地址。命中文档中的 secret 时只说明已发现受限信息，按 redaction 处理。
-5. 如需写回，按 `{{COMPANY_SLUG}}-jarvis/references/writeback-governance.md` 判断目标位置和权限。
+5. 如需写回，按 `{{JARVIS_SLUG}}-jarvis/references/writeback-governance.md` 判断目标位置和权限。
 
 ## VERIFY
 
@@ -54,7 +54,7 @@ observed: <日期 / commit hash / 文档版本>
 
 1. 输出查询结果摘要和证据指针，不复制源原文。
 2. 如出现 self-improvement signal，先判断现有 guidance 是否已经足够；足够时记录 `no_skill_gap`，不扩张 skill。
-3. 如有可复用、可验证的持久知识需写回，按 `{{COMPANY_SLUG}}-jarvis/references/writeback-governance.md` 选择唯一 primary home：
+3. 如有可复用、可验证的持久知识需写回，按 `{{JARVIS_SLUG}}-jarvis/references/writeback-governance.md` 选择唯一 primary home：
    - 源访问/查询/脱敏规则 → 本 source skill
    - repo 命令/路径/架构 → repo-local skill
 
@@ -63,4 +63,4 @@ observed: <日期 / commit hash / 文档版本>
 1. 此 source skill 是路由，不是缓存。所有原始内容保留在源处。
 2. 证据记录检索方式和观察结果，不复制源内容。
 3. 访问被阻塞时记录 `needs-access`，不猜测内容。
-4. Source-detected 身份不等于公司身份——记录在身份核实清单中。
+4. Source-detected 身份不等于Jarvis身份——记录在身份核实清单中。

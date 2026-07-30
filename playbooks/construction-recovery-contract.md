@@ -12,8 +12,8 @@ jarvis-build/
 ├── CONSTRUCTION-JOURNAL.md
 ├── BUILD-CONTEXT.md
 ├── work/
-│   ├── company-repo-initialization.md
-│   ├── company-construction.md
+│   ├── jarvis-repo-initialization.md
+│   ├── jarvis-construction.md
 │   ├── repositories/<repo>.md
 │   ├── reconciliation.md
 │   └── jarvis-box-onboarding.md
@@ -70,7 +70,7 @@ A checkpoint is valid only when its material fact can be reverified. Examples in
 
 ## Writer invariants
 
-- One writer owns the Company Jarvis target at a time across Parts 1, 2 and reconciliation.
+- One writer owns the Jarvis target at a time across Parts 1, 2 and reconciliation.
 - Each customer code repo has at most one learning writer at a time.
 - Evidence scanners may run concurrently, but they write only task-local packets under `evidence/`.
 - Part 4 has one deployment/onboarding writer for a deployment target.
@@ -87,6 +87,6 @@ The workspace path is required. The Agent must not search the customer's home or
 
 ## Honest stopping states
 
-A pause is safe when the active card contains a verified checkpoint and a concrete `Next`. A blocked card names the missing approval, access, material or runtime foundation. A completed card links the delivered and verified facts that satisfy its gate.
+A pause is safe when the current card contains a verified checkpoint and a concrete `Next`. A blocked card names the missing approval, access, material or runtime foundation. A completed card links the delivered and verified facts that satisfy its gate.
 
-No method instruction may claim background survival, automatic retry or native session resume unless the active Host provider actually supplies and verifies that behavior.
+No method instruction may claim background survival, automatic retry or native session resume unless the current Host provider actually supplies and verifies that behavior.

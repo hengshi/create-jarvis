@@ -1,181 +1,102 @@
 # Part 4: jarvis-box installation and onboarding
 
-Use this work card only after `work/reconciliation.md` verifies the Company
-Jarvis remote, the required repo-local skill refs and at least one customer
-workflow at `construction-ready`.
-Construction itself must not depend on jarvis-box. The result of this work card is
-an immutable deployment set and a `ready-for-shadow` runtime; it is not a
-promise that a future business task has already been completed.
+Use this card after reconciliation has verified one usable Jarvis → source/module → repo-local route. Read `work/jarvis-box-onboarding.md` first and record every material checkpoint and `Next` before pausing.
 
-Read `work/jarvis-box-onboarding.md` first. After every material checkpoint—
-release download, checksum verification, image pin, service start,
-authentication, runtime verification and shadow handoff—record the verified
-fact and `Next` in that card before continuing.
+## 1. Reverify inputs
 
-## 1. Freeze the handoff
+Resolve from remote facts, without guessing:
 
-Read `CONSTRUCTION-JOURNAL.md`, `work/reconciliation.md`, the required Company
-and repository work cards, and the actual remote delivery facts. Resolve,
-without guessing:
+- the approved Jarvis remote and ref containing a verified Runtime Foundation;
+- required repo-local delivery refs for the first supervised workflow;
+- the public jarvis-box release, checksums and OCI image digest;
+- the formal Agent identity and provider/source authorization scope;
+- the target Agent's native discovery roots;
+- the host scheduler type and approved installation location.
 
-- the Company Jarvis provider, remote and approved commit;
-- every required code repository's canonical remote, fetchable ref, exact
-  commit and repo-local entry skill;
-- the workflow skill paths, their source commits and the workflow being
-  deployed;
-- the released jarvis-box image digest and the uv-im-connector version/commit
-  bundled into that same image, as reported by the release metadata;
-- the formal Agent identity and credential profile.
+Do not deploy dirty Host paths or floating image tags. Missing inputs block only the affected step; record the exact recovery action in the work card.
 
-Do not deploy a Host dirty checkout, an unreviewed branch, a floating image
-tag, or a local skill that has not been published to a real GitHub/GitLab
-ref. A deployment lock must point to real revisions that another operator can
-fetch.
+## 2. Prepare the formal runtime
 
-If the Reconciliation Gate or workflow evidence cannot be reverified, mark
-the onboarding card blocked and return to reconciliation. Do not start a
-partial production runtime to compensate for missing construction evidence.
-
-The `workflows` entries in `company-context.json` use `ready-for-shadow` as the
-deployment target. This does not rewrite the Company workflow skill's
-construction evidence or claim that shadowing already happened; the separate
-deployment lock records whether the runtime probes actually passed.
-
-## 2. One authorization checkpoint
-
-Explain the exact capability scope before starting the formal runtime. Activate
-an independent, auditable, rotatable and revocable high-authority identity for:
-
-- Codex or Claude;
-- GitHub/GitLab and Git author identity;
-- required documentation/source systems;
-- the selected IM provider application, if any;
-- the OCI registry when images are private;
-- Docker socket access only when the workflow explicitly needs a host-root-
-  equivalent executor.
-
-The formal Agent may be an organization super-admin if the customer chooses
-that authority. Identity separation is for audit, rotation and revocation, not
-for pretending the digital employee is low privilege. Do not copy the Host
-user's whole home, SSH agent or credential store into the runtime.
-
-## 3. Prepare the private deployment home
-
-Download and verify the public jarvis-box release bundle, then use its
-`compose.yaml`, `scripts/`, templates and `CUSTOMER-OPERATIONS.md`. The script
-path is `<extracted-release>/scripts/deploy-production.sh`; it is not expected
-to exist in the deployment home. Do not clone jarvis-box source or run the
-legacy native installer. The private deployment home must contain:
+Use the extracted public release rather than cloning jarvis-box source. Prepare a private deployment home containing only jarvis-box/operator configuration:
 
 ```text
 <deployment-home>/
-├── deployment.env
-├── company-context.json
-├── company/                 # clean Company commit export, read-only in runtime
-├── runtime.env
-├── connector.env            # only needed when JARVIS_CONNECTOR_PROFILE=uvim
-└── lock/                    # created by deploy-production.sh
+├── deployment.env          # pinned JARVIS_IMAGE and deployment settings
+├── runtime.env             # jarvis-box/provider configuration
+└── connector.env           # only when the connector profile is enabled
 ```
 
-Materialize `company/` from the approved Company commit with `git archive` or
-an equivalent clean export. Compute its tree digest with the released image's
-`jarvis-box jarvis digest`; do not use a dirty checkout or copy `.git` as
-runtime evidence. Write `company-context.json` with strict schema v1, including
-the Company commit/tree digest, required repository refs/commits/entries,
-workflow paths, `authority: "high"`, and OCI references pinned by digest.
+The Compose deployment creates persistent Agent HOME, Task/Run state, workspace, log and connector volumes. Do not create or mount a Jarvis directory, `jarvis-context.json`, `deployment-lock.json` or replacement manifest. Do not bind the Host user's home or SSH agent. Docker socket remains an explicit host-root-equivalent authorization.
 
-`deployment.env` pins exactly one `JARVIS_IMAGE` digest and the absolute
-deployment home. The released image already contains both the jarvis-box and
-uv-im-connector binaries. Enabling `JARVIS_CONNECTOR_PROFILE=uvim` starts a
-second Compose service from that same image digest; there is no `UVIM_IMAGE`
-input. `runtime.env` contains the runtime agent, provider allowlists,
-webhook/connector references and any provider configuration. Keep
-provider-native IM secrets in `connector.env`; they are not copied into the
-jarvis-box service. Enable the Docker socket only through the explicit
-deployment switch after the authorization checkpoint.
-
-If a native-v1 installation is detected, do not treat it as a fresh install or
-overwrite it. Use the release's explicit migration/recovery path if one exists;
-otherwise stop and report the blocker.
-
-Record the extracted release path, release version, checksum evidence, chosen
-deployment home and pinned image digest in the onboarding card before start.
-
-## 4. Start the locked runtime and authenticate
-
-Run the released deployment script from the extracted bundle (replace
-`<release-dir>` with that directory, not the deployment home):
+Set `JARVIS_SERVE_MODE=read-only` for initial onboarding, start the formal service, then activate the independent formal identity in the persistent Agent HOME:
 
 ```bash
 <release-dir>/scripts/deploy-production.sh <deployment-home> start
 <release-dir>/scripts/deploy-production.sh <deployment-home> shell
 ```
 
-`start` is intentionally usable before Agent login. It removes stale
-`lock/deployment-lock.json`, starts the high-authority root container and keeps
-health/status/shell available, but every business write is rejected with
-`deployment_not_ready`. Inside the persistent container home, complete the
-provider-native Codex/Claude, `gh`/`glab`, source and registry logins. Do not
-run routine `jarvis-box version/status/agent current`; the injected Company
-context is the business routing input. Use doctor/status only to diagnose a
-concrete failure.
+Record account/host/capability facts, never credential values.
 
-After `start`, record the observed service and health state before
-authentication. After each provider activation, record only
-account/host/capability probe facts—never credential values.
+## 3. Bootstrap the Jarvis Runtime Foundation
 
-## 5. Verify the real runtime
+Before enabling business ingress, run the bootstrap entry published by the approved Jarvis ref inside the formal Docker Runtime Environment. Use a task-scoped checkout or streamed release artifact only for bootstrap; it must install stable commands/cache/state/log into the persistent Agent HOME and then remove temporary material.
 
-After authorization, run:
+Use the jarvis-box release helper to enter the formal environment. The inner command and arguments come from the Jarvis repo's runtime governance; jarvis-box does not define or inspect them:
+
+```bash
+<release-dir>/scripts/deploy-production.sh <deployment-home> runtime-job \
+  <jarvis-bootstrap-command> <approved-remote> <approved-ref>
+```
+
+Then call the installed Jarvis-owned entries through the same helper:
+
+```bash
+<release-dir>/scripts/deploy-production.sh <deployment-home> runtime-job <quick-sync-command>
+<release-dir>/scripts/deploy-production.sh <deployment-home> runtime-job <runtime-foundation-doctor>
+```
+
+Verify inside the container that:
+
+1. the canonical cache resolves the approved Jarvis revision;
+2. stable commands work without the temporary checkout;
+3. state/log are under persistent Agent HOME;
+4. Jarvis skills/references exist in the actual Codex/Claude discovery roots;
+5. a real Runtime Agent invocation discovers and follows the Jarvis entry;
+6. create-jarvis itself was not installed as a runtime skill.
+
+If the Runtime Foundation is incomplete, return to Part 2. Do not teach jarvis-box to clone, mount or inject the Jarvis repo as a workaround.
+
+## 4. Bind the host scheduler
+
+Use the Scheduler Adapter delivered by the Jarvis repo. Configure it with the release helper path, deployment home and inner Runtime Job command. The adapter may install launchd, systemd, cron or a customer scheduler entry, but the inner job stays Docker-unaware.
+
+Run one trigger manually and verify both layers:
+
+- host layer: helper successfully entered the formal container, or recorded a launch failure;
+- runtime layer: the inner job wrote its own result/state/log in persistent Agent HOME.
+
+For a full sync under host scheduling, pass the Jarvis-defined equivalent of `--skip-scheduler-update` to prevent an in-container scheduler installation. Do not modify `pullall`, runtime sync, maintenance or self-improve to call Docker.
+
+## 5. Verify jarvis-box mechanics
+
+Run the release's generic verification:
 
 ```bash
 <release-dir>/scripts/deploy-production.sh <deployment-home> verify
 ```
 
-The probe must execute in the actual image and verify all of the following:
+It verifies the image/toolchain, container authority, Agent health, Task/Run and Agent HOME persistence, configured providers, optional connector and explicitly authorized Docker socket. It does not verify a Jarvis repo, parse runtime governance or create readiness state.
 
-1. Company context schema, clean tree digest, entry and workflow files;
-2. container-root/high-authority execution and the complete batteries-included
-   toolchain;
-3. Codex/Claude doctor plus a real minimal Agent smoke response;
-4. every required repository ref resolving to its exact commit and repo-local
-   entry, including `git push --dry-run` where `write_required` is true;
-5. Company → workflow → repository routing and source access;
-6. optional connector health, protocol metadata and authenticated capability;
-7. optional Docker socket access, only when explicitly enabled;
-8. container recreation preserving Agent home and Task/Run state.
+After those checks pass and the customer approves business ingress, set `JARVIS_SERVE_MODE=worker`, enable only business lanes whose applicable Jarvis workflows are present in native discovery, and restart through the release helper. Run one supervised end-to-end business task. Confirm Runtime Agent discovery, routing to the delivered repo-local skill, work/verify/writeback behavior and operator visibility. Record evidence and any exact gap in the onboarding card.
 
-If any capability is missing, report the exact gap. Do not install packages
-interactively inside a running container and then call the deployment
-reproducible.
+## 6. Handoff and recovery
 
-Only after every probe passes does the script atomically write
-`lock/deployment-lock.json` and restart jarvis-box. If verification fails, no
-new lock is written and the server remains locked.
+The onboarding card records release path/digest, deployment home, identity facts, Runtime Foundation revision/probes, scheduler entry, service probes, supervised task result and `Next`. It is construction recovery evidence, not runtime configuration.
 
-Compare stable behavior observed during installation and verification with
-Company `references/runtime-governance.md`. Write back only customer-level
-facts such as the formal managed-runtime boundary, stable public operations
-entry and verified handoff behavior. Do not copy jarvis-box's injected
-execution contract, control-plane implementation or operator runbook into the
-Company repo. Before a governance writeback, acquire the Company repo's single
-writer ownership; if another writer is live or ownership is unknown, save an
-evidence packet and hand it to that writer instead. Deliver and verify any
-governance writeback under the Company Git policy. If that writeback changes
-the Company commit after a successful verification, the first lock is not the
-final onboarding result: rematerialize the clean Company snapshot, update its
-digest/context and rerun the complete runtime verification. Only the lock that
-pins the resulting Company commit may be reported as `ready-for-shadow`.
+After onboarding:
 
-## 6. Shadow and later promotion
-
-Record the resulting lock path, exact revisions, identity and probe output in
-`work/jarvis-box-onboarding.md`. The Coordinator then updates the construction
-journal from that verified card. Keep the workflow
-at `ready-for-shadow` until the customer supervises representative real tasks.
-Mark it `shadowing` while
-evidence accumulates; promote to `active` only after routing, repo-local
-execution, verification and END closure are stable and the customer approves.
-
-Repository learning or self-improve work creates a new published ref and a new
-deployment set. It never mutates the active snapshot in place.
+- Jarvis changes flow through its remote → cache → sync → discovery roots;
+- jarvis-box upgrades flow through the release image process;
+- Runtime Foundation jobs recover from their own state/log;
+- jarvis-box Task/Run recovers from jarvis-box state/control plane;
+- host scheduler launch failures recover from host operator logs.

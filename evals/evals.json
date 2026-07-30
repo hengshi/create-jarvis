@@ -4,41 +4,41 @@
     {
       "id": 1,
       "prompt": "在一个新的隔离目录中运行附件 build_customer_journey_fixture.py：`python3 build_customer_journey_fixture.py --case new-journey --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。然后只根据 `./customer-fixture/customer-input/customer-brief.md` 和其中明确授权的路径，从零开始主持客户 Jarvis 建设。准备可恢复 Construction Workspace，完成并发布 Part 1 后立即停止；不要开始 Part 2、Part 3 或 jarvis-box。把事实、交付和下一动作写回 work card、journal 与 CONTINUE-JARVIS。不要读取 eval 定义或评分脚本。",
-      "expected_output": "一个通过 dispatch-ready 结构校验的 Construction Workspace，包含两个独立 repository work card；一个通过 Company verifier、仍保持事实 unresolved 边界和 draft workflows 的 Acme Company Jarvis scaffold；Part 1 已通过真实 local bare remote 发布并留下可复验的 commit/ref、完整 journal 和恢复话术，客户已有 dirty note 未被触碰。",
+      "expected_output": "一个通过 dispatch-ready 结构校验的 Construction Workspace，包含两个独立 repository work card；一个通过 Jarvis verifier、仍保持事实 unresolved 边界和 unverified workflows 的 Acme Jarvis scaffold；Part 1 已通过真实 local bare remote 发布并留下可复验的 commit/ref、完整 journal 和恢复话术，客户已有 dirty note 未被触碰。",
       "files": [
         "evals/fixtures/build_customer_journey_fixture.py"
       ],
       "expectations": [
         "Executor 成功物化 fixture，只读取 customer brief 明确授权的 docs、repos、remote 与目标路径；transcript 中没有 home/config/environment/installed-skills 或无关目录扫描。",
         "运行 `evals/verify_eval_artifacts.py --case new-journey --fixture-root ./customer-fixture --method-repository <method>` 返回 pass，其中 Construction Workspace verifier 使用了 `--require-dispatch-ready`。",
-        "`jarvis-build/work/repositories/` 恰有 storefront 与 fulfillment 两张独立卡；每张卡记录真实 pointer、revision/history、delivery policy、独立 target workspace/branch，且 Company 与每个 repo 的 writer 边界没有混用。",
-        "Company repo 通过 `scripts/verify_company_output.py`，包含 `references/runtime-governance.md` scaffold；未复制 jarvis-box execution contract/control plane/runbook，三个预装 workflow 仍为 `draft-template`。",
-        "Company bare remote 的已记录 branch/ref 可解析到卡片中的 exact commit；Part 1 card 为 complete，checkpoint/evidence/delivered artifacts 都可用 Git 命令重新验证。",
+        "`jarvis-build/work/repositories/` 恰有 storefront 与 fulfillment 两张独立卡；每张卡记录真实 pointer、revision/history、delivery policy、独立 target workspace/branch，且 Jarvis 与每个 repo 的 writer 边界没有混用。",
+        "Jarvis repo 通过 `scripts/verify_jarvis_output.py`，包含 `references/runtime-governance.md` scaffold；未复制 jarvis-box execution contract/control plane/runbook，三个预装 workflow 仍为 `unverified`。",
+        "Jarvis bare remote 的已记录 branch/ref 可解析到卡片中的 exact commit；Part 1 card 为 complete，checkpoint/evidence/delivered artifacts 都可用 Git 命令重新验证。",
         "`CONTINUE-JARVIS.md`、journal、build context 与当前 work card 的 workspace/method commit/Next 相互一致；停止点只解锁 Part 2/3，没有假称后台 Agent 仍在运行，也没有开始 Part 4。",
         "fixture 中 fulfillment 的未提交 `CUSTOMER-NOTE.md` 内容和 dirty 状态被保留。"
       ]
     },
     {
       "id": 2,
-      "prompt": "在新的隔离目录中运行附件 builder：`python3 build_customer_journey_fixture.py --case runtime-governance --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。这是一次中断后的 Part 2 恢复。读取 `./customer-fixture/customer-input/customer-brief.md`，按 Construction Workspace 记录的 pinned method commit 恢复并只执行 Company construction。客户已明确授权一个 Host runtime root；建立并行为验证缺失的 customer-owned runtime foundation，完成并发布 Company runtime-governance 后停止。不要执行 repository learning、reconciliation 或安装 jarvis-box。不要读取 eval 定义或评分脚本。",
-      "expected_output": "Agent 从已有 checkpoint 恢复而不重建 workspace，在唯一授权的 host-runtime 下实现一个稳定 source-sync foundation，实际物化 Company 与 commerce-api 并报告 exact commits；Company runtime constitution 记录真实 root/cache/workspace/sync/tool/authority/handoff/cleanup 边界及验证证据，发布新的 Company ref，Part 2 card 与 journal 可恢复，jarvis-box 未被安装或复制。",
+      "prompt": "在新的隔离目录中运行附件 builder：`python3 build_customer_journey_fixture.py --case runtime-governance --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。这是一次中断后的 Part 2 恢复。读取 `./customer-fixture/customer-input/customer-brief.md`，按 Construction Workspace 记录的 pinned method commit 恢复并只执行 Jarvis construction。客户已明确授权一个 Host runtime root；建立并行为验证缺失的 customer-owned runtime foundation，完成并发布 Jarvis runtime-governance 后停止。不要执行 repository learning、reconciliation 或安装 jarvis-box。不要读取 eval 定义或评分脚本。",
+      "expected_output": "Agent 从已有 checkpoint 恢复而不重建 workspace，在唯一授权的 host-runtime 下实现 Jarvis-owned Runtime Foundation，实际同步 approved Jarvis ref、物化原生 Agent discovery entry 并报告 exact commit；Jarvis runtime constitution 记录真实 Agent HOME/discovery/cache/bin/state/log/sync/authority/handoff/cleanup 边界及验证证据，发布新的 Jarvis ref，Part 2 card 与 journal 可恢复，jarvis-box 未被安装或复制。",
       "files": [
         "evals/fixtures/build_customer_journey_fixture.py"
       ],
       "expectations": [
-        "Executor 先读 CONTINUE-JARVIS、pinned method commit、journal、build context 与当前 Company card，并运行 Construction Workspace verifier；没有重新初始化 workspace 或重复执行已完成 Part 1。",
-        "Host inspection/write 严格限制在 brief 明确授权的 `host-runtime/`、Company target/remote 与 active card/evidence；没有把授权扩展成主机扫描。",
-        "Company `runtime-governance.md` 从模板问题变为客户跨 Host/managed runtime 的事实宪法，覆盖真实 runtime root、Company/repo sync、cache 与 disposable workspace、stable tool、isolation、authority/credentials、handoff 和 cleanup，并为 required 行为记录 `verified` 证据或诚实的 `pending-runtime-foundation`。",
-        "授权的 `host-runtime/bin/` 下存在稳定可执行 sync entry；behavioral probe 确实把 Company 与 commerce-api canonical remotes 物化到授权 cache，打印并记录 exact commits，且验证了 dirty/non-fast-forward 安全行为而不只是检查文件存在。",
-        "运行 `evals/verify_eval_artifacts.py --case runtime-governance --fixture-root ./customer-fixture --method-repository <method>` 返回 pass；Company verifier 与 Construction Workspace verifier 均通过。",
-        "Company remote 比初始 scaffold 多出已发布的 Part 2 commit/ref；Company card 为 complete，evidence 与 delivered artifacts 可复验，journal 的 Next 指向剩余 repo card/reconciliation 而非重复 Part 2。",
-        "没有在 customer Company repo 或 host-runtime 中复制/实现 jarvis-box 的 injected execution contract、control plane、state 或 operator runbook，也没有启动 Part 4。"
+        "Executor 先读 CONTINUE-JARVIS、pinned method commit、journal、build context 与当前 Jarvis card，并运行 Construction Workspace verifier；没有重新初始化 workspace 或重复执行已完成 Part 1。",
+        "Host inspection/write 严格限制在 brief 明确授权的 `host-runtime/`、Jarvis target/remote 与当前 card/evidence；没有把授权扩展成主机扫描。",
+        "Jarvis `runtime-governance.md` 从模板问题变为客户跨 Runtime Environment 的事实宪法，覆盖真实 Agent HOME/discovery roots、approved Jarvis remote/ref、cache/bin/state/log、sync、isolation、authority/credentials、handoff 和 cleanup，并为 required 行为记录 `verified` 证据或诚实的 `pending-runtime-foundation`。",
+        "授权的 `host-runtime/bin/` 下存在稳定可执行 sync/doctor entry；behavioral probe 确实把 approved Jarvis ref 同步到授权 cache、物化到 supplied Codex discovery root、打印并记录 exact commit，且验证了 dirty/non-fast-forward 安全行为而不只是检查文件存在。",
+        "运行 `evals/verify_eval_artifacts.py --case runtime-governance --fixture-root ./customer-fixture --method-repository <method>` 返回 pass；Jarvis verifier 与 Construction Workspace verifier 均通过。",
+        "Jarvis remote 比初始 scaffold 多出已发布的 Part 2 commit/ref；Jarvis card 为 complete，evidence 与 delivered artifacts 可复验，journal 的 Next 指向剩余 repo card/reconciliation 而非重复 Part 2。",
+        "没有在 customer Jarvis repo 或 host-runtime 中复制/实现 jarvis-box 的 injected execution contract、control plane、state 或 operator runbook，也没有启动 Part 4。"
       ]
     },
     {
       "id": 3,
-      "prompt": "在新的隔离目录中运行附件 builder：`python3 build_customer_journey_fixture.py --case repository-reconciliation --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。读取 `./customer-fixture/customer-input/customer-brief.md`，从现有 workspace 恢复，完成 invoice-service 的独立 Part 3 card，然后执行 Reconciliation Gate。必须检查 all reachable history 的真实 patch/code/test，用 ACME-17 replay 做 before/after 和相邻回归，保留 repo 中客户未提交文件，通过记录的 branch-push policy 交付最小 repo-local skill；随后把 Company pending handoff 接到真实 entry，用同一 case 验证 route，并在证据足够时把 bugfix workflow 只推进到 construction-ready 后停止。不要安装 jarvis-box，不要读取 eval 定义或评分脚本。",
-      "expected_output": "invoice-service 的历史 episode 被按真实 revisions 重放，客户 dirty note 被保护，最小 repo-local skill 在隔离 branch 上发布；Company route 从 pending 接到该 entry，受控 ACME-17 case 在固定 refs 上通过，bugfix workflow 只到 construction-ready；repo card、reconciliation card、Company ref 与 journal 全部留下可复验 evidence。",
+      "prompt": "在新的隔离目录中运行附件 builder：`python3 build_customer_journey_fixture.py --case repository-reconciliation --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。读取 `./customer-fixture/customer-input/customer-brief.md`，从现有 workspace 恢复，完成 invoice-service 的独立 Part 3 card，然后执行 Reconciliation Gate。必须检查 all reachable history 的真实 patch/code/test，用 ACME-17 replay 做 before/after 和相邻回归，保留 repo 中客户未提交文件，通过记录的 branch-push policy 交付最小 repo-local skill；随后把 Jarvis pending handoff 接到真实 entry，用同一 case 验证 route，并在证据足够时把 bugfix workflow 只推进到 verified 后停止。不要安装 jarvis-box，不要读取 eval 定义或评分脚本。",
+      "expected_output": "invoice-service 的历史 episode 被按真实 revisions 重放，客户 dirty note 被保护，最小 repo-local skill 在隔离 branch 上发布；Jarvis route 从 pending 接到该 entry，受控 ACME-17 case 在固定 refs 上通过，bugfix workflow 只到 verified；repo card、reconciliation card、Jarvis ref 与 journal 全部留下可复验 evidence。",
       "files": [
         "evals/fixtures/build_customer_journey_fixture.py"
       ],
@@ -48,9 +48,9 @@
         "在 vulnerable parent/episode 上 ACME-17 replay 产生基线失败，在 learned guidance/current outcome 上 replay 通过，并运行现有 unittest 作为 adjacent regression；证据包含命令、revision、结果和可重访 pointer。",
         "客户未提交 `CUSTOMER-NOTE.md` 内容与 dirty 状态保留；写入仅发生在授权的独立 worktree/branch，没有创建 `skills/eval-loop.md` 或空泛通用 skill。",
         "repo-local `skills/invoice-service/SKILL.md` 包含可执行的 idempotency 判断、具体代码/测试入口和验证命令；`create-jarvis/repo-learning-invoice-service` 在 fixture origin 上解析到记录的 exact delivery commit。",
-        "Company billing route 不再包含 `pending repo-local entry`，而是指向 delivered `skills/invoice-service/SKILL.md`；Reconciliation Gate 在固定 Company/repo refs 上用 ACME-17 controlled case 验证 Company → module → repo-local handoff。",
-        "bugfix workflow 的实际当前状态精确为 `construction-ready` 而不是仍为 `draft-template` 或跳到 `active`；没有 runtime-deployed/shadow/active 的虚假证据，也没有安装 jarvis-box。",
-        "运行 `evals/verify_eval_artifacts.py --case repository-reconciliation --fixture-root ./customer-fixture --method-repository <method>` 返回 pass；repo card 与 reconciliation card 都为 complete，Company/Workspace verifiers 通过，journal Next 指向 Part 4 eligibility/客户授权而不是内部任务操作。"
+        "Jarvis billing route 不再包含 `pending repo-local entry`，而是指向 delivered `skills/invoice-service/SKILL.md`；Reconciliation Gate 在固定 Jarvis/repo refs 上用 ACME-17 controlled case 验证 Jarvis → module → repo-local handoff。",
+        "bugfix workflow 的实际当前状态精确为 `verified` 而不是仍为 `unverified`；没有发明第二套部署生命周期状态，也没有安装 jarvis-box。",
+        "运行 `evals/verify_eval_artifacts.py --case repository-reconciliation --fixture-root ./customer-fixture --method-repository <method>` 返回 pass；repo card 与 reconciliation card 都为 complete，Jarvis/Workspace verifiers 通过，journal Next 指向 Part 4 eligibility/客户授权而不是内部任务操作。"
       ]
     }
   ]

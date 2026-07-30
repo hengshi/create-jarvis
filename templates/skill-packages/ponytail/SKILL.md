@@ -17,7 +17,7 @@ Ponytail 缩短实现，不缩短调查。先理解任务、证据和 owner boun
 - feature delivery：scope 和验收条件已经明确，准备进入 repo 执行。
 - repo-local 代码或文档修改：准备增加抽象、依赖、配置或新文件之前。
 
-若 company Jarvis 的质量门或 repo-local skill 更严格，遵循更严格的规则。
+若 Jarvis 的质量门或 repo-local skill 更严格，遵循更严格的规则。
 
 ## 选择阶梯
 
@@ -45,7 +45,7 @@ Ponytail 缩短实现，不缩短调查。先理解任务、证据和 owner boun
 ## 规则
 
 - 不增加任务未要求的抽象、接口、factory、plugin point、配置开关或未来脚手架。
-- 一两行明显逻辑不为“整洁”而提取 helper；只有真实复用、稳定领域命名或复杂约束才值得提取。
+- 一两行明显逻辑不为“整洁”而提取 helper；只有真实复用、稳定业务命名或复杂约束才值得提取。
 - 能保持正确行为时，删除优于增加。
 - 不为几行清楚代码或原生能力增加依赖。
 - 文件数量保持最少并匹配 repo-local 风格。

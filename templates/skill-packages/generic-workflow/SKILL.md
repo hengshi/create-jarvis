@@ -1,38 +1,36 @@
 ---
 name: {{SKILL_NAME}}
 description: >
-  {{COMPANY_NAME}} 额外 workflow 的客户定制草稿。仅用于讲解、校准和验证客户真实流程；
-  完成正式部署与 supervised shadow 前不得承接无人监督的生产任务。
+  {{JARVIS_NAME}} fallback workflow starter。只有内容已由真实客户事实替换并具有可复核行为证据时使用。
 ---
 
-# {{COMPANY_NAME}} 通用兜底工作流
+# {{JARVIS_NAME}} 通用兜底工作流
 
-## 模板状态
+## Applicability
 
-**当前状态：`draft-template`**
+**Status: `unverified`**
 
-这是客户额外 workflow 的改造起点。必须用客户真实 trigger、角色、source、repo-local skill、
-policy 和 closure evidence 替换通用 fallback 假设，并通过至少一个真实或等价受控 case。完成后
-改为 `construction-ready`；正式部署后进入 `runtime-deployed`、`ready-for-shadow`，监督执行时
-为 `shadowing`，稳定闭合且客户批准后才改为 `active`。
+必须用客户真实 trigger、角色、source、repo-local skill、policy 和 closure evidence 替换通用
+fallback 假设，并通过至少一个真实或等价 case、记录 evidence pointer 后改为 `verified`。
+`unverified` 时不得执行。
 
 此 skill 仅在 generation plan 明确选择 fallback 时存在。它不是 specialized workflow 的替代品——一旦识别任务类型，立即路由到匹配的 workflow skill。
 
 ## 第一步：重路由
 
-任何任务进入此 fallback 前，必须先通过当前已加载的 `{{COMPANY_SLUG}}-jarvis` company entry 重做 specialized workflow 路由。如果找到匹配的 workflow，退出此 fallback 并进入对应 skill。
+任何任务进入此 fallback 前，必须先通过当前已加载的 `{{JARVIS_SLUG}}-jarvis` Jarvis entry 重做 specialized workflow 路由。如果找到匹配的 workflow，退出此 fallback 并进入对应 skill。
 
 ## 强制预读
 
 进入此工作流先识别执行上下文；边界不清、冲突或诊断时才读 runtime governance quick。
-`{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md` 仍为必读。
+`{{JARVIS_SLUG}}-jarvis/references/agent-engineering-quality-gate.md` 仍为必读。
 
 涉及路由/所有权时加读：
-- `{{COMPANY_SLUG}}-jarvis/references/jarvis-first-routing.md`
+- `{{JARVIS_SLUG}}-jarvis/references/jarvis-first-routing.md`
 
 END 阶段写回时加读：
-- `{{COMPANY_SLUG}}-jarvis/references/writeback-governance.md`
-- `{{COMPANY_SLUG}}-jarvis/references/minimal-closure-card.md`
+- `{{JARVIS_SLUG}}-jarvis/references/writeback-governance.md`
+- `{{JARVIS_SLUG}}-jarvis/references/minimal-closure-card.md`
 
 ## START → WORK → VERIFY → END
 
@@ -69,7 +67,7 @@ END 阶段写回时加读：
    - 失败是否因缺失证据、源访问、运行时状态或一次性任务问题？
    - 此变更是否有助于未来任务？
    - 若否 → 记录 `no_skill_gap`，不增长 skill。
-3. 如需写回，按 `{{COMPANY_SLUG}}-jarvis/references/writeback-governance.md` 选择唯一 primary home。
+3. 如需写回，按 `{{JARVIS_SLUG}}-jarvis/references/writeback-governance.md` 选择唯一 primary home。
 4. 闭合卡至少回答：当前闭环、首跳执行面、是否升级到 second hop、用什么证据判断、是否需要 durable knowledge writeback。
 
 ## 硬规则
@@ -77,6 +75,6 @@ END 阶段写回时加读：
 - 第一步必须是重路由；能路由就退出 fallback。
 - 所有 gate 通过后才能进入下一阶段。
 - 无验证不持久写回。
-- 不把 repo-local 执行真相提升到公司 Jarvis。
+- 不把 repo-local 执行真相提升到Jarvis。
 - 不把源代码、密钥、PII 写入 Jarvis。
 - 不把一次性任务细节写成 durable skill；单个高影响 case 只有在证据完整、可复验时才可能成立。

@@ -1,42 +1,36 @@
 ---
 name: {{SKILL_NAME}}
 description: >
-  {{COMPANY_NAME}} Issue post-check workflow 的客户定制草稿。仅用于向客户讲解、校准和验证
-  真实 issue 流程；完成正式部署与 supervised shadow 前不得无人监督地审查生产 issue。
+  {{JARVIS_NAME}} Issue post-check workflow starter。只有内容已由真实客户事实替换并具有可复核行为证据时使用。
 ---
 
-# {{COMPANY_NAME}} Issue 后检
+# {{JARVIS_NAME}} Issue 后检
 
-## 模板状态
+## Applicability
 
-**当前状态：`draft-template`**
+**Status: `unverified`**
 
-这是供客户校准的教学起点，不是已经确认的客户流程。Agent 应先向客户确认是否需要 post-check、issue
-从哪里进入、谁有 disposition 权限、怎样交接 bugfix/feature、哪些动作允许回写，再保留、
-改写或删除下方通用 gate。
+先用真实证据确认是否需要 post-check、issue 从哪里进入、谁有 disposition 权限、怎样交接
+bugfix/feature、哪些动作允许回写，再保留、改写或删除下方通用 gate。至少一个真实或等价 case
+验证 intake、判断、route 和 handoff，记录 evidence pointer 后改为 `verified`。`unverified` 时不得执行。
 
-至少一个客户真实或等价受控 issue case 验证 intake、判断、route 和 handoff 后，
-将本节改为 `construction-ready`。正式 runtime 固定 revisions 并通过 probes 后依次进入
-`runtime-deployed`、`ready-for-shadow`；代表性真实任务在客户监督下执行时为 `shadowing`。
-只有 shadow 稳定闭合并获客户批准后才改为 `active`。`draft-template` 期间只用于 onboarding。
-
-面向**已建 issue** 的强制审查。所有 source/tool 从 company route 和 live issue 中按需解析。
+面向**已建 issue** 的强制审查。所有 source/tool 从 Jarvis route 和 live issue 中按需解析。
 
 本 skill 处理已经形成 issue/ticket 的 artifact，不负责替代 issue 创建工具，也不替代 bugfix / feature-delivery 闭环。没有可信上游 intake 时直接执行完整后检。
 
 ## 强制性前置阅读
 
-- 先识别执行上下文；仅在边界不清、冲突或诊断时读取 `{{COMPANY_SLUG}}-jarvis/references/runtime-governance-quick.md`，并按需升级完整版
-- `{{COMPANY_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`
-- 进入 disposition 前：`{{COMPANY_SLUG}}-jarvis/references/issue-claim-normalization.md`
+- 先识别执行上下文；仅在边界不清、冲突或诊断时读取 `{{JARVIS_SLUG}}-jarvis/references/runtime-governance-quick.md`，并按需升级完整版
+- `{{JARVIS_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`
+- 进入 disposition 前：`{{JARVIS_SLUG}}-jarvis/references/issue-claim-normalization.md`
 
 按需加读：
 - `references/environment-version-evidence-gate.md`：仅当版本、环境、部署身份会改变 duplicate、fix coverage 或路由时使用
 - `references/peer-product-contract-check.md`：仅当判断确实依赖行业/同类产品契约且授权 source 可访问时使用；外部产品不是权威
-- `{{COMPANY_SLUG}}-jarvis/references/jarvis-first-routing.md`
-- `{{COMPANY_SLUG}}-jarvis/references/verify-evidence-matrix.md`
+- `{{JARVIS_SLUG}}-jarvis/references/jarvis-first-routing.md`
+- `{{JARVIS_SLUG}}-jarvis/references/verify-evidence-matrix.md`
 
-本地 reference 从 `references/` 解析，公司级从 `{{COMPANY_SLUG}}-jarvis/references/` 解析。
+本地 reference 从 `references/` 解析，Jarvis 级从 `{{JARVIS_SLUG}}-jarvis/references/` 解析。
 
 ## Trigger gate
 
@@ -55,7 +49,7 @@ description: >
 
 1. issue 描述携带客户 source route 已确认的可信 intake 来源标记或等价签名，并且上游输出契约、结论和证据仍完整
 2. 当前 live issue / 触发事件没有新增证据、冲突、stale 或 risk 信号
-3. 当前公司策略允许跳过
+3. 当前Jarvis策略允许跳过
 
 不得用固定字段数或证据条数判可信。仅有关键词匹配、仅有 label、仅有 AI 语气摘要不构成可信 intake。module 可以合法 unknown，不作为 intake 可信度的必要条件。
 
@@ -77,19 +71,19 @@ description: >
 ## START
 
 1. 完成 runtime preflight。
-2. 用 company Jarvis 中已确认的 issue source route 读取 live issue：当前正文、触发事件、评论、附件 pointer、可用 metadata。
+2. 用 Jarvis 中已确认的 issue source route 读取 live issue：当前正文、触发事件、评论、附件 pointer、可用 metadata。
 3. 登记事实、推断、未知。不得只信 webhook 摘要。
 
 ## WORK
 
 4. 归一化 claim：用 `issue-claim-normalization.md` 产出 `reporter_labeled_type`、`normalized_claim_type`、product lens、technical lens。
-5. 按 company Jarvis routing 和 evidence 映射 module；读对应 jarvis 模块的 known-issues 和 decisions。涉及多模块时读 cross-cutting。
+5. 按 Jarvis routing 和 evidence 映射 module；读对应 jarvis 模块的 known-issues 和 decisions。涉及多模块时读 cross-cutting。
 6. 用已确认 source route 搜索历史：issue、decision、rejected record、相关变更。从 claim/source 字段自适应扩展搜索范围，至证据足以决策或授权耗尽。记录搜索范围。
 7. 只在版本、环境、关联开发工作确实影响 disposition 时执行对应 evidence gate：
    - 环境/版本 gate：区分 reporter claim、observed runtime identity、historical fix identity；只比较当前 source 实际存在的 identity 维度，无法验证则 disputed/blocked。
    - 同类产品契约检查：仅当判断依赖行业/同类产品契约且授权 source 可访问时；外部产品只提供上下文，不能替代当前产品契约。
 8. 如果 claim 含用户目标和具体实现方案，分离两者。Reporter 提出的实现方案是假设不是事实；先验证现有产品契约是否已覆盖同一用户目标。
-9. `execution_project` / `base_branch` 只能从 company route、repo-local truth、live VCS/source relation 得出。未知就保持 unresolved，不能按症状类别或 issue 容器猜。source branch / target branch 选择服从该项目已确认工作流，不内置默认。
+9. `execution_project` / `base_branch` 只能从 Jarvis route、repo-local truth、live VCS/source relation 得出。未知就保持 unresolved，不能按症状类别或 issue 容器猜。source branch / target branch 选择服从该项目已确认工作流，不内置默认。
 
 ## VERIFY
 

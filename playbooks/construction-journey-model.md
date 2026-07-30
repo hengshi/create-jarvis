@@ -1,119 +1,77 @@
 # Construction journey model
 
-This is the stable logical model for constructing a customer Jarvis. Change it only when review finds a logical error, not to match a temporary implementation detail.
+`GOAL.md` is the sole ownership model. This playbook describes how the Construction Coordinator advances and resumes one customer journey.
 
-## Owners
+## Start and preparation
 
-```text
-create-jarvis
-  owns method, templates, gates and recovery protocol
+The first request authorizes only the public create-jarvis clone. Explain why Jarvis needs documentation/code/work-system pointers: they recover intent, routing, evidence and operating rules. Let the customer start with one pilot and add sources later. Probe only supplied pointers and request additional filesystem/runtime access explicitly.
 
-jarvis-build/ Construction Workspace
-  owns this journey's context, work cards, checkpoints and evidence
+Create `jarvis-build/` and pin the method commit. Its Markdown cards and journal are recovery facts, not runtime state or a parser contract.
 
-<company>-jarvis
-  owns customer knowledge, cross-runtime constitution, routes and workflows
-
-customer code repositories
-  own their repo-local execution knowledge
-
-jarvis-box
-  owns the formal runtime implementation, control plane, state and runbook
-```
-
-These boundaries are complementary. In particular, Company `runtime-governance.md` is the customer's constitution across Host Agents and managed runtimes. It does not compete with or duplicate jarvis-box's injected execution contract, control plane or operator runbook.
-
-## Journey
+## Four parts
 
 ```text
-customer request
-  → select new or resume
-  → Construction Workspace
-  → Part 1: Company repository initialization
-  ├→ Part 2: Company construction
-  └→ Part 3: one independent learning task per code repository
-  → Reconciliation Gate
-  → Part 4: jarvis-box install, start and onboarding
-  → supervised shadow
-  → active
+Part 1  Jarvis repo initialization
+  ├→ Part 2  knowledge + Runtime Foundation
+  └→ Part 3  one independent learning task per code repo
+      → reconciliation of one usable route
+      → Part 4 formal Docker bootstrap, jarvis-box and onboarding
 ```
 
-Part 1 establishes the target and minimum versioned skeleton. Parts 2 and 3 may then proceed concurrently because their write targets are disjoint. Part 4 requires a verified reconciliation and at least one route-scoped workflow at `construction-ready`.
+Part 1 establishes the Git target and unresolved scaffold. Parts 2 and 3 may proceed concurrently because they have different write targets. Reconciliation verifies remote refs and behavior. Part 4 begins when one end-to-end route and the Jarvis Runtime Foundation implementation are verifiable; it does not require a lifecycle label.
 
 ## Work ownership
 
-| Work | Writer | Primary target | Read-only evidence |
-|---|---|---|---|
-| Coordination | Coordinator | Construction Workspace | all authorized pointers |
-| Part 1 | Company repo writer | Company repo and approved remote | templates, build context |
-| Part 2 | Company integrator | Company repo/remote and customer-approved Host runtime foundation targets | customer docs, repos, work systems, unapproved Host locations |
-| Part 3 | one writer per repo | that customer repo and approved remote | Company routes, episode sources |
-| Reconciliation | Coordinator or Company integrator | Company repo and reconciliation card | delivered Company/repo refs |
-| Part 4 | Coordinator | deployment target and onboarding card; Company governance only with writer ownership | immutable delivered refs, public jarvis-box release |
+- one writer for Jarvis initialization;
+- one Jarvis integrator in Part 2; scanners submit evidence packets;
+- one writer per code repo in Part 3;
+- one Part 4 operator/coordinator;
+- no duplicate writer when the previous writer's liveness is unknown.
 
-A Company scanner may return an evidence packet but cannot edit the Company target. Repositories can be learned in parallel, but a single repo cannot have concurrent writers. Unknown writer ownership is a blocker, not permission to launch a duplicate.
+Every card records objective, authorization, write target, writer, last verified checkpoint, delivery, blocker and `Next`. Before pause, replacement or completion, update the card and journal.
 
-## Runtime governance lifecycle
+## Part 1 result
 
-The Company template must contain runtime-governance scaffolding in Part 1. Part 2 turns it into an executable, customer-specific constitution:
+The Jarvis repo is created from `templates/jarvis/`, verified and published. `runtime-governance.md` exists as unresolved constitutional structure. Starter workflows are `unverified`; file existence proves no customer behavior.
 
-```text
-template scaffold
-  → discover actual customer runtime and constraints
-  → decide and publish customer-specific rules
-  → install any required Host runtime foundation
-  → verify the behavior and record evidence
-```
+## Part 2 result
 
-The constitution covers the customer's equivalent of canonical runtime root, repository cache, disposable task workspace, environment and state storage, task-start sync, stable tools, checkout isolation, handoff and cleanup. Names and paths are discovered; HENGSHI-specific paths must not be copied into another customer.
+Evidence-backed modules, sources, repo fleet, cross-cutting relations, workflows and references are published. Runtime governance names each Runtime Environment's Agent HOME/discovery roots and the Jarvis repo supplies verified or precisely pending Runtime Foundation entries: bootstrap, sync, doctor, state/log and Scheduler Adapter.
 
-Every governed behavior is one of:
+Part 2 never solves a missing foundation by making jarvis-box clone/mount/inject Jarvis.
 
-- `unresolved`: template question not yet answered;
-- `documented`: customer rule is evidence-backed but needs no installed mechanism;
-- `implemented`: required mechanism exists but has not completed verification;
-- `verified`: behavior was observed and evidence is linked;
-- `pending-runtime-foundation`: the rule depends on a missing customer runtime mechanism.
+## Part 3 result
 
-This maturity is content evidence, not a machine phase engine.
+Each code repo independently mines complete historical episodes. Missing original problems are reconstructed by a context-isolated Agent with provenance/uncertainty; Replay Agent sees only the visible START and cutoff evidence. Only behavior-improving repo-local deltas are published.
 
-## Dispatch
+## Reconciliation result
 
-The Coordinator dispatches work itself:
-
-- use native long-running child Agents when available;
-- otherwise execute work cards sequentially while preserving read/write boundaries;
-- record provider/session handles only as optional reattachment hints;
-- update the active work card before yielding.
-
-The customer does not start multiple terminals. A provider-specific launcher is a recovery fallback, not the product surface.
-
-## Reconciliation Gate
-
-The gate verifies actual delivery facts rather than trusting progress prose:
-
-1. Company repo remote, commit and publication state exist;
-2. required repo-local entries resolve at delivered refs;
-3. Company routes preserve `what/why/where first`, while repo-local assets preserve `how`;
-4. Company → module/source → repo-local routing probes pass for the selected scope;
-5. unresolved repositories and history remain explicit;
-6. at least one workflow has customer-specific START, WORK, VERIFY and END behavior and passes a controlled or real case.
-
-Passing a narrow route scope does not claim the entire company or repository fleet is complete.
-
-## Formal runtime boundary
-
-Part 4 consumes canonical remotes, immutable commits and the jarvis-box public release interface. jarvis-box supplies its own execution contract, control plane, runtime state and operator procedures. create-jarvis supplies the construction and onboarding method; Company Jarvis supplies customer policy and knowledge.
-
-Installation may reveal stable facts that complete or correct Company runtime governance. Such facts can be written back with evidence. jarvis-box internals are never copied into Company Jarvis.
-
-## Evidence maturity
-
-Workflow maturity remains:
+One selected route proves:
 
 ```text
-draft-template → construction-ready → runtime-deployed
-               → ready-for-shadow → shadowing → active
+Jarvis entry → module/source first proof → real repo-local entry → verified workflow behavior
 ```
 
-These labels describe evidence attached to versioned content. They do not require a new scheduler, daemon, heartbeat or workflow-state service.
+Pending pointers are replaced only with delivered refs. Incomplete routes remain explicit and do not block unrelated usable routes.
+
+## Part 4 result
+
+- pinned public jarvis-box release/image;
+- persistent formal Agent HOME and independent identity;
+- Jarvis Runtime Foundation bootstrapped inside the Docker Runtime Environment;
+- actual Runtime Agent discovery probe passes;
+- host Scheduler Adapter invokes Docker-unaware inner jobs through the release helper;
+- jarvis-box mechanics/providers/persistence pass generic probes;
+- first supervised task is completed or has an exact blocker/Next.
+
+These facts live in their owning state/log and the construction work card. No context/lock/readiness manifest is created.
+
+## Recovery routing
+
+- unfinished construction → current Construction Workspace card;
+- sync/maintenance/self-improve failure → Runtime Foundation state/log;
+- host cannot enter container → host scheduler/operator log;
+- Task/Run failure → jarvis-box control plane/state;
+- connector/provider failure → owning operator surface.
+
+Always reverify external facts before resuming. A session handle is never proof that work or ownership still exists.

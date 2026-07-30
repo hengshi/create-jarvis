@@ -15,7 +15,7 @@ description: 写或修改 README、API 文档、workflow skill、source route、
 
 ## START
 
-先从当前已加载的 company entry 定位 active company Jarvis root，再读其中的 `references/runtime-governance-quick.md` 和 `references/agent-engineering-quality-gate.md`，然后确认：
+先从当前已加载的 Jarvis entry 定位当前 Jarvis root，再读其中的 `references/runtime-governance-quick.md` 和 `references/agent-engineering-quality-gate.md`，然后确认：
 
 - canonical target source 和写权限
 - 没看过当前会话的长期读者
@@ -37,8 +37,8 @@ description: 写或修改 README、API 文档、workflow skill、source route、
 
 按需读取：
 
-- active company Jarvis 的 `references/redaction-rules.md`
-- active company Jarvis 的 `references/writeback-governance.md`
+- 当前 Jarvis 的 `references/redaction-rules.md`
+- 当前 Jarvis 的 `references/writeback-governance.md`
 
 ## VERIFY
 
@@ -54,5 +54,5 @@ description: 写或修改 README、API 文档、workflow skill、source route、
 
 - 按 source route 和权限交付，实际写回后才声称完成。
 - 记录 target、evidence 和未解决项。
-- 判断是否需要 repo-local 或 active company Jarvis writeback。
+- 判断是否需要 repo-local 或当前 Jarvis writeback。
 - 普通文档编辑不制造 `no_skill_gap`。

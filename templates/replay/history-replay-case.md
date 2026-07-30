@@ -122,7 +122,7 @@ episode 是否曾直接影响当前 skill 的内容：
 - **Actual verification evidence**: `<checks, review, CI, manual proof>`
 - **Historical verification status**: `verified` / `partial` / `unknown`
 - **Final diff / commit pointer**: `<commit hash, MR pointer, or controlled artifact pointer>`
-- **Expected durable writeback**: `none` / `repo-local` / `company-jarvis` / `source-skill` / `workflow-skill` / `upstream`
+- **Expected durable writeback**: `none` / `repo-local` / `jarvis` / `source-skill` / `workflow-skill` / `upstream`
 - **Expected dimensions for oracle comparison**:
   - Route: `<expectation>`
   - Evidence boundary: `<expectation>`
@@ -154,6 +154,6 @@ episode 是否曾直接影响当前 skill 的内容：
 ## Redaction / Leak Review
 
 - <去除了什么或做了什么泛化>
-- <私有证据是否仅在受控 company instance 内保留>
+- <私有证据是否仅在受控 jarvis instance 内保留>
 - <commit metadata 是否泄露了 cause/fix/implementation；若是，为什么本 case 是 ineligible-leaky 或 needs-better-start>
 - <每条 visible fact 的 provenance 检查结果——是否能独立于 hidden outcome 成立>

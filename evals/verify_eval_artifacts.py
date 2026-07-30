@@ -66,13 +66,13 @@ def common_checks(checks: Checks, root: Path, method: Path, *, dispatch: bool = 
         workspace_args.append("--require-dispatch-ready")
     checks.run_json("Construction Workspace verifier passes", workspace_args)
     checks.run_json(
-        "Company Jarvis verifier passes",
+        "Jarvis verifier passes",
         [
             sys.executable,
-            str(method / "scripts" / "verify_company_output.py"),
+            str(method / "scripts" / "verify_jarvis_output.py"),
             "--jarvis-home",
             str(root / "workspaces" / "acme-labs-jarvis"),
-            "--expected-company-slug",
+            "--expected-jarvis-slug",
             "acme-labs",
             "--skip-precheck",
         ],
@@ -97,7 +97,7 @@ def check_new(checks: Checks, root: Path, method: Path) -> None:
         [card.stem for card in cards] == ["fulfillment", "storefront"],
         repr([card.stem for card in cards]),
     )
-    init_card = root / "jarvis-build" / "work" / "company-repo-initialization.md"
+    init_card = root / "jarvis-build" / "work" / "jarvis-repo-initialization.md"
     checks.add(
         "Part 1 has a verified completed card",
         field(init_card, "Status") == "complete"
@@ -107,7 +107,7 @@ def check_new(checks: Checks, root: Path, method: Path) -> None:
     )
     remote = root / "remotes" / "acme-labs-jarvis.git"
     checks.add(
-        "Company remote contains a delivered commit",
+        "Jarvis remote contains a delivered commit",
         remote_commit_count(remote) >= 1,
         f"remote commit count={remote_commit_count(remote)}",
     )
@@ -121,7 +121,7 @@ def check_new(checks: Checks, root: Path, method: Path) -> None:
 
 def check_runtime(checks: Checks, root: Path, method: Path, manifest: dict) -> None:
     common_checks(checks, root, method)
-    card = root / "jarvis-build" / "work" / "company-construction.md"
+    card = root / "jarvis-build" / "work" / "jarvis-construction.md"
     checks.add(
         "Part 2 card is completed with behavioral evidence",
         field(card, "Status") == "complete"
@@ -129,11 +129,11 @@ def check_runtime(checks: Checks, root: Path, method: Path, manifest: dict) -> N
         and field(card, "Delivered artifacts") not in {None, "none"},
         f"status={field(card, 'Status')!r}; evidence={field(card, 'Evidence')!r}",
     )
-    remote = Path(manifest["company_remote"])
+    remote = Path(manifest["jarvis_remote"])
     checks.add(
-        "Company runtime-governance result is published after the scaffold commit",
+        "Jarvis runtime-governance result is published after the scaffold commit",
         remote_commit_count(remote) >= 2,
-        f"remote commit count={remote_commit_count(remote)}; initial={manifest['company_initial_commit']}",
+        f"remote commit count={remote_commit_count(remote)}; initial={manifest['jarvis_initial_commit']}",
     )
     runtime_root = Path(manifest["host_runtime"])
     entries = [path for path in (runtime_root / "bin").iterdir() if path.is_file()]
@@ -145,9 +145,15 @@ def check_runtime(checks: Checks, root: Path, method: Path, manifest: dict) -> N
     )
     git_caches = [path for path in (runtime_root / "cache").rglob(".git") if path.is_dir()]
     checks.add(
-        "Behavioral sync materialized both canonical Git sources",
-        len(git_caches) >= 2,
+        "Behavioral sync materialized the approved Jarvis source",
+        len(git_caches) >= 1,
         repr([str(path.parent) for path in git_caches]),
+    )
+    discovery_entry = runtime_root / "agent-home" / ".codex" / "skills" / "acme-labs-jarvis" / "SKILL.md"
+    checks.add(
+        "Runtime Foundation materialized the Jarvis entry into the supplied native discovery root",
+        discovery_entry.is_file(),
+        str(discovery_entry),
     )
     governance = root / "workspaces" / "acme-labs-jarvis" / "references" / "runtime-governance.md"
     governance_text = governance.read_text(encoding="utf-8") if governance.is_file() else ""
@@ -211,26 +217,25 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         branch_probe.returncode == 0,
         (branch_probe.stdout or branch_probe.stderr).strip(),
     )
-    company = Path(manifest["company"])
-    module = company / "modules" / "billing" / "overview.md"
+    jarvis = Path(manifest["jarvis"])
+    module = jarvis / "modules" / "billing" / "overview.md"
     module_text = module.read_text(encoding="utf-8") if module.is_file() else ""
     checks.add(
-        "Company pending handoff resolves to the delivered repo-local entry",
+        "Jarvis pending handoff resolves to the delivered repo-local entry",
         "pending repo-local entry" not in module_text
         and "skills/invoice-service/SKILL.md" in module_text,
         str(module),
     )
-    workflow = company / "skills" / "acme-labs-workflow-bugfix-loop" / "SKILL.md"
+    workflow = jarvis / "skills" / "acme-labs-workflow-bugfix-loop" / "SKILL.md"
     workflow_text = workflow.read_text(encoding="utf-8") if workflow.is_file() else ""
     checks.add(
-        "Workflow advances only to construction-ready",
+        "Workflow advances only to verified",
         bool(
             re.search(
-                r"(?m)^\*\*当前状态：`construction-ready`\*\*$",
+                r"(?m)^\*\*当前状态：`verified`\*\*$",
                 workflow_text,
             )
-        )
-        and not re.search(r"(?m)^\*\*当前状态：`active`\*\*$", workflow_text),
+        ),
         str(workflow),
     )
     fixed = manifest["history"]["fixed"]

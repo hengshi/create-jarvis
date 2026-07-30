@@ -6,7 +6,7 @@
 
 - 当前任务只处理 work card 指定的一个 repo；其他 repo 有自己的 card 和 writer。
 - 只按当前 repo 的 write/delivery policy 写入该 repo、当前 card 和任务指定的 replay/evidence workspace。
-- company Jarvis target 始终只读，不能把 repo-local knowledge 写进去。
+- Jarvis target 始终只读，不能把 repo-local knowledge 写进去。
 - 不批量铺设固定 skill 骨架，不创建 `eval-loop` skill，不以 commit message 分类作为结果。
 - 保留客户已有未提交修改；使用独立 worktree/branch，遵守 repo 自己的 commit、push、PR/MR 和 review policy。
 - 每个保留的 delta 都要形成可追溯 Git ref；无法发布的 read-only candidate 只能标为候选，不能声称是正式可消费的 repo-local skill。
@@ -22,7 +22,7 @@
 4. `CONSTRUCTION-JOURNAL.md` 的指针；
 5. repo 当前文件、Git/worktree 和 remote 状态。
 
-先核验 Part 1 Company scaffold 的远端 ref，再核验 card 中的 repo revision、history range、target workspace/branch、delivery policy 和 writer ownership。恢复时重新验证最后 checkpoint 的文件与 Git 事实；旧 writer 活着就重连，已结束才替换，ownership 不明时停止重复写入。
+先核验 Part 1 Jarvis scaffold 的远端 ref，再核验 card 中的 repo revision、history range、target workspace/branch、delivery policy 和 writer ownership。恢复时重新验证最后 checkpoint 的文件与 Git 事实；旧 writer 活着就重连，已结束才替换，ownership 不明时停止重复写入。
 
 card 记录当前 episode 的 case 目录、START pointer、历史 outcome pointer、replay 状态、delivery ref、blocker、最后已验证 checkpoint 和 `Next`。它是接手合同，不是机器协议；不要创建 parser、JSON state 或 heartbeat。每闭合一个 episode 就更新 card，并把 verified pointer 报给 Coordinator 更新 journal；只有声明的历史范围确实扫描到边界，当前 repo 才能写 `completed`。
 

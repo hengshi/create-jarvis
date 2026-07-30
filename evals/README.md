@@ -9,7 +9,7 @@
 Each executor starts in a fresh directory and runs the attached
 `fixtures/build_customer_journey_fixture.py`. The builder creates disposable customer inputs with real
 Git repositories, commits, bare remotes, dirty-worktree boundaries and, for resume cases, a valid
-Construction Workspace plus Company scaffold. It refuses to overwrite an existing fixture root.
+Construction Workspace plus Jarvis scaffold. It refuses to overwrite an existing fixture root.
 
 The fixture is visible input, not a checked-in expected output. Case 3's executor must discover the
 episode by reading real patch/code/test history; commit messages are deliberately non-authoritative.
@@ -28,7 +28,7 @@ python3 evals/verify_eval_artifacts.py \
 ```
 
 The scorer composes `scripts/verify_construction_workspace.py`,
-`scripts/verify_company_output.py` and case-specific filesystem/Git checks. Its pass is necessary but
+`scripts/verify_jarvis_output.py` and case-specific filesystem/Git checks. Its pass is necessary but
 not sufficient: a grader still verifies scope discipline, real replay behavior, evidence quality,
 single-writer ownership and lifecycle claims from the transcript.
 

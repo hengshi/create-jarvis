@@ -2,14 +2,14 @@
 
 ## Journey
 
-- Company legal/display name: `unresolved`
-- Company slug: `unresolved`
+- Jarvis legal/display name: `unresolved`
+- Jarvis slug: `unresolved`
 - Construction Workspace: `{{CONSTRUCTION_WORKSPACE}}`
 - Method repository: `{{METHOD_REPOSITORY}}`
 - Method commit: `{{METHOD_COMMIT}}`
 - Created: `{{CREATED_AT}}`
 
-## Company Jarvis publication
+## Jarvis publication
 
 - Provider/host: `unresolved`
 - Owner/namespace: `unresolved`

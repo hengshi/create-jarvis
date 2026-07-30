@@ -2,7 +2,7 @@
 
 - Objective: learn and deliver minimal reusable repo-local guidance from real episodes
 - Completion gate: selected history scope is dispositioned and accepted deltas are consumable at a verified Git ref
-- Authorized inputs: `BUILD-CONTEXT.md`, this repository, authorized issue/PR/CI/test sources, read-only Company routes
+- Authorized inputs: `BUILD-CONTEXT.md`, this repository, authorized issue/PR/CI/test sources, read-only Jarvis routes
 - Allowed writes: this repository under its delivery policy, this card, task-local replay evidence
 - Target repository: `{{REPOSITORY_POINTER}}`
 - Target workspace: `{{TARGET_WORKSPACE}}`

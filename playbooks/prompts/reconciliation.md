@@ -1,29 +1,29 @@
 # Reconciliation Gate and workflow construction
 
-You own the route-scoped handoff between delivered Company knowledge, repo-local execution knowledge and formal runtime onboarding. Follow `work/reconciliation.md` and keep one Company repo writer.
+You own the route-scoped handoff between delivered Jarvis knowledge, repo-local execution knowledge and formal runtime onboarding. Follow `work/reconciliation.md` and keep one Jarvis repo writer.
 
 ## Verify inputs
 
-Read the Company construction card and every repository card required by the selected workflow. Re-resolve canonical remotes, exact commits, review/merge state and repo-local entry paths. A card saying `completed` is not enough when its remote ref or entry cannot be fetched.
+Read the Jarvis construction card and every repository card required by the selected workflow. Re-resolve canonical remotes, exact commits, review/merge state and repo-local entry paths. A card saying `completed` is not enough when its remote ref or entry cannot be fetched.
 
 Select the smallest customer-approved route scope that can produce a useful workflow. Record all excluded repos, modules, sources and history as explicit coverage boundaries.
 
 ## Reconcile ownership
 
-- Company modules retain capability semantics and `what`.
+- Jarvis modules retain capability semantics and `what`.
 - Cross-cutting retains `why inspect next` and first proof.
-- Company source routes retain authority/access contracts.
+- Jarvis source routes retain authority/access contracts.
 - Repo-local entries retain repository-specific `where/how/test`.
 - Workflow retains the customer-specific cross-source/repo/role closure.
 
-Replace `pending Repository learning` only when the delivered entry exists at the pinned repo commit. Do not copy repo implementation details into Company Jarvis.
+Replace `pending Repository learning` only when the delivered entry exists at the pinned repo commit. Do not copy repo implementation details into Jarvis.
 
 ## Re-run routing
 
 Using real customer artifacts, verify:
 
 ```text
-Company entry
+Jarvis entry
   → module/source
   → first proof
   → required repo-local entry
@@ -38,15 +38,15 @@ Customize one starter workflow with the customer's actual:
 
 - START artifact and intake rules;
 - roles, identities and authorization checkpoints;
-- source and Company routing;
+- source and Jarvis routing;
 - repo-local execution handoffs;
 - branch, review, test, CI, release and acceptance policy;
 - VERIFY evidence and END/writeback closure.
 
-Run at least one controlled or real case through `START → WORK → VERIFY → END` at the pinned revisions. The workflow becomes `construction-ready` only when the required Company/repo refs are delivered and that case passes.
+Run at least one controlled or real case through `START → WORK → VERIFY → END` at the pinned revisions. The workflow becomes `verified` only when the required Jarvis/repo refs are delivered and that case passes.
 
 ## Close the gate
 
 Update `work/reconciliation.md` with pinned refs, route scope, probe/case evidence, unresolved coverage, delivered workflow commit/PR/MR, blocker and `Next`. A delegated worker reports the verified card to the Coordinator; only the Coordinator updates `CONSTRUCTION-JOURNAL.md`.
 
-Passing the gate authorizes Part 4 for the named workflow and immutable revision set. It does not make the workflow `active` and does not claim the rest of the customer fleet is complete.
+Passing the gate authorizes Part 4 for the named workflow and exact delivered refs. It does not claim that unrelated sources/repos are complete or that a future supervised business task has already succeeded.

@@ -10,6 +10,8 @@ version: "2.0.0"
 
 **Status: `unverified`**
 
+当 run 目录存在 `workflow-input.json` 时，必须读取 `{{JARVIS_SLUG}}-jarvis/references/workflow-runtime-contract.md`，从 input 的不透明 `inputs` 消费上一步 handoff，并在退出前写出严格 `workflow-result.json`。所有外部副作用与后续 workflow 都使用本 Run grant 下的显式 actions。
+
 本文件中的通用假设不构成客户流程。用真实需求入口、决策角色、repo-local skills、
 branch/review/test/release policy 与交付凭证替换后，至少用一个真实或等价 case 验证完整闭环，
 记录 evidence pointer，再改为 `verified`。`unverified` 时不得执行。

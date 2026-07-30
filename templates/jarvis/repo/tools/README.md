@@ -15,6 +15,16 @@ The stable inner commands are Docker-unaware. The Scheduler Adapter owns native-
 
 For each entry document source owner, install/update/rollback behavior, permissions, secret boundary and behavioral verification. Use `pending-runtime-foundation` when required implementation is missing; prose cannot be `verified`.
 
+Before this Jarvis claims its Foundation is implemented, add an executable `tools/verify-runtime-foundation`. It must support the read-only invocation:
+
+```text
+tools/verify-runtime-foundation --static --json
+```
+
+The result uses `schema_version: 1`, `status: pass|fail`, and names these capabilities with a Jarvis-relative source `entry`, `verified: true|false`, and non-empty `evidence`: `bootstrap`, `quick_sync`, `full_sync`, `discovery_sync`, `maintenance`, `self_improve`, `doctor`, `recovery`, `scheduler_adapter`. It also verifies the boolean boundaries `runtime_jobs_docker_unaware`, `box_workspace_owned_separately`, and `box_task_state_untouched`.
+
+This is a source-level gate, not runtime state. Formal runtime onboarding must still run the installed doctor, actual Agent discovery and host-to-container scheduler probes in the target environment.
+
 ## Other Jarvis tools
 
 | identity | owner | source | purpose | stable entry | permissions/secret boundary | verification | State |

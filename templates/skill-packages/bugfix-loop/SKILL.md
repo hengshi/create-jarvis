@@ -19,6 +19,7 @@ description: >
 - `{{JARVIS_SLUG}}-jarvis/references/` 解析到共享Jarvis references 目录。本 skill 本地文件从当前 skill package 的 `references/` 目录解析。
 - 先识别 construction、普通 checkout 或 managed production；边界不清、冲突或诊断时才读 `{{JARVIS_SLUG}}-jarvis/references/runtime-governance-quick.md`。
 - Runtime preflight 后必读 `{{JARVIS_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`。
+- 当 run 目录存在 `workflow-input.json` 时读取 `{{JARVIS_SLUG}}-jarvis/references/workflow-runtime-contract.md`，从 input 的不透明 `inputs` 消费已交接事实；不要要求 `jarvis-box` 解释上一步 outcome。
 - 进入 patch 前必须通过 assumption gate、scope gate 和 surgical-change gate；声称 fixed / verified / done 前必须通过 verification gate 和 output gate。
 
 ## 触发条件
@@ -117,6 +118,9 @@ VCS 变更、review、reviewer 分配、CI、label、comment 等操作仅在客�
 
 ### 知识写回
 只有稳定、可复用、可验证的知识缺口才写回 repo-local 或 Jarvis。普通任务不制造 no_skill_gap。
+
+### Runtime result
+存在 `workflow-input.json` 时，退出前写出 `workflow-result.json`。交付 comment、status/label mutation 或后续 workflow 必须逐条成为本 Run grant 下的显式 action；没有获准的 action 只保留 artifact 和 summary。
 
 ## Resources
 

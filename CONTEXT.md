@@ -11,4 +11,7 @@
 | Runtime Foundation | Jarvis repo 为目标 Runtime Environment 提供的 bootstrap、sync、稳定入口、state/log 和调度适配机制。 |
 | Runtime Job | `pullall`、sync、maintenance、self-improve 等在当前 Runtime Environment 内直接执行、对 Docker 无感的内部任务。 |
 | Scheduler Adapter | 把外部 scheduler 的触发绑定到目标 Runtime Environment 内 Runtime Job 的薄适配层。 |
-| jarvis-box | 提供 Task/Run、Agent 执行、control plane、持久 runtime mechanics 与 operator surface 的产品。 |
+| Standard Workflow Pack | `create-jarvis` 提供的建设期 workflow starter；经客户事实替换和行为验证后复制进客户 Jarvis，运行时不依赖 `create-jarvis`。 |
+| Customer Workflow | 客户 Jarvis 中已经客户化并通过行为证据验证的 workflow 实现。 |
+| Workflow Runtime Contract | `jarvis-box` 与 Runtime Agent/Customer Workflow 之间的版本化输入、结果和受控 action 协议；不解释客户业务 outcome。 |
+| jarvis-box | 提供 Workflow Runtime Contract、injected Agent execution contract、Task/Run、control plane、持久 runtime mechanics 与 operator runbook/surface 的产品。 |

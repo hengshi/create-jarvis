@@ -67,6 +67,87 @@ class VerifierContractTests(unittest.TestCase):
         self.assertEqual(report["status"], "pass", report)
         self.assertEqual(report["findings"], [])
 
+    def test_runtime_foundation_gate_requires_executable_behavioral_verifier(self) -> None:
+        report = Verifier(
+            self.home,
+            [],
+            run_precheck=False,
+            require_runtime_foundation=True,
+        ).verify()
+        self.assert_finding(report, "runtime_foundation_verifier_missing")
+
+        implementation = self.home / "tools" / "runtime-foundation-impl"
+        implementation.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+        implementation.chmod(0o755)
+        capabilities = {
+            name: {
+                "entry": "tools/runtime-foundation-impl",
+                "verified": True,
+                "evidence": [f"static check: {name}"],
+            }
+            for name in MODULE.REQUIRED_RUNTIME_FOUNDATION_CAPABILITIES
+        }
+        contract = {
+            "schema_version": 1,
+            "status": "pass",
+            "capabilities": capabilities,
+            "boundaries": {
+                name: True for name in MODULE.REQUIRED_RUNTIME_FOUNDATION_BOUNDARIES
+            },
+        }
+        verifier = self.home / "tools" / "verify-runtime-foundation"
+        verifier.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json\n"
+            f"print(json.dumps({contract!r}))\n",
+            encoding="utf-8",
+        )
+        verifier.chmod(0o755)
+
+        passed = Verifier(
+            self.home,
+            [],
+            run_precheck=False,
+            require_runtime_foundation=True,
+        ).verify()
+        self.assertEqual("pass", passed["status"], passed)
+
+    def test_runtime_foundation_gate_rejects_unverified_capability(self) -> None:
+        implementation = self.home / "tools" / "runtime-foundation-impl"
+        implementation.write_text("implementation\n", encoding="utf-8")
+        implementation.chmod(0o755)
+        capabilities = {
+            name: {
+                "entry": "tools/runtime-foundation-impl",
+                "verified": name != "scheduler_adapter",
+                "evidence": ["static check"],
+            }
+            for name in MODULE.REQUIRED_RUNTIME_FOUNDATION_CAPABILITIES
+        }
+        contract = {
+            "schema_version": 1,
+            "status": "pass",
+            "capabilities": capabilities,
+            "boundaries": {
+                name: True for name in MODULE.REQUIRED_RUNTIME_FOUNDATION_BOUNDARIES
+            },
+        }
+        verifier = self.home / "tools" / "verify-runtime-foundation"
+        verifier.write_text(
+            "#!/usr/bin/env python3\n"
+            "import json\n"
+            f"print(json.dumps({contract!r}))\n",
+            encoding="utf-8",
+        )
+        verifier.chmod(0o755)
+        report = Verifier(
+            self.home,
+            [],
+            run_precheck=False,
+            require_runtime_foundation=True,
+        ).verify()
+        self.assert_finding(report, "runtime_foundation_capability_unverified")
+
     def test_missing_home_and_entry_fail_closed(self) -> None:
         missing = Verifier(self.root / "missing", [], run_precheck=False).verify()
         self.assert_finding(missing, "jarvis_home_missing")

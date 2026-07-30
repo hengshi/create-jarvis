@@ -62,6 +62,22 @@ UNRESOLVED_PATH_TOKENS = ("__JARVIS_", "{{", "}}")
 SECRET_RE = re.compile(
     r"(?im)^\s*(?:api[_-]?key|access[_-]?token|password|private[_-]?key|secret)\s*[:=]\s*['\"]?[A-Za-z0-9_./+=-]{12,}"
 )
+REQUIRED_RUNTIME_FOUNDATION_CAPABILITIES = (
+    "bootstrap",
+    "quick_sync",
+    "full_sync",
+    "discovery_sync",
+    "maintenance",
+    "self_improve",
+    "doctor",
+    "recovery",
+    "scheduler_adapter",
+)
+REQUIRED_RUNTIME_FOUNDATION_BOUNDARIES = (
+    "runtime_jobs_docker_unaware",
+    "box_workspace_owned_separately",
+    "box_task_state_untouched",
+)
 
 
 @dataclass(frozen=True)
@@ -85,6 +101,8 @@ class Verifier:
         expected_modules: list[str] | None = None,
         expected_sources: list[str] | None = None,
         expected_skills: list[str] | None = None,
+        require_runtime_foundation: bool = False,
+        runtime_foundation_verifier: Path | None = None,
     ) -> None:
         self.jarvis_home = jarvis_home
         self.repos = repos
@@ -93,6 +111,8 @@ class Verifier:
         self.expected_modules = expected_modules or []
         self.expected_sources = expected_sources or []
         self.expected_skills = expected_skills or []
+        self.require_runtime_foundation = require_runtime_foundation
+        self.runtime_foundation_verifier = runtime_foundation_verifier
         self.findings: list[Finding] = []
 
     def add(self, severity: str, code: str, message: str) -> None:
@@ -109,6 +129,8 @@ class Verifier:
 
         self.verify_jarvis_structure()
         self.verify_expected_outputs()
+        if self.require_runtime_foundation:
+            self.verify_runtime_foundation()
         self.verify_repo_boundaries()
         self.verify_filesystem_safety()
         return self.report()
@@ -222,6 +244,124 @@ class Verifier:
                         f"repo-local precheck exited {completed.returncode}: {precheck}: {detail}",
                     )
 
+    def verify_runtime_foundation(self) -> None:
+        verifier = self.runtime_foundation_verifier or (
+            self.jarvis_home / "tools" / "verify-runtime-foundation"
+        )
+        if not verifier.is_file() or verifier.is_symlink():
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_missing",
+                f"Part 2 requires a regular tools/verify-runtime-foundation implementation: {verifier}",
+            )
+            return
+        if not verifier.stat().st_mode & 0o111:
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_not_executable",
+                f"Runtime Foundation verifier is not executable: {verifier}",
+            )
+            return
+        try:
+            completed = subprocess.run(
+                [str(verifier), "--static", "--json"],
+                cwd=self.jarvis_home,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_failed",
+                f"Runtime Foundation verifier could not complete: {exc}",
+            )
+            return
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout).strip()
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_failed",
+                f"Runtime Foundation verifier exited {completed.returncode}: {detail}",
+            )
+            return
+        try:
+            result = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_invalid",
+                f"Runtime Foundation verifier did not return JSON: {exc}",
+            )
+            return
+        if result.get("schema_version") != 1 or result.get("status") != "pass":
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_invalid",
+                "Runtime Foundation verifier must return schema_version=1 and status=pass",
+            )
+
+        capabilities = result.get("capabilities")
+        if not isinstance(capabilities, dict):
+            self.add(
+                "blocker",
+                "runtime_foundation_verifier_invalid",
+                "Runtime Foundation verifier capabilities must be an object",
+            )
+            capabilities = {}
+        for name in REQUIRED_RUNTIME_FOUNDATION_CAPABILITIES:
+            capability = capabilities.get(name)
+            if not isinstance(capability, dict) or capability.get("verified") is not True:
+                self.add(
+                    "blocker",
+                    "runtime_foundation_capability_unverified",
+                    f"Runtime Foundation capability is not statically verified: {name}",
+                )
+                continue
+            raw_entry = capability.get("entry")
+            evidence = capability.get("evidence")
+            if not isinstance(raw_entry, str) or not raw_entry.strip():
+                self.add(
+                    "blocker",
+                    "runtime_foundation_entry_invalid",
+                    f"Runtime Foundation capability has no source entry: {name}",
+                )
+                continue
+            entry = Path(raw_entry)
+            if entry.is_absolute() or ".." in entry.parts:
+                self.add(
+                    "blocker",
+                    "runtime_foundation_entry_invalid",
+                    f"Runtime Foundation source entry must be a safe Jarvis-relative path: {name}: {raw_entry}",
+                )
+                continue
+            implementation = self.jarvis_home / entry
+            if not implementation.is_file() or implementation.is_symlink():
+                self.add(
+                    "blocker",
+                    "runtime_foundation_entry_missing",
+                    f"Runtime Foundation source entry is missing: {name}: {raw_entry}",
+                )
+            if not isinstance(evidence, list) or not any(
+                isinstance(item, str) and item.strip() for item in evidence
+            ):
+                self.add(
+                    "blocker",
+                    "runtime_foundation_evidence_missing",
+                    f"Runtime Foundation capability has no static evidence: {name}",
+                )
+
+        boundaries = result.get("boundaries")
+        if not isinstance(boundaries, dict):
+            boundaries = {}
+        for name in REQUIRED_RUNTIME_FOUNDATION_BOUNDARIES:
+            if boundaries.get(name) is not True:
+                self.add(
+                    "blocker",
+                    "runtime_foundation_boundary_unverified",
+                    f"Runtime Foundation ownership boundary is not verified: {name}",
+                )
+
     def verify_filesystem_safety(self) -> None:
         roots = [self.jarvis_home, *(repo / "skills" for repo in self.repos)]
         for root in roots:
@@ -331,6 +471,12 @@ def main() -> int:
     parser.add_argument("--expected-source", action="append", default=[])
     parser.add_argument("--expected-skill", action="append", default=[])
     parser.add_argument("--skip-precheck", action="store_true")
+    parser.add_argument(
+        "--require-runtime-foundation",
+        action="store_true",
+        help="run the Jarvis-owned static Runtime Foundation verifier for Part 2/Reconciliation",
+    )
+    parser.add_argument("--runtime-foundation-verifier", type=Path)
     parser.add_argument("--report-json", type=Path)
     parser.add_argument("--report-md", type=Path)
     args = parser.parse_args()
@@ -343,6 +489,12 @@ def main() -> int:
         expected_modules=args.expected_module,
         expected_sources=args.expected_source,
         expected_skills=args.expected_skill,
+        require_runtime_foundation=args.require_runtime_foundation,
+        runtime_foundation_verifier=(
+            args.runtime_foundation_verifier.resolve()
+            if args.runtime_foundation_verifier
+            else None
+        ),
     )
     report = verifier.verify()
     if args.report_json:

@@ -45,6 +45,8 @@ Customize one starter workflow with the customer's actual:
 
 Run at least one controlled or real case through `START → WORK → VERIFY → END` at the pinned revisions. The workflow becomes `verified` only when the required Jarvis/repo refs are delivered and that case passes.
 
+Re-run the deterministic Jarvis verifier with `--require-runtime-foundation`. Its Jarvis-owned static verifier must resolve real implementation entries and pass all capability/boundary checks. A Part 1 structural pass or an `implemented` table row is not enough. Keep formal Docker discovery, persistence and scheduler transport as Part 4 evidence.
+
 ## Close the gate
 
 Update `work/reconciliation.md` with pinned refs, route scope, probe/case evidence, unresolved coverage, delivered workflow commit/PR/MR, blocker and `Next`. A delegated worker reports the verified card to the Coordinator; only the Coordinator updates `CONSTRUCTION-JOURNAL.md`.

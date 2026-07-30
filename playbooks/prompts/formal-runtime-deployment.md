@@ -13,6 +13,8 @@ Resolve from remote facts, without guessing:
 - the target Agent's native discovery roots;
 - the host scheduler type and approved installation location.
 
+Re-run `verify_jarvis_output.py --require-runtime-foundation` against the exact approved Jarvis ref before touching the deployment target. This proves the source delivery is internally complete; it does not prove that the target runtime has been bootstrapped.
+
 Do not deploy dirty Host paths or floating image tags. Missing inputs block only the affected step; record the exact recovery action in the work card.
 
 ## 2. Prepare the formal runtime
@@ -39,13 +41,14 @@ Record account/host/capability facts, never credential values.
 
 ## 3. Bootstrap the Jarvis Runtime Foundation
 
-Before enabling business ingress, run the bootstrap entry published by the approved Jarvis ref inside the formal Docker Runtime Environment. Use a task-scoped checkout or streamed release artifact only for bootstrap; it must install stable commands/cache/state/log into the persistent Agent HOME and then remove temporary material.
+Before enabling business ingress, run the bootstrap entry published by the approved Jarvis ref inside the formal Docker Runtime Environment. Use a task-scoped checkout or streamed release artifact only for bootstrap; it must install stable commands/cache/state/log into the persistent Agent HOME and then remove temporary material. Because the host Scheduler Adapter will be authoritative, this bootstrap invocation must use the Jarvis-defined option that disables scheduler installation inside the container; if the Jarvis bootstrap has no such invocation, Part 2 is incomplete.
 
 Use the jarvis-box release helper to enter the formal environment. The inner command and arguments come from the Jarvis repo's runtime governance; jarvis-box does not define or inspect them:
 
 ```bash
 <release-dir>/scripts/deploy-production.sh <deployment-home> runtime-job \
-  <jarvis-bootstrap-command> <approved-remote> <approved-ref>
+  <jarvis-bootstrap-command> <approved-remote> <approved-ref> \
+  <disable-in-container-scheduler-option>
 ```
 
 Then call the installed Jarvis-owned entries through the same helper:
@@ -68,14 +71,14 @@ If the Runtime Foundation is incomplete, return to Part 2. Do not teach jarvis-b
 
 ## 4. Bind the host scheduler
 
-Use the Scheduler Adapter delivered by the Jarvis repo. Configure it with the release helper path, deployment home and inner Runtime Job command. The adapter may install launchd, systemd, cron or a customer scheduler entry, but the inner job stays Docker-unaware.
+Use the Scheduler Adapter delivered by the Jarvis repo. Install it from the approved Jarvis ref into a stable Host-owned executable path before removing temporary source material; scheduler definitions must never point to a bootstrap checkout. Configure the stable adapter with the release helper path, deployment home and inner Runtime Job command. Installing the adapter must not activate scheduler entries; stage and verify first, then activate only at the approved cutover. The adapter may install launchd, systemd, cron or a customer scheduler entry, but the inner job stays Docker-unaware.
 
 Run one trigger manually and verify both layers:
 
 - host layer: helper successfully entered the formal container, or recorded a launch failure;
 - runtime layer: the inner job wrote its own result/state/log in persistent Agent HOME.
 
-For a full sync under host scheduling, pass the Jarvis-defined equivalent of `--skip-scheduler-update` to prevent an in-container scheduler installation. Do not modify `pullall`, runtime sync, maintenance or self-improve to call Docker.
+The bootstrap, every full sync under host scheduling, and any recovery sync must pass the Jarvis-defined equivalent of `--skip-scheduler-update` to prevent an in-container scheduler installation. Do not modify `pullall`, runtime sync, maintenance or self-improve to call Docker.
 
 ## 5. Verify jarvis-box mechanics
 

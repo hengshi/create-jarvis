@@ -310,6 +310,16 @@ Part 2 可以先完成 native/Host 环境验证。正式 Docker 环境在 Part 4
 
 只写说明但没有所需工具、安装或验证时，不能标 `verified`。正式 jarvis-box 尚未安装不是 Part 2 blocker；Docker Scheduler Adapter 与 formal Agent HOME 中的行为在 Part 4 通过公开 release helper 验证。不得在这里模拟、复制或重新设计 jarvis-box 的 execution contract、control plane 和 operator runbook。
 
+在 Jarvis repo 中实现 `tools/verify-runtime-foundation --static --json`，按 `tools/README.md` 的合同对 bootstrap、quick/full sync、discovery sync、maintenance、self-improve、doctor、recovery、Scheduler Adapter 及三个 ownership boundaries 返回 source-level evidence。然后运行：
+
+```bash
+python3 <method-repository>/scripts/verify_jarvis_output.py \
+  --jarvis-home <jarvis-repository> \
+  --require-runtime-foundation
+```
+
+该 gate 不允许用工具表格或治理文案代替实现；也不把 source-level pass 写成 formal Docker 已验证。
+
 ### 9. 收束 Jarvis entry
 
 最后更新 canonical Jarvis entry skill 和 README，使它们只声明已经证明的范围：

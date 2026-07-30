@@ -86,11 +86,11 @@ Part 2 must also turn runtime governance into executable behavior for each inten
 
 1. identify Agent HOME and native skill discovery roots;
 2. define the approved Jarvis remote/ref and bootstrap authentication boundary;
-3. implement stable bootstrap, quick/full sync, state/log and verification entries owned by the Jarvis repo;
+3. implement stable bootstrap, quick/full sync, maintenance, self-improve, state/log, doctor and recovery entries owned by the Jarvis repo;
 4. materialize Jarvis skills/references into native discovery roots safely;
 5. keep internal Runtime Jobs Docker-unaware;
 6. implement a Scheduler Adapter for native direct execution or Docker outer execution;
-7. run behavioral verification or record a precise `pending-runtime-foundation` gap.
+7. implement `tools/verify-runtime-foundation --static --json`, then run `scripts/verify_jarvis_output.py --require-runtime-foundation`; record a precise `pending-runtime-foundation` gap instead of passing the gate when implementation is missing.
 
 Do not copy HENGSHI paths or tool names into another Jarvis. Documentation alone is not a verified Runtime Foundation.
 
@@ -104,7 +104,7 @@ Only a minimal repo-local change that improves same-case replay and survives adj
 
 ## Reconciliation
 
-Follow `playbooks/prompts/reconciliation.md`. Verify remote Jarvis and repo-local refs, replace pending pointers only with real entries, and demonstrate at least one Jarvis → source/module → repo-local route. Incomplete coverage remains explicit; there is no deployment lifecycle state machine.
+Follow `playbooks/prompts/reconciliation.md`. Verify remote Jarvis and repo-local refs, rerun the output verifier with `--require-runtime-foundation`, replace pending pointers only with real entries, and demonstrate at least one Jarvis → source/module → repo-local route. Incomplete coverage remains explicit; there is no deployment lifecycle state machine.
 
 ## Part 4 — jarvis-box Docker onboarding
 

@@ -23,6 +23,7 @@ bugfix/feature、哪些动作允许回写，再保留、改写或删除下方通
 - 先识别执行上下文；仅在边界不清、冲突或诊断时读取 `{{JARVIS_SLUG}}-jarvis/references/runtime-governance-quick.md`，并按需升级完整版
 - `{{JARVIS_SLUG}}-jarvis/references/agent-engineering-quality-gate.md`
 - 进入 disposition 前：`{{JARVIS_SLUG}}-jarvis/references/issue-claim-normalization.md`
+- 当 run 目录存在 `workflow-input.json`：`{{JARVIS_SLUG}}-jarvis/references/workflow-runtime-contract.md`
 
 按需加读：
 - `references/environment-version-evidence-gate.md`：仅当版本、环境、部署身份会改变 duplicate、fix coverage 或路由时使用
@@ -101,6 +102,7 @@ bugfix/feature、哪些动作允许回写，再保留、改写或删除下方通
 14. comment 只放影响结论与下一步的事实。审计细节进 decision record。
 15. 写回、label 建议或状态动作仅在客户/project policy 与当前任务明确允许时执行；否则只保存 artifact，不伪称已写回。
 16. decision record 使用 `execution_project`。feature-linked project/branch 只有 live relation 明确证明时才写。
+17. 存在 `workflow-input.json` 时，另外写出 `workflow-result.json`：comment、label、status、next workflow 都必须是 input grant 下的显式 action。decision outcome 对 `jarvis-box` 不透明，不能指望运行时解释 outcome 自动进入下一步。
 
 ## Disposition 路由
 
@@ -111,3 +113,5 @@ bugfix/feature、哪些动作允许回写，再保留、改写或删除下方通
 ## Decision record
 
 记录 outcome、支撑证据、issue identity、已确认 routing、未解决缺口和 next workflow。没有值的字段省略。trigger gate 补充跳过/重审动作记录。环境检查补充相关冲突记录。
+
+decision record 是本客户 workflow 的审计数据，不是 provider mutation 协议。`ready-for-bugfix` / `ready-for-feature-delivery` 等 outcome 是否请求下一 workflow、请求什么状态或 label，必须按客户化 policy 写进 `workflow-result.json.actions`；模板不预置实际客户动作。

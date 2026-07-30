@@ -20,6 +20,8 @@ For every supported Runtime Environment, the Jarvis repo must provide or identif
 - an environment-specific Scheduler Adapter;
 - update, retry and rollback behavior.
 
+Part 2 packages those source-level checks behind an executable Jarvis-owned `tools/verify-runtime-foundation --static --json`. The create-jarvis output verifier runs that contract with `--require-runtime-foundation`; it requires real source entries and evidence for bootstrap, sync, discovery, maintenance, self-improve, doctor, recovery and Scheduler Adapter. This static gate does not replace Part 4 runtime probes.
+
 The implementation may differ between customers and Agents. The contract may not assume a mounted Jarvis checkout, `JARVIS_HOME`, a jarvis-box context file or a temporary construction path.
 
 ## Scheduler boundary

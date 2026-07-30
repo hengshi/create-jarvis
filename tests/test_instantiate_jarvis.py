@@ -75,6 +75,7 @@ class JarvisInstantiationTests(unittest.TestCase):
             "references/canonical-repo-fleet.md",
             "references/runtime-governance.md",
             "references/runtime-governance-quick.md",
+            "references/workflow-runtime-contract.md",
             "tools/README.md",
             "skills/acme-claude-e2e-jarvis/SKILL.md",
             "skills/acme-claude-e2e-workflow-issue-post-check/SKILL.md",

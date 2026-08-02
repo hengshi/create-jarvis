@@ -7,6 +7,8 @@ description: Build, publish, deploy, resume, and evolve a customer-owned Jarvis 
 
 `create-jarvis` is the reusable construction method. The customer-facing entry is one request:
 
+Its canonical product and skill identity is exactly `create-jarvis`. Resolve the current identity from this checked-out root skill and release metadata, never from an old transcript, branch, directory name or remembered alias. A renamed predecessor is obsolete vocabulary, not a second supported method.
+
 > 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 The authenticated Host Agent receiving that request is the **Construction Coordinator**. It owns continuity across repository initialization, long-running construction tasks, reconciliation, formal runtime onboarding, interruption recovery and shadow promotion.
@@ -52,7 +54,7 @@ Read `playbooks/construction-journey-model.md` once when taking ownership of a j
 | Existing Construction Workspace | `playbooks/construction-recovery-contract.md`, then the current work card and its prompt |
 | Part 1 card | `playbooks/prompts/company-repo-initialization.md` and the Company template README it names |
 | Part 2 card | `playbooks/prompts/company-jarvis-construction.md`; load only its explicitly needed templates/references |
-| Part 3 repository card | `playbooks/prompts/repository-learning.md` and the replay templates needed by the current episode |
+| Part 3 repository card | `playbooks/prompts/repository-learning.md` and the replay material needed to discriminate the current repository model |
 | Reconciliation card | `playbooks/prompts/reconciliation.md` and the delivered cards/refs in its selected route scope |
 | Part 4 card | `playbooks/runtime-method-contract.md` and `playbooks/prompts/formal-runtime-deployment.md` |
 | Shadow/promotion/evolution | the relevant section of `playbooks/customer-jarvis-growth-loop.md` plus the active workflow/deployment lock |
@@ -146,7 +148,7 @@ Disposition every capability candidate and close product, implementation and ver
 
 Follow `playbooks/prompts/repository-learning.md` once per `work/repositories/<repo>.md` card.
 
-Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Reconstruct complete episodes and preserve a minimal repo-local delta only after same-case replay improves behavior and adjacent regression remains acceptable.
+Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules; then preserve a minimal repo-local delta only when discriminating replay improves that model's decisions and adjacent regression remains acceptable.
 
 Each repository delivers its own commit, branch and PR/MR or an explicit read-only/blocked result. Never edit the Company Jarvis repo from a repository card. A dirty local worktree is not a consumable skill delivery.
 

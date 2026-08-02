@@ -1,0 +1,53 @@
+{
+  "skill_name": "jarvis-self-improve-skill",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "用户要求复盘跨越三天、由 Codex 和 Claude 接手的全部 session，并深度优化 jarvis-box 与 create-jarvis。总 transcript 很大，部分 session 重复包含 compact goal；agent registry 检查在第二个 Agent 卡住。请给出执行与写回计划。",
+      "expected_output": "Build a complete accounted session ledger, treat compact goals as duplicate navigation rather than independent evidence, preserve partial registry results with bounded per-Agent discovery, cluster decision failures into corrected models, and implement every feasible owner-local intervention with replay evidence.",
+      "expectations": [
+        "Accounts for every requested session as accounted, duplicate, excluded-with-reason, or blocked instead of sampling only convenient turns.",
+        "Treats the hanging registry check as new runtime/tool evidence and requires bounded per-Agent timeout with partial results.",
+        "Reconstructs original user corrections and outcomes rather than learning from compact summaries alone.",
+        "Chooses separate primary owners for jarvis-box runtime/testing and create-jarvis method changes.",
+        "Does not stop at a report when safe, concrete changes are writable in the current owner repositories."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "同一项目中，Agent 多次把局部函数测试叫完整 happy path，后来又把 IM core 当 WeCom 认证、token probe 当 Docker 链路、源码测试当 release candidate gate。每次都补了一条具体提醒，但用户仍反复纠正。请判断该学什么、写到哪里、怎么验证。",
+      "expected_output": "Identify one evidence-model defect rather than four anecdotes, route Jarvis user-story/evidence-level rules and discriminating evals to jarvis-box runtime-testing, keep the cross-repository model-learning method in create-jarvis, and validate with cases where the old and corrected models choose different evidence.",
+      "expectations": [
+        "Clusters the corrections by the shared decision-model failure instead of adding four unrelated prose bullets.",
+        "States the corrected separation among regression, complete user story, adapter/Provider certification, and exact release qualification.",
+        "Routes product-specific test rules to jarvis-box and generic learning mechanics to create-jarvis.",
+        "Prefers a machine-readable matrix or gate plus skill evals over prose-only reminders.",
+        "Requires before/after discriminating replay and an adjacent case, not just document review."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "当前仓库和根 SKILL 的正式名称已经是 create-jarvis，但旧 session、旧 worktree 和一个 verifier 仍出现 create-jarvis-skill。Agent 刚刚又把旧名当当前组件告诉用户。请给出 self-improve decision。",
+      "expected_output": "Resolve the canonical identity from the current root skill/release source, classify old transcript/worktree names as stale evidence, replace current-use legacy vocabulary, retain only an explicit obsolete-name guard where useful, and add a mechanical identity contract.",
+      "expectations": [
+        "Uses current authoritative source rather than memory, transcript, branch or directory names.",
+        "Treats create-jarvis as the sole current method identity and does not preserve the predecessor as a second supported name.",
+        "Distinguishes an explicit migration/obsolete sentinel from accidental current-language use.",
+        "Adds a mechanical guard that fails when durable method guidance reintroduces the legacy identity.",
+        "Records the model effect as replace/remove rather than merely appending an alias note."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "MR review 建议给 installer 新增 --force，以便 active run 时升级。产品预期其实是 active 任务存在时拒绝升级，并提示客户先停止服务。此前 Agent 常把 review 意见直接实现，导致范围扩大。请执行 self-improve 判断。",
+      "expected_output": "Treat the review as evidence rather than authority, compare it with the product state model, reject --force with a reason, preserve the fail-closed active-run transition, and improve the review/test gate only if repeated trajectories show the same decision failure.",
+      "expectations": [
+        "Classifies the review finding against the intended state-transition contract instead of blindly accepting it.",
+        "Rejects --force because it introduces an unsupported transition and expands the product contract.",
+        "Requires the supported refusal path and user-facing stop-service guidance to be tested together.",
+        "Records accept, reject-with-reason, or defer-with-owner disposition for review evidence.",
+        "Avoids adding a new runtime state, manifest, service owner or unrelated operational feature."
+      ]
+    }
+  ]
+}

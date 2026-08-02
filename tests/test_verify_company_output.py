@@ -98,6 +98,15 @@ class VerifierContractTests(unittest.TestCase):
         ]
         self.assertEqual(len(findings), 3)
 
+    def test_obsolete_method_skill_name_is_rejected_explicitly(self) -> None:
+        legacy_name = "create-jarvis" + "-skill"
+        path = self.home / "skills" / legacy_name / "SKILL.md"
+        path.parent.mkdir(parents=True)
+        path.write_text("obsolete renamed method\n", encoding="utf-8")
+        report = self.report()
+        self.assert_finding(report, "obsolete_skill_name")
+        self.assertNotIn("runtime_skill_copied", self.finding_codes(report))
+
     def test_declared_expected_outputs_must_exist(self) -> None:
         report = self.report(
             expected_modules=["missing-module"],

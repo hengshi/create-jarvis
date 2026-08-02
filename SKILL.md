@@ -162,9 +162,9 @@ A workflow is `construction-ready` only when its required Company and repo-local
 
 Follow `playbooks/prompts/formal-runtime-deployment.md` and `work/jarvis-box-onboarding.md`.
 
-Use only jarvis-box's public release and runtime interfaces. Pin canonical Company/repo commits and the released image digest; create a separate auditable identity; download, verify, install, start, authorize and probe the formal runtime. jarvis-box itself owns its injected execution contract, control plane and operator runbook.
+Ask the customer one deployment question: Native or Docker. Use only the selected jarvis-box release's public installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker imports only approved portable identities from the current Host user into its persistent runtime; a dedicated machine account is optional policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
 
-Stable runtime facts observed during installation may be written back to Company runtime governance. Do not speculate about internals or duplicate the jarvis-box runbook. After successful container-side probes, advance the selected workflow to `ready-for-shadow`.
+Record the selected mode, actual runtime owner/root, release version, Docker image digest when applicable, credential capability evidence, optional connector boundary and real Agent/provider/writeback/cleanup evidence. Do not copy Compose files, environment-variable catalogs, container paths or the jarvis-box runbook into Company Jarvis. After the selected environment's real probes pass, advance the selected workflow to `ready-for-shadow`.
 
 ## Shadow delivery and evolution
 

@@ -1,121 +1,65 @@
 # Create Jarvis
 
-`create-jarvis` 是客户从零建设、安装并启用自己 Jarvis 的 Agent 方法仓库。它不是安装器、construction daemon 或 jarvis-box 的内部模板集合。
+`create-jarvis` 帮客户从零建设自己的 Jarvis，并把它交付到 Jarvis Box。客户不需要学习 construction phase、模板命令或容器内部结构。
 
-## 给正在读取这个页面的 Agent
+## 客户只需要说一句话
 
-如果客户让你“阅读这个 GitHub 仓库并构建 Jarvis”，先在当前客户授权的 workspace 中执行普通 `git clone https://github.com/hengshi/create-jarvis`，记录 checkout commit，然后从本地读取 `SKILL.md` 及引用文件。不要用 GitHub HTML、raw URL 或连续 WebFetch 拼装方法。
-
-客户第一句话只授权读取这个公共方法仓库，不授权扫描客户电脑。不要枚举 home、Agent 配置、shell 环境、已安装 skills、无关 Git 仓库或历史残留来猜公司情况。先引导客户提供公司名称、文档入口、代码仓库和工作系统指针，只检查明确提供的 URL 或本地路径。
-
-## 客户唯一入口
-
-客户在自己已经登录并授权的 Host Agent 中只需要说：
-
-> 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
-
-收到请求的 Agent 是 Construction Coordinator。它主持资料 intake、建立可恢复建设工作区、协调长任务、发布客户资产、安装 jarvis-box 并引导 onboarding。客户不需要安装 create-jarvis、执行 phase、复制子 Agent 命令或开多个终端。
-
-## 固定逻辑模型
-
-| Owner | Owns |
-|---|---|
-| `create-jarvis` | 通用建设方法、模板、步骤、证据门槛和恢复协议 |
-| Construction Workspace | 当前旅程的 work cards、checkpoint、journal 和 evidence |
-| `<company-slug>-jarvis` | 客户知识、跨 runtime 宪法、路由、sources、workflows 和公司工具 |
-| 客户代码仓库 | repo 执行真相与 repo-local skills |
-| `jarvis-box` | 正式 runtime 实现、injected execution contract、control plane、state 和 operator runbook |
-
-Company Jarvis 的 `runtime-governance.md` 是客户所有 Host Agent 与 managed runtime 共同遵守的公司宪法，不是 jarvis-box 内部 runbook。create-jarvis 负责构建和验证这份宪法；jarvis-box 自己负责实现其 runtime 内部能力。
-
-## 四部分建设旅程
+在已经登录并获得授权的 Codex 或 Claude 中发送：
 
 ```text
-customer request
-  → new / resume
-  → Construction Workspace
-  → Part 1  Company Jarvis repo initialization
-  ├→ Part 2  Company Jarvis construction
-  └→ Part 3  N independent repo-local learning tasks
-  → Reconciliation Gate
-  → Part 4  jarvis-box install, start and onboarding
-  → supervised shadow
-  → active
+请先运行 git clone https://github.com/hengshi/create-jarvis create-jarvis，读取本地 create-jarvis/SKILL.md，然后帮我构建属于我们公司的 Jarvis。
 ```
 
-Part 1 从模板创建并发布客户 Company repo 骨架。Part 2 从客户证据构建 modules、sources、cross-cutting、skills、references、tools 和 runtime governance。Part 3 为每个代码 repo 创建一个独立长任务，把经真实 episode 验证的执行知识写回该 repo。Part 2 和 Part 3 可并行。
+收到请求的 Host Agent 会成为 Construction Coordinator。它只读取客户明确提供的文档、代码仓库和工作系统，不扫描 HOME、历史会话、无关仓库或旧 runtime 猜测客户情况。
 
-Part 4 只在 Reconciliation Gate 通过且至少一个 route-scoped workflow 达到 `construction-ready` 后开始。它下载并校验 jarvis-box public release，固定 Company/repo/image revisions，安装并启动服务，完成独立正式身份授权和容器内 probes，再引导客户进入 shadow。
-
-## Runtime governance 的建设
+## 接下来会发生什么
 
 ```text
-template scaffold
-  → customer runtime discovery
-  → customer-specific constitution
-  → installed and verified runtime behavior
+一句话开始
+  → 建立可恢复的 jarvis-build/
+  → 建设并发布客户 Company Jarvis
+  → 从真实代码变更学习 repo-local skills
+  → 对齐 workflow 与交付证据
+  → 选择 Native 或 Docker
+  → 部署 Jarvis Box
+  → 用真实任务进入 shadow
 ```
 
-模板只提供问题结构。Part 2 要确认客户自己的 canonical runtime root、repo cache/task workspace、task-start sync、稳定工具、checkout 隔离、handoff、cleanup、credential 和 write boundary。如果规则依赖尚不存在的 Host runtime 工具或同步机制，必须创建、安装并验证，或明确标记 `pending-runtime-foundation`；不能只写说明。
+客户只在权限、发布目标、部署模式和生产启用前做决定。Coordinator 负责其余步骤和恢复记录。
 
-不得把 HENGSHI 的路径和工具名复制给其他客户。Part 4 观察到的稳定 runtime 事实可回写 Company 宪法，但 jarvis-box 的 execution contract、control plane 和 operator runbook 仍由 jarvis-box 自己拥有。
+## 只需要选择一次：Native 还是 Docker
 
-## Construction Workspace 与恢复
+| | Native | Docker |
+| --- | --- | --- |
+| 适合 | 单机、最少配置、直接使用当前机器 | 隔离、独立持久化、标准化迁移 |
+| runtime owner | 发起安装的现有 OS 用户 | 容器内持久 runtime identity |
+| 认证 | 直接复用当前用户已有认证 | 自动导入当前 Host 用户的必要认证 |
+| 客户路径 | 使用现场实际 runtime root | 使用客户选择的 deployment home 和 volumes |
+
+Dedicated machine account 可以作为客户的安全策略，但不是安装前置条件。两种模式都不复制整个 Host HOME、SSH agent、Keychain 或 credential store。
+
+## 中断后怎么继续
+
+客户只需要提供建设工作区：
 
 ```text
-jarvis-build/
-├── CONTINUE-JARVIS.md
-├── CONSTRUCTION-JOURNAL.md
-├── BUILD-CONTEXT.md
-├── work/
-│   ├── company-repo-initialization.md
-│   ├── company-construction.md
-│   ├── repositories/<repo>.md
-│   ├── reconciliation.md
-│   └── jarvis-box-onboarding.md
-└── evidence/
+继续构建我们的 Jarvis。建设工作区是 <path>/jarvis-build。请读取 CONTINUE-JARVIS.md 和 CONSTRUCTION-JOURNAL.md，核验现有交付事实后从记录的 Next 继续，不要重新初始化已存在的工作。
 ```
 
-每张 work card 记录 objective、authorized inputs、allowed writes、target workspace/branch、writer、可选 session handle、status、last verified checkpoint、delivery、blocker、`Next` 和验证时间。
+Coordinator 会先核验文件、Git ref、PR/MR 和 runtime 事实，再决定重连还是继续，不会因为换了一次 Agent 会话就重做全部工作。
 
-恢复时使用 recorded method commit，核验实际文件、Git/remote 和 runtime facts；旧 writer 活着就重连，已结束才替换，ownership 不明时禁止重复 writer。session handle 只是提示，不是真值。
+## 什么算完成
 
-客户恢复话术：
+建设完成不等于所有 workflow 自动进入生产。至少需要：
 
-> 继续构建我们的 Jarvis。建设工作区是 `<path>/jarvis-build`。请读取 `CONTINUE-JARVIS.md` 和 `CONSTRUCTION-JOURNAL.md`，核验现有交付事实后从记录的 Next 继续，不要重新初始化已存在的工作。
+1. Company Jarvis 与所需 repo-local refs 已发布并可解析；
+2. 一个客户 workflow 达到 `construction-ready`；
+3. 所选 Native/Docker 环境中的 Runtime Foundation doctor 和真实 Agent discovery 通过；
+4. 一条真实任务完成 ingress、Task/Run、workspace、Agent、writeback 和 cleanup；
+5. 客户批准后才从 `ready-for-shadow` 进入 `shadowing`，稳定后再进入 `active`。
 
-## Repository learning
+## 给 Coordinator
 
-学习单位是完整、可重放的真实 episode，不是 commit message 分类：
+从本地 `SKILL.md` 开始。只读取当前 route 指定的 playbook，不一次加载整个仓库。`create-jarvis` 拥有建设方法和恢复合同；客户 Jarvis 拥有知识、workflow 和 Runtime Foundation；客户代码仓库拥有 repo-local 执行真相；jarvis-box 拥有 Task/Run、workspace、provider loop、writeback 和 operator contract。
 
-```text
-visible START
-  → pre-change baseline replay
-  → hidden real outcome comparison
-  → no_skill_gap / minimal skill delta
-  → same-case rerun
-  → adjacent regression
-```
-
-每个 repo 只有一个 writer 和独立交付 ref。只有能改善未来行为的知识才进入 repo-local skill；dirty worktree 不是交付。
-
-## Workflow 生命周期
-
-```text
-draft-template → construction-ready → runtime-deployed
-               → ready-for-shadow → shadowing → active
-```
-
-`active` 属于一个 workflow 和一组不可变 revisions，不代表整个客户 Jarvis 的所有范围都完成。没有代表性真实任务时诚实停在 `ready-for-shadow`。
-
-## jarvis-box 发布边界
-
-客户使用 jarvis-box 公共 release bundle，不 clone 私有源码。正式部署固定一个 OCI image digest；镜像内包含 jarvis-box、固定版本 connector 和 Agent 工具链。可选 connector service 与 jarvis-box service 使用同一镜像，但拥有独立凭据、日志和 volume 边界。
-
-正式 Agent 使用独立、可审计、可轮换和可撤销的高权限 identity。Docker socket 是 host-root-equivalent，必须显式授权。建设阶段的人类 Host home、SSH agent 和 credential store 不复制进正式 runtime。
-
-完整方法见 `playbooks/customer-jarvis-growth-loop.md`、`playbooks/construction-journey-model.md`、`playbooks/construction-recovery-contract.md` 和 `playbooks/runtime-method-contract.md`。
-
-## 验证原则
-
-确定性脚本只验证路径、渲染、安全和可执行合同。方法质量必须通过真实 Agent 行为验证：一句话是否启动完整 journey，中断后是否从事实恢复，Company runtime governance 是否变成可执行宪法，repo learning 是否从真实 episode 改善行为，formal runtime 是否消费固定 revisions。不要用 Markdown 关键词存在冒充方法论验证。
+使用已发布 tag/Release 作为稳定方法版本；`main` 是下一版本开发线。Construction Workspace 必须记录实际 checkout commit，不能依赖浮动分支。

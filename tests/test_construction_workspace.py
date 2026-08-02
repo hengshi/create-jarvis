@@ -102,6 +102,13 @@ class ConstructionWorkspaceTests(unittest.TestCase):
         verified, report = self.verify()
         self.assertEqual(verified.returncode, 0, verified.stdout)
         self.assertEqual(report["status"], "pass", report)
+        onboarding = (self.workspace / "work" / "jarvis-box-onboarding.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Selected deployment mode: `unresolved`", onboarding)
+        self.assertIn("Native", onboarding)
+        self.assertIn("Docker", onboarding)
+        self.assertNotIn("container-side probes", onboarding)
 
     def test_init_refuses_to_overwrite_existing_workspace(self) -> None:
         self.assertEqual(self.init().returncode, 0)

@@ -4,10 +4,10 @@
 
 ## 客户只需要说一句话
 
-在已经登录并获得授权的 Codex 或 Claude 中发送：
+在已经登录并获得授权的 Codex 或 Claude 中发送。Host Agent 必须使用 GitHub 最新 Release 的精确 tag，不得使用浮动 `main`：
 
 ```text
-请先运行 git clone https://github.com/hengshi/create-jarvis create-jarvis，读取本地 create-jarvis/SKILL.md，然后帮我构建属于我们公司的 Jarvis。
+请从 https://github.com/hengshi/create-jarvis/releases/latest 获取最新稳定版本，记录精确 tag 和 commit，读取其中的 SKILL.md，然后帮我构建属于我们公司的 Jarvis。
 ```
 
 收到请求的 Host Agent 会成为 Construction Coordinator。它只读取客户明确提供的文档、代码仓库和工作系统，不扫描 HOME、历史会话、无关仓库或旧 runtime 猜测客户情况。
@@ -63,3 +63,5 @@ Coordinator 会先核验文件、Git ref、PR/MR 和 runtime 事实，再决定�
 从本地 `SKILL.md` 开始。只读取当前 route 指定的 playbook，不一次加载整个仓库。`create-jarvis` 拥有建设方法和恢复合同；客户 Jarvis 拥有知识、workflow 和 Runtime Foundation；客户代码仓库拥有 repo-local 执行真相；jarvis-box 拥有 Task/Run、workspace、provider loop、writeback 和 operator contract。
 
 使用已发布 tag/Release 作为稳定方法版本；`main` 是下一版本开发线。Construction Workspace 必须记录实际 checkout commit，不能依赖浮动分支。
+
+`create-jarvis` 与 Jarvis Box 使用独立版本。完整关系和发布步骤见 [RELEASE.md](RELEASE.md)。

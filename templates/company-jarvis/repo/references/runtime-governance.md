@@ -94,7 +94,8 @@ Do not depend on a temporary construction checkout as the long-term invocation p
 
 - Credentials, Agent login state, private resume handles and runtime state never enter Company/repo artifacts or Construction Workspace files.
 - Host construction uses the customer's explicitly authorized identity.
-- Formal runtime uses a separately activated, auditable, rotatable and revocable identity.
+- Native formal runtime uses the existing installing OS user. Docker imports only approved portable credentials from the current Host user into a separate persistent runtime.
+- A dedicated machine account is an optional customer authority decision, not an installation prerequisite. Every selected identity remains auditable, rotatable and revocable.
 - Docker socket, Host home and Host SSH agent access are never implicit. Docker socket access is host-root-equivalent.
 - Provider-native IM credentials remain inside the connector boundary.
 
@@ -149,10 +150,13 @@ The formal runtime owns its binaries, injected execution contract, control plane
 | Fact | Observed value | Evidence | State |
 |---|---|---|---|
 | public release/operations entry | UNRESOLVED | UNRESOLVED | unresolved |
-| Company snapshot resolution | UNRESOLVED | UNRESOLVED | unresolved |
-| repo fleet resolution | UNRESOLVED | UNRESOLVED | unresolved |
-| identity/credential boundary | UNRESOLVED | UNRESOLVED | unresolved |
-| handoff and writeback boundary | UNRESOLVED | UNRESOLVED | unresolved |
+| deployment mode: Native or Docker | UNRESOLVED | UNRESOLVED | unresolved |
+| runtime owner and actual runtime root | UNRESOLVED | UNRESOLVED | unresolved |
+| release version and Docker image digest when applicable | UNRESOLVED | UNRESOLVED | unresolved |
+| credential discovery/import boundary and capability evidence | UNRESOLVED | UNRESOLVED | unresolved |
+| Runtime Foundation doctor and real Agent discovery | UNRESOLVED | UNRESOLVED | unresolved |
+| provider writeback and Task workspace cleanup | UNRESOLVED | UNRESOLVED | unresolved |
+| optional connector boundary | UNRESOLVED | UNRESOLVED | unresolved |
 
 Use the installed runtime's own public help and operator documentation for operations. Do not reproduce internal command catalogs here. A service restart does not imply continuation of old work; recovery follows observed runtime state and the runtime-owned runbook.
 

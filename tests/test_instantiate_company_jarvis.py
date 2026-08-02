@@ -73,6 +73,7 @@ class CompanyJarvisInstantiationTests(unittest.TestCase):
             ".gitignore",
             "SKILL.md",
             "references/canonical-repo-fleet.md",
+            "references/jarvis-box.md",
             "references/runtime-governance.md",
             "references/runtime-governance-quick.md",
             "tools/README.md",
@@ -85,6 +86,29 @@ class CompanyJarvisInstantiationTests(unittest.TestCase):
             sorted(relative for relative in required if not (self.home / relative).is_file()),
             [],
         )
+        jarvis_box = (self.home / "references" / "jarvis-box.md").read_text(
+            encoding="utf-8"
+        )
+        governance = (self.home / "references" / "runtime-governance.md").read_text(
+            encoding="utf-8"
+        )
+        for required_contract in (
+            "Native",
+            "Docker",
+            "runtime owner",
+            "actual runtime root",
+            "credential",
+            "writeback",
+            "cleanup",
+        ):
+            self.assertIn(required_contract, jarvis_box + governance)
+        for obsolete_contract in (
+            "company-context.json",
+            "deployment-lock.json",
+            "container-side probes",
+            "separately activated formal identity",
+        ):
+            self.assertNotIn(obsolete_contract, jarvis_box + governance)
         obsolete = ("jarvis.toml", "bootstrap-state.json", "bootstrap-result.json")
         self.assertEqual([name for name in obsolete if (self.home / name).exists()], [])
 

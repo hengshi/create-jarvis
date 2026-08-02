@@ -57,11 +57,11 @@
 ## Part 4 — jarvis-box installation and onboarding
 
 - Part 4 只在 Reconciliation Gate 和至少一个 `construction-ready` workflow 可复验后开始。
-- 客户从已校验 public release bundle 获得 Compose、脚本、模板和运维手册，不依赖 jarvis-box 私有源码。
-- runtime snapshot 固定 Company commit、required repo commits/entries、一个 jarvis-box image digest、bundled component versions 和 probe evidence。
-- 正式高权限 identity 与 Host 用户分离且可审计/轮换/撤销；Host home、SSH agent 和 credential store 不复制。
-- 服务下载、checksum、image pin、start、authentication、verify 和 shadow handoff 各有 work-card checkpoint。
-- container 内 Agent、Company → repo route、source、read/write 和必要 capability probes 实际通过。
+- 客户只选择 Native 或 Docker；其余安装和运维步骤来自已校验 jarvis-box public release contract，不依赖私有源码。
+- Native 使用安装者当前 OS 用户；Docker 从当前 Host 用户自动导入批准的可移植认证。Dedicated machine account 是可选策略，不是部署前置条件。
+- work card 记录实际 deployment mode、runtime owner/root、release version、Docker image digest（适用时）和 connector boundary，不预设客户路径。
+- selected environment 中的 Agent discovery、source、provider ingress、Task/Run、workspace、writeback 和 cleanup probes 实际通过。
+- Host HOME、SSH agent、Keychain、完整 credential store 和 token 不进入 runtime evidence 或客户仓库。
 - Docker socket 未单独授权时不挂载；若挂载，审计中明确 host-root-equivalent。
 - 安装观察到的客户级稳定事实可回写 Company runtime governance；jarvis-box execution contract、control plane 和 operator runbook 不复制。
 - 成功后 workflow 是 `ready-for-shadow`，不是 `active`。

@@ -26,6 +26,14 @@ It does not run a construction daemon, own customer knowledge or implement Jarvi
 
 The customer Jarvis repo owns company knowledge, routing, workflows and `runtime-governance.md`. Its Runtime Foundation owns bootstrap, sync, native Agent discovery materialization, doctor, maintenance and Scheduler Adapter behavior.
 
+`create-jarvis` is the source owner of the customer-neutral Runtime Foundation templates. A generated Company Jarvis carries versioned maintenance/self-improve inner jobs, prompts and a scheduler manager; the Runtime Agent installs or upgrades those artifacts and never invents them from scratch.
+
+- Native scheduling runs the inner jobs as the current existing OS user and reuses that user's HOME and Git/Agent authentication. It never creates a dedicated `jarvis` user.
+- Docker scheduling has exactly one host scheduler owner. It invokes the same inner jobs through the pinned Jarvis Box `runtime-job` transport; no scheduler runs inside the container.
+- The deployment mode is selected during formal onboarding. Installation and upgrades may only preserve that mode; an incompatible existing scheduler owner is a blocking deployment conflict, never an instruction to switch modes automatically.
+- A staged definition or loaded scheduler label is not health evidence. Health requires one owner, agreement with the selected deployment mode and live transport reachability in Docker mode.
+- The Runtime Foundation root is selected and recorded for each customer. Public templates never depend on a HENGSHI-specific path.
+
 Jarvis Box does not clone, mount, parse or validate the customer Jarvis repo. It provides the runtime-job transport used by a Docker Host Scheduler Adapter; the environment-native inner command remains customer-owned.
 
 ## Jarvis Box

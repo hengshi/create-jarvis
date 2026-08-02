@@ -2,6 +2,8 @@
 
 公司 Jarvis 自己拥有的高信号可复用辅助工具索引，也登记 Company runtime governance 要求的客户级 Host 工具。不复制 repo-local 或 jarvis-box/install-owned capability。
 
+稳定的 maintenance/self-improve 实现位于 `../runtime-foundation/`。本目录只放 Company Jarvis 的其他工具，不要在这里再生成一套 scheduler 或复制 Runtime Foundation job。
+
 ---
 
 ## 什么适合放在这里

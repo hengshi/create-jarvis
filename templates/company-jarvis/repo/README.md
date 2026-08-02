@@ -2,6 +2,8 @@
 
 {{COMPANY_SLUG}}-jarvis 是 {{COMPANY_NAME}} agent 的统一入口——知识索引、路由、综合与写回中枢。它不是源代码副本，不是会话日志库，不是只按 repo 猜入口的 router。
 
+本仓库同时版本化客户拥有的 `runtime-foundation/`。其中的 maintenance/self-improve 是稳定模板，不由运行时 Agent 临时生成；Native 由当前 OS 用户直接调度，Docker 由宿主机 scheduler 经 Jarvis Box `runtime-job` 调用容器内同一个 inner job。安装和状态入口见 `runtime-foundation/README.md`。
+
 **核心职责**：帮 agent 先理解公司、进入正确工作闭环、并在任务完成后把可复用知识写回正确位置。
 
 ## 身份

@@ -31,6 +31,13 @@ REQUIRED_COMPANY_FILES = (
     "references/runtime-governance.md",
     "references/runtime-governance-quick.md",
     "tools/README.md",
+    "runtime-foundation/README.md",
+    "runtime-foundation/manage.py",
+    "runtime-foundation/bin/jarvis-company-job.py",
+    "runtime-foundation/bin/jarvis-maintenance",
+    "runtime-foundation/bin/jarvis-self-improve",
+    "runtime-foundation/prompts/jarvis-maintenance.md",
+    "runtime-foundation/prompts/jarvis-self-improve.md",
 )
 
 OBSOLETE_ROOT_CONTRACTS = (

@@ -84,3 +84,7 @@ episode 不是学习单元，只是模型证据。真正要学习的是：Agent 
 - 不把另一个客户的主机名、路径、测试身份或部署事实写成公共方法默认值。
 - 不用新增抽象、manifest、状态文件或 service owner 掩盖本可由现有模型表达的问题。
 - broad backfill / RL 请求必须分片、可恢复，并为每条 session 和候选保留 accounted status。
+
+## Runtime Foundation ownership
+
+Session discovery rules belong to this skill. The generated Company Jarvis owns the versioned maintenance/self-improve jobs and prompts under `runtime-foundation/`; the selected customer Runtime Foundation root owns their installed locks, logs and workspaces. Jarvis Box only supplies Agent selection/lifecycle and the Docker `runtime-job` transport. Do not assume Jarvis Box creates the customer scheduler or run directories.

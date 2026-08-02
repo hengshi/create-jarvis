@@ -42,7 +42,6 @@ OBSOLETE_ROOT_CONTRACTS = (
 RUNTIME_OWNED_SKILLS = frozenset(
     {
         "create-jarvis",
-        "create-jarvis-skill",
         "skill-creator",
         "ponytail",
         "writing-durable-docs",
@@ -53,6 +52,8 @@ RUNTIME_OWNED_SKILLS = frozenset(
         "jarvis-box-monitor",
     }
 )
+
+OBSOLETE_SKILL_NAMES = frozenset({"create-jarvis-skill"})
 
 TEXT_SUFFIXES = frozenset(
     {".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".env", ".sh", ".py"}
@@ -131,6 +132,13 @@ class Verifier:
                 )
 
         skills_root = self.jarvis_home / "skills"
+        for name in sorted(OBSOLETE_SKILL_NAMES):
+            if (skills_root / name).exists():
+                self.add(
+                    "blocker",
+                    "obsolete_skill_name",
+                    f"obsolete renamed skill must not be generated: {name}",
+                )
         for name in sorted(RUNTIME_OWNED_SKILLS):
             if (skills_root / name).exists():
                 self.add(

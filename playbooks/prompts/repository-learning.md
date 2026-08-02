@@ -1,6 +1,6 @@
 # Part 3: independent repository learning
 
-你的唯一目标是执行一个 `work/repositories/<repo>.md` card，学习该客户代码仓库，并把经过真实 episode 验证的知识留在它自己的 repo-local skills 中。每个 repo 是独立、可长时间运行、可恢复的任务。
+你的唯一目标是执行一个 `work/repositories/<repo>.md` card，从真实历史证据收敛该仓库的决策模型，并把经过区分性 replay 验证的知识留在它自己的 repo-local skills 中。episode 是证据样本，不是学习单元。每个 repo 是独立、可长时间运行、可恢复的任务。
 
 ## 边界
 
@@ -24,7 +24,7 @@
 
 先核验 Part 1 Company scaffold 的远端 ref，再核验 card 中的 repo revision、history range、target workspace/branch、delivery policy 和 writer ownership。恢复时重新验证最后 checkpoint 的文件与 Git 事实；旧 writer 活着就重连，已结束才替换，ownership 不明时停止重复写入。
 
-card 记录当前 episode 的 case 目录、START pointer、历史 outcome pointer、replay 状态、delivery ref、blocker、最后已验证 checkpoint 和 `Next`。它是接手合同，不是机器协议；不要创建 parser、JSON state 或 heartbeat。每闭合一个 episode 就更新 card，并把 verified pointer 报给 Coordinator 更新 journal；只有声明的历史范围确实扫描到边界，当前 repo 才能写 `completed`。
+card 记录当前 evidence batch、model hypothesis、case 目录、START pointer、历史 outcome pointer、replay 状态、delivery ref、blocker、最后已验证 checkpoint 和 `Next`。它是接手合同，不是机器协议；不要创建 parser、JSON state 或 heartbeat。每次 model decision 闭合后更新 card，并把 verified pointer 报给 Coordinator 更新 journal；只有声明的历史范围确实扫描到边界，当前 repo 才能写 `completed`。
 
 ## Repository learning loop
 
@@ -32,29 +32,32 @@ card 记录当前 episode 的 case 目录、START pointer、历史 outcome point
 
 1. **固定并遍历客户选择的范围。** 枚举该 repo 在解析后边界内从当前 revision 可达的 commits，记录 next commit/ref 以便恢复。除非客户或 repo 证据要求其他顺序，默认 oldest-to-newest，使后续真实 episode 能检验前面沉淀的知识。`all` 必须从最早可达 commit 走到当前 revision；一年、两年或自定义范围必须完整走过对应边界。不要用固定 case 数量提前停止。
 2. **读取 code changes，不能只读 message。** 对范围内 commit 实际检查 patch、changed files 和必要的 parent/final code；大变更可以分块读取，但不能仅凭 message、tag、`--stat` 或语义分类标记为已学习。相关 tests、review、CI 和相邻 commits 也要读取到足以理解行为变化。每个 commit 最终要么属于某个 episode，要么作为已检查的 supporting/preconsumed commit，要么有基于 code change 的排除理由。
-3. **发现 episode，而不是把分类当结果。** 从真实 issue、MR/PR、review、CI、tests、release 和 Git history 中还原“原始问题 → 实际工作过程 → 可验证结果”。commits 是定位、代码变化和 outcome 证据；内部 coverage 记录不是最终 skill。
-4. **选择完整、相关、可重放的 episode。** 必须能找到当时的 visible START、pre-change snapshot 和后来真实 outcome，并读完该 episode 的实际 diff 与相关代码。只有单个 commit message、diff 摘要或无法验证 outcome 的候选不能执行。
-5. **隔离 START 与答案。** replay agent 只能看到当时可见的问题、允许的 sources、parent snapshot 和当时已有的 skills；final diff、最终 commit、root cause、review 结论和验收结果属于 hidden oracle。
-6. **执行 baseline replay。** 使用当前累计 repo-local skills 处理原始任务，保留完整输出和验证结果。没有真正执行不能判断 skill gap。
-7. **外层比较真实 outcome。** 外层 Agent 必须读取完整真实 code changes，再比较 routing、修改边界、实现策略、测试/验证和 END 行为，判断失败究竟来自缺失的可复用 repo knowledge，还是一次性事实、工具/runtime 问题或任务本身的不确定性。
-8. **先判断 `no_skill_gap`。** 当前 skills 已足够、差异不可复用或不属于 skill 时，只记录决定，不制造更新。
-9. **最小写回。** 确有可复用缺口时，使用当前 Agent 已有的 `skill-creator`；若没有，则按本 method pack 的 repo-local templates 和 skill-writing 边界修改唯一正确的 primary home。不能因为一个辅助 skill 未安装就阻塞 construction。主 skill保持短；细节优先进入 focused reference 或确定性脚本。
-10. **同 case 重放。** 用更新后的累计 skills 重跑完全相同的 visible START。只有行为改善、真实验收满足且没有泄漏 oracle 才保留 delta；否则撤销该 candidate，而不是增加更多 prompt。
-11. **相邻回归。** 对可能过拟合的规则选一个相邻真实 episode 验证；失败就收窄或删除。
-12. **推进进度。** 保存 commit/code-read coverage、case、comparison、decision、before/after skill ref 和验证证据，再更新当前 card 的 last checkpoint 与 `Next`。
-13. **在当前 revision 收口。** 到达 requested boundary 后，回到 context 固定的当前 revision，逐条核对累计 repo-local guidance 对当前架构、路径、命令、构建和测试仍成立；删除或收窄只适用于历史版本的候选，并运行当前 repo 能提供的验证。没有这一步不能标记 `completed`。
-14. **发布可消费 ref。** 按 `BUILD-CONTEXT.md` 的 delivery policy 提交、推送并创建 PR/MR，或明确停在 local/read-only candidate。记录 branch、commit、PR/MR、验证和 approval/merge 状态；不得自动合并受保护分支。
+3. **还原 trajectory，不把分类当结果。** 从真实 issue、MR/PR、review、CI、tests、release 和 Git history 中还原“当时可见事实 → decision points → state transitions → 实际工作 → 可验证结果”。commits 是定位、代码变化和 outcome 证据；内部 coverage 记录不是最终 skill。
+4. **建立当前 model hypothesis。** 用仓库语言写清实体、所有者、权威来源、合法状态与转换、不变量、可选能力与 fallback、失败关闭边界。先检查现有 guidance 是否已经表达该模型，禁止为同一事实再造第二套名词、状态文件或 owner。
+5. **判断 evidence 对模型的作用。** 每条 trajectory 只能标为 `confirm`、`refine`、`replace`、`remove` 或 `not-evaluated`，并说明它支持或反驳哪条 model assertion。重复用户纠正、同类 review 和跨入口生产逃逸优先指向模型缺陷，而不是更多局部规则。
+6. **选择区分模型的完整 case。** 必须能找到 visible START、pre-change snapshot 和真实 outcome，且该 case 能区分当前模型与至少一个错误替代模型。只重复已知 happy case、只看单个 commit message、diff 摘要或无法验证 outcome 的候选不能执行。
+7. **隔离 START 与答案。** replay agent 只能看到当时可见的问题、允许的 sources、parent snapshot 和当时已有的 skills；final diff、最终 commit、root cause、review 结论和验收结果属于 hidden oracle。
+8. **执行 baseline replay。** 使用当前累计 repo-local skills 处理原始任务，保留完整输出和验证结果。没有真正执行不能判断 model/skill gap。
+9. **外层比较 decision trajectory。** 外层 Agent 读取完整真实 code changes，再比较实体识别、authority、ownership、状态转换、fallback、范围、实现策略、验证和 END 行为。先判断失败是 repo model 缺口，还是 runtime/tool、跨 repo 方法、一次性外部故障或任务不确定性。
+10. **选择唯一 intervention 与 primary home。** 当前模型已足够或差异不可复用时记录 `no_skill_gap`。确有缺口时优先选择能让错误不可发生的代码、schema、script/hook、test/review gate；只有判断本身需要上下文时才写 skill/reference。不得把非 repo 所有的机制塞入 repo-local prose。
+11. **最小写回。** 使用当前 Agent 已有的 `skill-creator`；若没有，则按本 method pack 的边界修改唯一 primary home。主 skill 保持短，稳定细节进入 focused reference，确定性约束进入机械门禁。删除被新模型替代的旧词、旧状态和竞争路径，不只追加例外。
+12. **同 case 重放。** 用更新后的累计 guidance 重跑完全相同的 visible START。只有 decision trajectory 改善、真实验收满足且没有泄漏 oracle 才保留 delta；否则撤销 candidate，而不是继续堆 prompt。
+13. **反例与相邻回归。** 至少选一个错误替代模型会给出不同答案的反例，再选相邻真实 trajectory 验证泛化；失败就收窄、替换或删除模型规则。
+14. **推进进度。** 保存 commit/code-read coverage、model before/after、evidence effect、case comparison、intervention/owner decision、before/after ref 和验证证据，再更新 card checkpoint 与 `Next`。
+15. **在当前 revision 收口。** 到达 requested boundary 后回到 context 固定的当前 revision，核对累计 guidance 的实体、路径、authority、命令、构建和测试仍成立；删除历史遗留名称和只适用于旧架构的规则，并运行当前 repo 的机械门禁与 replay。没有这一步不能标记 `completed`。
+16. **发布可消费 ref。** 按 delivery policy 提交、推送并创建 PR/MR，或明确停在 local/read-only candidate。记录 branch、commit、PR/MR、验证和 approval/merge 状态；不得自动合并受保护分支。
 
-## Episode 产物
+## Learning evidence
 
-每个执行过的 episode 在 replay workspace 使用独立目录，至少保存：
+每个执行过的 case 在 replay workspace 使用独立目录，至少保存：
 
 - visible START 与 provenance；
 - hidden oracle 的外层 pointer，不把正文暴露给 replay agent；
 - episode commits、完整 patch/code inspection 的证据 pointer，以及每个相关 commit 的 coverage 归属；
 - baseline replay result；
-- outcome comparison；
-- `no_skill_gap` 或 skill update decision；
+- model hypothesis、被区分的错误替代模型和 evidence effect；
+- outcome 与 decision trajectory comparison；
+- `no_skill_gap` 或 intervention/primary-home decision；
 - candidate diff；
 - same-case rerun result；
 - 保留或撤销结论。
@@ -65,4 +68,4 @@ card 记录当前 episode 的 case 目录、START pointer、历史 outcome point
 
 遇到缺少授权、无可验证 outcome 或隔离运行不可用时，把当前 card 标为 `blocked`，写清已搜索范围和恢复动作，然后把控制权交还 Coordinator；其他 repo card 可以独立继续。repo 是 read-only 时可以完成学习证据，但最终状态必须是 `candidate-only`，不能冒充可部署交付。
 
-只有 requested range 内所有可达 commits 都有 code-read coverage、所有选中 episode 都已闭合或明确 disposition、累计 guidance 已在当前 revision 收口验证，并且接受的 delta 已形成 delivery policy 要求的可追溯 ref，当前 card 才能标为 `completed`。任务结束时只向 Coordinator 报告范围与覆盖状态、保留的 skill delta、交付 ref、blocker 和 card pointer；不向客户解释内部 eval 术语，也不声称其他 repo 已完成。
+只有 requested range 内所有可达 commits 都有 code-read coverage、所有 trajectory 都已 accounted、选中 case 已闭合或明确 disposition、模型在反例和当前 revision 收口验证，并且接受的 delta 已形成 delivery policy 要求的可追溯 ref，当前 card 才能标为 `completed`。任务结束时只向 Coordinator 报告范围与覆盖状态、model changes、保留的 durable delta、交付 ref、blocker 和 card pointer；不向客户解释内部 eval 术语，也不声称其他 repo 已完成。

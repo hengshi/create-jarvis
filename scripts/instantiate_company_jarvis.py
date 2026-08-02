@@ -389,6 +389,21 @@ def copy_and_render(src_dir: Path, dst_dir: Path, globals_: dict) -> dict:
     for precheck in dst_dir.rglob("precheck.sh"):
         precheck.chmod(precheck.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
+    # Runtime Foundation jobs are generated source artifacts, not prose-only
+    # examples. Keep their executable contract after rendering and re-renders.
+    runtime_bin = dst_dir / "runtime-foundation" / "bin"
+    if runtime_bin.is_dir():
+        for executable in runtime_bin.iterdir():
+            if executable.is_file():
+                executable.chmod(
+                    executable.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+                )
+    runtime_manager = dst_dir / "runtime-foundation" / "manage.py"
+    if runtime_manager.is_file():
+        runtime_manager.chmod(
+            runtime_manager.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        )
+
     # Check unresolved tokens in created files
     for rel in result["created"]:
         dst_path = dst_dir / rel

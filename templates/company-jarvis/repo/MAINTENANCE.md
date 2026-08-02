@@ -74,3 +74,7 @@ replay 证据留在它自己的任务目录，不进入 company Jarvis。
 活跃构建或演进旅程的范围、证据扫描和下一动作记录在其外部工作卡中，不在本 repo 建立另一套 construction state。旅程结束后，本文件就是
 日常维护入口。外部工作卡负责旅程恢复；正式 managed runtime 的进程、session、
 retry 和运维恢复遵循该 runtime 自己的公开 contract 与 operator runbook。
+
+## Runtime Foundation 边界
+
+`runtime-foundation/` 中的 maintenance/self-improve 脚本、prompts 和 scheduler manager 是本 Company Jarvis 的版本化稳定产物。运行时 Agent 可以按正式变更流程升级它们，但不得临时生成替代脚本；Jarvis Box 只拥有 Task/Run/Agent/Workspace 与 Docker `runtime-job` transport，不拥有这些客户作业。

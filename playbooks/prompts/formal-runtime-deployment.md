@@ -110,3 +110,7 @@ Use Jarvis Box's own public operations manual for commands and recovery. Do not 
 Update the onboarding work card and Construction Journal from verified evidence. The selected workflow becomes `ready-for-shadow`, not `active`.
 
 Representative customer-supervised tasks advance `ready-for-shadow → shadowing → active`. New repository learning or self-improvement publishes a new ref; it never silently mutates the active runtime.
+
+## Runtime Foundation scheduled jobs
+
+不要让客户手工编写 maintenance/self-improve 或 cron。使用生成后的 `runtime-foundation/manage.py` 按 Part 4 已选择的部署模式完成首次安装或同模式升级：Native 以当前已有 OS 用户直接安装；Docker 先在持久化 Agent HOME 中执行 `install-inner`，再在宿主机以 `install --mode docker` 安装唯一 scheduler owner。只有 `status` 同时证明所选 mode、唯一 owner 和 Docker transport reachability 时才能通过 Part 4；label loaded 或配置文件存在都不是充分证据。发现另一部署模式的配置或 scheduler owner 时立即停止，不得自动切换。

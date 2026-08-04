@@ -81,7 +81,7 @@ JARVIS 提供四个可验证的职责面：
 | 类别 | 位置 | 用途 |
 |---|---|---|
 | entry skill | `skills/{{COMPANY_SLUG}}-jarvis/SKILL.md` | 统一入口、闭环路由、收束 |
-| 通用方法 | runtime agent discovery 中的 `skill-creator`、`ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` | container 安装一次，不复制到本 repo |
+| 通用方法 | runtime agent discovery 中的 `skill-creator`、`ponytail`、`writing-durable-docs`、`jarvis-self-improve-skill`、`stop-slop` | 从 pinned create-jarvis 用 `scripts/install_runtime_method_skills.py` 安装到所选 Agent root，保存 exact commit/content manifest；不复制到本 repo |
 | source/tool | `skills/{{COMPANY_SLUG}}-<name>/SKILL.md` | 帮助 agent 使用客户特定 source/tool |
 | workflow | `skills/{{COMPANY_SLUG}}-workflow-<name>/SKILL.md` | 跨 repo / 跨角色的客户闭环 |
 | repo-local skill | 各 repo 根 `skills/` canonical package | 单 repo 内工程执行方法 |

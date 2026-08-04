@@ -219,6 +219,32 @@ Phase B 必须让每个主要当前 task family 都有 disposition。`candidate`
 
 **“最小写回”的唯一正确解释**：每条知识只写到最合适的 primary home，skill body 只保留执行所需内容，细节按需加载，避免重复和无关上下文。它绝不意味着减少 task-family 覆盖、把多个独立 trigger 强塞进一个 router、或只为少数 replay cases 建 skill。
 
+#### 六维深度合同：不能只靠正文“看起来详细”
+
+每个有 router 的最终 topology 都必须在 router package 内交付以下四个互相链接的产物；使用
+`templates/replay/repository-skill-depth-contract.md`、`repository-skill-depth.json`、
+`repository-forward-evals.json` 和 `audit_skill_depth.py` 作为起点，但必须替换占位内容并按当前仓库定制：
+
+- `references/skill-depth.md`：给执行 Agent 按需读取的六维解释、重点实现模型和使用边界；
+- `references/skill-depth.json`：覆盖**全部**交付 packages 的机器可读 inventory；
+- `evals/evals.json`：与普通任务上下文隔离的 route、negative、forward、cross-repo eval；
+- `scripts/audit_skill_depth.py`：能在该 repo 独立运行的确定性 audit，并由 router 给出精确命令。
+
+六维是六张不同的账，不能相互替代：
+
+1. **implementation anchors**：每个 skill 都记录当前 authority、第一入口、关键 symbol、状态/数据/资源转换、失败关闭和最近 proof surface。路径必须在 fixed revision 存在；仅有目录、commit 或抽象描述不算 anchor。
+2. **mechanical controls**：把可确定判断的规则落到 generator、parser、schema/ABI check、focused test、sanitizer、build target 或 audit script，并记录 `executed-pass`、`executed-fail`、`observed-not-executed`。不能把“建议运行”写成已经通过。
+3. **risk promotion**：为每个 skill 记录 risk reason 和 L1/L2/L3。并发、安全、持久化/迁移、状态机、resource lifecycle、startup/shutdown、retry/rollback 默认不能靠宽泛 L1 claim 关闭；如果缺少 L2/L3，必须收窄 claim 并列出下一 proof。
+4. **runtime-hidden forward eval**：高风险、相邻 route 重叠或存在明显错误替代模型的 skill，至少有一个未参与写作的 current-revision case。task Agent 只见 prompt/repo；`expected_route`、`forbidden_routes`、invariants、proof 和 oracle source 在 task 完成后才由外层 evaluator 读取。改写历史答案、让同一 Agent 同时见 prompt 和 expected answer、或只检查关键词都不算 forward eval。
+5. **cross-repository closure**：跨 repo 的 skill 必须写 local last authority、downstream first authority、handoff payload 和最终 proof owner。当前 repo 的 compile/provider invocation 不能冒充 downstream behavior；eval 必须同时检查主 owner、禁选 owner 和 handoff 信息是否保留。
+6. **drift/self-improve**：每个 skill 都列出会使模型失效的 path/symbol/command/schema/provider contract。真实任务失败、用户/reviewer correction、路径变化、eval 回归或 audit 失败先进入 evidence；再由 `jarvis-self-improve-skill` 比较旧模型与候选，在 same/adjacent/forward cases 上验证后写入唯一 primary home。禁止在当前任务中直接修改 skill 来为当前答案自证。
+
+`skill-depth.json` 的每个 skill record 至少包含 `name`、`risk`、`level`、`authority`、
+`entrypoints`、`transitions`、`mechanical_controls`、`forward_eval_ids`、`cross_repo` 和
+`drift_watch`。router 自身也必须入账：它的行为风险是错误路由、遗漏能力和跨 repo owner 误判。
+
+深度不等于统一升级到 L3。正确结果是：所有 skills 都有 D1/D2/D3/D6；只给需要的 routes 加 D4；只给真实跨仓边界加 D5；每条 claim 都与真实 evidence 等级一致。
+
 ### Phase G：验证、覆盖收口与交付
 
 对最终累计 topology 执行：
@@ -232,6 +258,8 @@ Phase B 必须让每个主要当前 task family 都有 disposition。`candidate`
 7. 检查过生成：是否有 skills 仅按目录命名、trigger 重叠、没有独立 workflow/proof，或只是已有 skill 的 reference？
 8. 回到 fixed revision 核对所有路径、symbols、命令、构建和测试仍成立；区分 `executed-pass`、`executed-fail` 与 `observed-not-executed`。
 9. 按 delivery policy commit、push、创建或更新 PR/MR。记录 branch、exact commit、PR/MR、验证、approval/merge 状态；不得自动合并受保护分支。
+10. 从 repo root 实际运行 router 的 `scripts/audit_skill_depth.py`；audit 必须证明六个 dimension 已声明、每个 package 都进入 inventory、authority paths 当前存在、router 覆盖全部 packages、eval ID 可解析且至少包含 should-trigger、must-not-trigger 和 forward/adjacent 类型。
+11. eval artifact 的“存在”和 JSON 合法只算结构证据。需要 L3 的 case 必须在隔离 task context 中实际执行并由外层 evaluator 读 hidden expectations 后评分；没有独立执行条件时标 `prepared-not-executed`，不能报 forward pass。
 
 ## 必须保存的证据
 
@@ -241,6 +269,8 @@ Phase B 必须让每个主要当前 task family 都有 disposition。`candidate`
 - capability coverage ledger；
 - repository model before/after；
 - topology/route matrix；
+- 六维 depth contract、完整 package inventory、机械 audit 结果；
+- runtime-hidden eval suite 及每个 case 的 `executed-pass` / `executed-fail` / `prepared-not-executed` 状态；
 - 每个 delivered skill 的 validation level 与证据 pointer；
 - current-revision reconciliation；
 - exact delivery ref 和 review state。

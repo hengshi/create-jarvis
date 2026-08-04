@@ -166,7 +166,9 @@ Follow `playbooks/prompts/formal-runtime-deployment.md` and `work/jarvis-box-onb
 
 Ask the customer one deployment question: Native or Docker. Use only the selected jarvis-box release's public installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker imports only approved portable identities from the current Host user into its persistent runtime; a dedicated machine account is optional policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
 
-Record the selected mode, actual runtime owner/root, release version, Docker image digest when applicable, credential capability evidence, optional connector boundary and real Agent/provider/writeback/cleanup evidence. Do not copy Compose files, environment-variable catalogs, container paths or the jarvis-box runbook into Company Jarvis. After the selected environment's real probes pass, advance the selected workflow to `ready-for-shadow`.
+Before scheduled jobs can be accepted, install the pinned method packages with `scripts/install_runtime_method_skills.py` into the selected Agent's explicit discovery root, run its doctor, and prove fresh discovery of `jarvis-self-improve-skill`. Company repos do not vendor these generic packages; a template in create-jarvis or a prompt that names the skill is not runtime installation evidence.
+
+Record the selected mode, actual runtime owner/root, release version, Docker image digest when applicable, exact create-jarvis method-skill manifest, credential capability evidence, optional connector boundary and real Agent/provider/writeback/cleanup evidence. Do not copy Compose files, environment-variable catalogs, container paths or the jarvis-box runbook into Company Jarvis. After the selected environment's real probes pass, advance the selected workflow to `ready-for-shadow`.
 
 ## Shadow delivery and evolution
 

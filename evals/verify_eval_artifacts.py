@@ -288,6 +288,37 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         and any(marker in coverage_text.lower() for marker in ("l1", "current-state", "current state")),
         str(coverage),
     )
+    depth_assets = [
+        skills_root / "invoice-service" / "references" / "skill-depth.md",
+        skills_root / "invoice-service" / "references" / "skill-depth.json",
+        skills_root / "invoice-service" / "evals" / "evals.json",
+        skills_root / "invoice-service" / "scripts" / "audit_skill_depth.py",
+    ]
+    checks.add(
+        "Router delivers the six-dimension depth, eval, and mechanical audit assets",
+        all(path.is_file() for path in depth_assets)
+        and all(str(path.relative_to(skills_root / "invoice-service")) in router_text for path in depth_assets),
+        repr([str(path.relative_to(repo)) for path in depth_assets]),
+    )
+    audit = skills_root / "invoice-service" / "scripts" / "audit_skill_depth.py"
+    if audit.is_file():
+        audit_run = command(
+            [
+                sys.executable,
+                str(audit),
+                "--repo-root",
+                str(repo),
+                "--router",
+                "invoice-service",
+            ]
+        )
+        checks.add(
+            "Repository depth audit actually passes",
+            audit_run.returncode == 0,
+            (audit_run.stdout or audit_run.stderr).strip(),
+        )
+    else:
+        checks.add("Repository depth audit actually passes", False, str(audit))
     checks.add(
         "No legacy eval-loop skill was created",
         not (repo / "skills" / "eval-loop.md").exists(),

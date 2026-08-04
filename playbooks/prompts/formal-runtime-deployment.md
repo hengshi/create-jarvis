@@ -113,4 +113,13 @@ Representative customer-supervised tasks advance `ready-for-shadow → shadowing
 
 ## Runtime Foundation scheduled jobs
 
-不要让客户手工编写 maintenance/self-improve 或 cron。使用生成后的 `runtime-foundation/manage.py` 按 Part 4 已选择的部署模式完成首次安装或同模式升级：Native 以当前已有 OS 用户直接安装；Docker 先在持久化 Agent HOME 中执行 `install-inner`，再在宿主机以 `install --mode docker` 安装唯一 scheduler owner。只有 `status` 同时证明所选 mode、唯一 owner 和 Docker transport reachability 时才能通过 Part 4；label loaded 或配置文件存在都不是充分证据。发现另一部署模式的配置或 scheduler owner 时立即停止，不得自动切换。
+不要让客户手工编写 maintenance/self-improve 或 cron。先从当前 pinned create-jarvis checkout 把通用 method skills 安装到**所选 Runtime Agent 的显式 skills root**：
+
+```bash
+python3 scripts/install_runtime_method_skills.py install --skills-root <selected-agent-skills-root>
+python3 scripts/install_runtime_method_skills.py doctor --skills-root <selected-agent-skills-root>
+```
+
+不得猜测 Agent root，也不得把这些通用 skills 复制进 Company repo 的 `skills/`。Native 使用当前 OS 用户的 Agent root；Docker 必须在持久化 Agent HOME 的容器边界内安装。保存 installer 输出中的 exact method commit、packages 和 content hashes，并执行一次 fresh Agent discovery，证明 `jarvis-self-improve-skill` 可见。仅有模板文件、prompt 提及或旧 session 发现记录都不算安装证据。
+
+然后使用生成后的 `runtime-foundation/manage.py` 按 Part 4 已选择的部署模式完成首次安装或同模式升级：Native 以当前已有 OS 用户直接安装；Docker 先在持久化 Agent HOME 中执行 `install-inner`，再在宿主机以 `install --mode docker` 安装唯一 scheduler owner。只有 method-skill doctor、fresh discovery 和 Foundation `status` 同时证明 exact method ref、所选 mode、唯一 owner 和 Docker transport reachability时才能通过 Part 4；label loaded 或配置文件存在都不是充分证据。发现另一部署模式的配置或 scheduler owner 时立即停止，不得自动切换。

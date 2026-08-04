@@ -56,7 +56,8 @@ Coordinator 会先核验文件、Git ref、PR/MR 和 runtime 事实，再决定�
 2. 一个客户 workflow 达到 `construction-ready`；
 3. 所选 Native/Docker 环境中的 Runtime Foundation doctor 和真实 Agent discovery 通过；
 4. 一条真实任务完成 ingress、Task/Run、workspace、Agent、writeback 和 cleanup；
-5. 客户批准后才从 `ready-for-shadow` 进入 `shadowing`，稳定后再进入 `active`。
+5. pinned method skills 经显式 installer/doctor 进入所选 Agent discovery root，`jarvis-self-improve-skill` 由 fresh Agent 实际发现；
+6. 客户批准后才从 `ready-for-shadow` 进入 `shadowing`，稳定后再进入 `active`。
 
 ## 给 Coordinator
 

@@ -2,13 +2,13 @@
 
 The customer says only:
 
-> 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请确认当前 GitHub 账号已获 `hengshi-jarvis` 组织授权，用 `gh` 获取 `hengshi-jarvis/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
-Treat this as authorization to read the public method repository and coordinate the construction journey within the customer's already authorized Host Agent environment. It is not authorization to access undisclosed systems, copy credentials, publish to an unconfirmed namespace, or perform irreversible production actions.
+Treat this as authorization to read the paid-customer private method repository and coordinate the construction journey within the customer's already authorized Host Agent environment. It is not authorization to access undisclosed systems, copy credentials, publish to an unconfirmed namespace, or perform irreversible production actions.
 
 The receiving Agent:
 
-1. clones `https://github.com/hengshi/create-jarvis` into a dedicated local checkout when one is not already available, records its commit, and reads the method locally rather than through repeated WebFetch/raw-file requests;
+1. verifies the current `gh` identity can read `hengshi-jarvis/create-jarvis`, resolves the latest Release, clones it into a dedicated local checkout when one is not already available, checks out its exact tag, records its commit, and reads the method locally rather than through repeated WebFetch/raw-file requests;
 2. states that it will not scan the Host computer for company evidence;
 3. asks whether this is a new journey or a resume; for resume, requests the construction workspace path when it is not the current directory;
 4. for a new journey, asks the customer to provide company identity plus the docs, code repositories and work-system pointers Jarvis should learn from;

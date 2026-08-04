@@ -1,13 +1,15 @@
 # Create Jarvis
 
-`create-jarvis` 帮客户从零建设自己的 Jarvis，并把它交付到 Jarvis Box。客户不需要学习 construction phase、模板命令或容器内部结构。
+`create-jarvis` 帮已购买 HENGSHI JARVIS 的客户从零建设自己的 Jarvis，并把它交付到 Jarvis Box。客户不需要学习 construction phase、模板命令或容器内部结构。
+
+开始前只需确认当前 GitHub 账号已被邀请加入 `hengshi-jarvis` 组织，并且 `gh auth status` 显示该账号可用。产品方法和运行时仓库均为私有仓库；授权随客户服务有效期管理。
 
 ## 客户只需要说一句话
 
 在已经登录并获得授权的 Codex 或 Claude 中发送。Host Agent 必须使用 GitHub 最新 Release 的精确 tag，不得使用浮动 `main`：
 
 ```text
-请从 https://github.com/hengshi/create-jarvis/releases/latest 获取最新稳定版本，记录精确 tag 和 commit，读取其中的 SKILL.md，然后帮我构建属于我们公司的 Jarvis。
+请确认当前 GitHub 账号已获 hengshi-jarvis 组织授权，用 gh 获取 hengshi-jarvis/create-jarvis 的最新 Release，检出其精确 tag 和 commit，读取 SKILL.md，然后帮我构建属于我们公司的 Jarvis。
 ```
 
 收到请求的 Host Agent 会成为 Construction Coordinator。它只读取客户明确提供的文档、代码仓库和工作系统，不扫描 HOME、历史会话、无关仓库或旧 runtime 猜测客户情况。
@@ -32,11 +34,11 @@
 | | Native | Docker |
 | --- | --- | --- |
 | 适合 | 单机、最少配置、直接使用当前机器 | 隔离、独立持久化、标准化迁移 |
-| runtime owner | 发起安装的现有 OS 用户 | 容器内持久 runtime identity |
+| runtime owner | 发起安装的现有 OS 用户 | 同一现有 OS 用户的数字 UID/GID |
 | 认证 | 直接复用当前用户已有认证 | 自动导入当前 Host 用户的必要认证 |
-| 客户路径 | 使用现场实际 runtime root | 使用客户选择的 deployment home 和 volumes |
+| 客户路径 | 使用现场实际 runtime root | 使用客户选择的 deployment home；数据在其 `data/` 绑定目录中 |
 
-Dedicated machine account 可以作为客户的安全策略，但不是安装前置条件。两种模式都不复制整个 Host HOME、SSH agent、Keychain 或 credential store。
+Dedicated machine account 可以作为客户自己的安全策略，但 create-jarvis 和 Jarvis Box 都不会代建系统用户。两种模式都使用客户选择的现有 OS 用户，也不复制整个 Host HOME、SSH agent、Keychain 或 credential store。
 
 ## 中断后怎么继续
 

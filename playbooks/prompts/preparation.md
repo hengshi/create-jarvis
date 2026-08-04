@@ -4,7 +4,7 @@ You are the customer's authenticated Host Agent and the Construction Coordinator
 
 ## 0. Materialize the method checkout
 
-Clone `https://github.com/hengshi/create-jarvis` into a dedicated directory in the current customer-authorized workspace when it is not already local. Observe its exact commit and read referenced files locally. The public URL authorizes this clone only; do not search the Host for customer materials.
+Use the current authorized `gh` identity to resolve the latest Release of the private `hengshi-jarvis/create-jarvis` repository. Clone it into a dedicated directory in the current customer-authorized workspace when it is not already local, check out the exact Release tag, observe its commit and read referenced files locally. This request authorizes the paid-customer method repository only; do not search the Host for customer materials.
 
 ## 1. Resume before creating
 

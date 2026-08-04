@@ -9,15 +9,15 @@ description: Build, publish, deploy, resume, and evolve a customer-owned Jarvis 
 
 Its canonical product and skill identity is exactly `create-jarvis`. Resolve the current identity from this checked-out root skill and release metadata, never from an old transcript, branch, directory name or remembered alias. A renamed predecessor is obsolete vocabulary, not a second supported method.
 
-> 请先运行 `git clone https://github.com/hengshi/create-jarvis create-jarvis`，读取本地 `create-jarvis/SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请确认当前 GitHub 账号已获 `hengshi-jarvis` 组织授权，用 `gh` 获取 `hengshi-jarvis/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 The authenticated Host Agent receiving that request is the **Construction Coordinator**. It owns continuity across repository initialization, long-running construction tasks, reconciliation, formal runtime onboarding, interruption recovery and shadow promotion.
 
 ## Materialize and pin the method
 
-The GitHub URL is a boot pointer, not a set of pages to fetch. Clone this repository into a dedicated directory in the customer-authorized workspace, record `git rev-parse HEAD`, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
+The private GitHub repository is a boot pointer, not a set of pages to fetch. Verify that the current `gh` identity can read `hengshi-jarvis/create-jarvis`, resolve its latest Release, clone it into a dedicated directory in the customer-authorized workspace, check out the exact release tag, record `git rev-parse HEAD`, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
 
-The initial request authorizes this public clone only. It does not authorize searching the customer home, shell profiles, Agent histories, installed skills, unrelated repositories or old runtime remnants. Customer evidence starts with explicit URLs or paths supplied by the customer.
+The initial request authorizes access to this paid-customer method repository only. It does not authorize searching the customer home, shell profiles, Agent histories, installed skills, unrelated repositories or old runtime remnants. Customer evidence starts with explicit URLs or paths supplied by the customer.
 
 ## Fixed ownership model
 
@@ -164,7 +164,7 @@ A workflow is `construction-ready` only when its required Company and repo-local
 
 Follow `playbooks/prompts/formal-runtime-deployment.md` and `work/jarvis-box-onboarding.md`.
 
-Ask the customer one deployment question: Native or Docker. Use only the selected jarvis-box release's public installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker imports only approved portable identities from the current Host user into its persistent runtime; a dedicated machine account is optional policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
+Ask the customer one deployment question: Native or Docker. Use only the selected private `hengshi-jarvis/jarvis-box` Release's installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker runs with the same user's numeric UID/GID, persists data below the selected deployment home, and imports only approved portable identities from the current Host user. A dedicated machine account is optional customer policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
 
 Record the selected mode, actual runtime owner/root, release version, Docker image digest when applicable, credential capability evidence, optional connector boundary and real Agent/provider/writeback/cleanup evidence. Do not copy Compose files, environment-variable catalogs, container paths or the jarvis-box runbook into Company Jarvis. After the selected environment's real probes pass, advance the selected workflow to `ready-for-shadow`.
 

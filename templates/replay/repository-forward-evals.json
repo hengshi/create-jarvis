@@ -1,26 +1,16 @@
 {
-  "skill_name": "<repository-development>",
-  "evaluation_boundary": "Do not load expected_route, forbidden_routes, invariants or proof into the task Agent context.",
+  "schema_version": 1,
   "evals": [
     {
-      "id": "<repository>-route-001",
-      "kind": "should-trigger",
-      "prompt": "<current-revision task, unseen while authoring the skill>",
-      "expected_route": ["<primary-skill>"],
-      "forbidden_routes": ["<plausible-but-wrong-skill>"],
-      "invariants": ["<behavior the result must preserve>"],
-      "proof": ["<observable or executable proof>"],
-      "oracle_source": "<current code/test/contract pointer outside task context>"
-    },
-    {
-      "id": "<repository>-negative-001",
-      "kind": "must-not-trigger",
-      "prompt": "<adjacent task owned elsewhere>",
-      "expected_route": ["<correct owner or no repo skill>"],
-      "forbidden_routes": ["<over-broad repo skill>"],
-      "invariants": ["<ownership boundary>"],
-      "proof": ["<handoff evidence>"],
-      "oracle_source": "<authority pointer>"
+      "id": "REPLACE_WITH_EVAL_ID",
+      "kind": "forward",
+      "status": "prepared-not-executed",
+      "prompt": "REPLACE_WITH_VISIBLE_TASK",
+      "expected_route": ["REPLACE_WITH_PRIMARY_SKILL"],
+      "forbidden_routes": ["REPLACE_WITH_WRONG_SKILL"],
+      "invariants": ["REPLACE_WITH_INVARIANT"],
+      "proof": ["REPLACE_WITH_SUCCESS_ORACLE"],
+      "oracle_source": "REPLACE_WITH_REPOSITORY_RELATIVE_PATH"
     }
   ]
 }

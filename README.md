@@ -36,7 +36,7 @@
 | 适合 | 单机、最少配置、直接使用当前机器 | 隔离、独立持久化、标准化迁移 |
 | runtime owner | 发起安装的现有 OS 用户 | 同一现有 OS 用户的数字 UID/GID |
 | 认证 | 直接复用当前用户已有认证 | 自动导入当前 Host 用户的必要认证 |
-| 客户路径 | 使用现场实际 runtime root | 使用客户选择的 deployment home；数据在其 `data/` 绑定目录中 |
+| 客户路径 | 使用现场实际 runtime root | 使用与 `jarvis-build/`、Company Jarvis 源码物理分离的 deployment home；数据在其 `data/` 绑定目录中 |
 
 Dedicated machine account 可以作为客户自己的安全策略，但 create-jarvis 和 Jarvis Box 都不会代建系统用户。两种模式都使用客户选择的现有 OS 用户，也不复制整个 Host HOME、SSH agent、Keychain 或 credential store。
 

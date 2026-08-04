@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically audit a delivered repository skill depth contract."""
+"""Audit repository capability coverage and skill depth without executing evals."""
 
 from __future__ import annotations
 
@@ -9,170 +9,260 @@ import re
 from pathlib import Path
 
 
-LEVELS = {"L1", "L2", "L3"}
-EVAL_KINDS = {"should-trigger", "must-not-trigger", "adjacent-route", "forward", "cross-repo"}
-REQUIRED_FIELDS = {
-    "name",
-    "risk",
-    "level",
-    "authority",
-    "entrypoints",
-    "transitions",
-    "mechanical_controls",
-    "forward_eval_ids",
-    "cross_repo",
-    "drift_watch",
+REQUIRED_CATEGORIES = {
+    "build",
+    "runtime",
+    "lifecycle",
+    "config",
+    "concurrency",
+    "security",
+    "diagnostics",
+    "compatibility",
+    "repo-specific",
 }
-LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+ALLOWED_CATEGORY_STATUS = {"covered", "not-applicable"}
+ALLOWED_DISPOSITIONS = {
+    "skill",
+    "router",
+    "reference",
+    "mechanical-gate",
+    "no-skill",
+    "candidate",
+}
+ALLOWED_LEVELS = {"L0", "L1", "L2", "L3"}
+ALLOWED_EVAL_STATUS = {"executed-pass", "executed-fail", "prepared-not-executed"}
+CONTROL_STATUS = ("executed-pass:", "executed-fail:", "observed-not-executed:")
+REQUIRED_DIMENSIONS = {
+    "implementation_anchors",
+    "mechanical_controls",
+    "risk_promotion",
+    "runtime_hidden_forward_eval",
+    "cross_repository_closure",
+    "drift_self_improve",
+}
 
 
-def nonempty_list(record: dict[str, object], key: str) -> bool:
-    value = record.get(key)
-    return isinstance(value, list) and bool(value) and all(isinstance(item, str) and item.strip() for item in value)
+def load_json(path: Path, problems: list[str], label: str) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        problems.append(f"{label} unreadable: {exc}")
+        return {}
+    if not isinstance(value, dict):
+        problems.append(f"{label} must be a JSON object")
+        return {}
+    return value
 
 
-def audit(repo_root: Path, router: str) -> list[str]:
+def confined_path(
+    base: Path,
+    raw: str,
+    boundary: Path,
+    problems: list[str],
+    label: str,
+) -> Path | None:
+    candidate = Path(raw.split("#", 1)[0])
+    if candidate.is_absolute():
+        problems.append(f"{label} must be repository-relative: {raw}")
+        return None
+    resolved = (base / candidate).resolve()
+    try:
+        resolved.relative_to(boundary.resolve())
+    except ValueError:
+        problems.append(f"{label} escapes repository root: {raw}")
+        return None
+    if not resolved.exists():
+        problems.append(f"{label} path missing: {raw}")
+        return None
+    return resolved
+
+
+def risk_level(value: object) -> str:
+    if isinstance(value, dict):
+        return str(value.get("level", "")).strip().lower()
+    return str(value).split(":", 1)[0].strip().lower()
+
+
+def audit(repo: Path, router: str) -> list[str]:
     problems: list[str] = []
-    router_root = repo_root / "skills" / router
+    repo = repo.resolve()
+    router_root = repo / "skills" / router
     contract_path = router_root / "references" / "skill-depth.json"
-    evals_path = router_root / "evals" / "evals.json"
-    guide_path = router_root / "references" / "skill-depth.md"
-    try:
-        contract = json.loads(contract_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [f"depth contract unreadable: {exc}"]
-    try:
-        eval_payload = json.loads(evals_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [f"eval file unreadable: {exc}"]
+    contract = load_json(contract_path, problems, "skill depth contract")
+    if not contract:
+        return problems
 
-    if contract.get("schema_version") != 1:
-        problems.append("unsupported schema_version")
-    if contract.get("router") != router:
-        problems.append("contract router does not match package")
-    fixed = contract.get("fixed_revision")
-    if not isinstance(fixed, str) or re.fullmatch(r"[0-9a-f]{40}", fixed) is None:
-        problems.append("fixed_revision must be an exact 40-character commit")
     dimensions = contract.get("dimensions")
-    required_dimensions = {
-        "implementation_anchors",
-        "mechanical_controls",
-        "risk_promotion",
-        "runtime_hidden_forward_eval",
-        "cross_repository_closure",
-        "drift_self_improve",
-    }
-    if not isinstance(dimensions, dict) or set(dimensions) != required_dimensions:
-        problems.append("all six depth dimensions must be declared exactly once")
+    if not isinstance(dimensions, dict) or set(dimensions) != REQUIRED_DIMENSIONS:
+        problems.append("skill depth contract must declare exactly the six depth dimensions")
 
-    router_skill = router_root / "SKILL.md"
-    router_text = router_skill.read_text(encoding="utf-8") if router_skill.is_file() else ""
-    for required_link in ("references/skill-depth.md", "references/skill-depth.json", "evals/evals.json", "scripts/audit_skill_depth.py"):
-        if required_link not in router_text:
-            problems.append(f"router does not link {required_link}")
+    coverage_file = str(contract.get("coverage_file", "")).strip()
+    evals_file = str(contract.get("evals_file", "")).strip()
+    coverage_path = confined_path(
+        router_root, coverage_file, repo, problems, "coverage file"
+    ) if coverage_file else None
+    evals_path = confined_path(
+        router_root, evals_file, repo, problems, "evals file"
+    ) if evals_file else None
+    if not coverage_file:
+        problems.append("skill depth contract missing coverage_file")
+    if not evals_file:
+        problems.append("skill depth contract missing evals_file")
 
-    evals = eval_payload.get("evals")
-    if not isinstance(evals, list):
-        evals = []
-        problems.append("evals must be a list")
-    eval_ids: set[str] = set()
-    eval_kinds: set[str] = set()
-    for case in evals:
-        if not isinstance(case, dict):
-            problems.append("eval entry must be an object")
+    coverage = load_json(coverage_path, problems, "capability coverage") if coverage_path else {}
+    eval_payload = load_json(evals_path, problems, "eval suite") if evals_path else {}
+    eval_rows = eval_payload.get("evals", []) if eval_payload else []
+    if not isinstance(eval_rows, list):
+        problems.append("eval suite evals must be a list")
+        eval_rows = []
+    evals: dict[str, dict] = {}
+    for row in eval_rows:
+        if not isinstance(row, dict) or not str(row.get("id", "")).strip():
+            problems.append("every eval must have an id")
             continue
-        case_id = case.get("id")
-        kind = case.get("kind")
-        if not isinstance(case_id, str) or not case_id:
-            problems.append("eval id missing")
-        elif case_id in eval_ids:
-            problems.append(f"duplicate eval id: {case_id}")
-        else:
-            eval_ids.add(case_id)
-        if kind not in EVAL_KINDS:
-            problems.append(f"unsupported eval kind: {kind}")
-        else:
-            eval_kinds.add(kind)
-        for field in ("prompt", "expected_route", "forbidden_routes", "invariants", "proof", "oracle_source"):
-            if field not in case or case[field] in (None, "", []):
-                problems.append(f"eval {case_id} missing {field}")
-    if "should-trigger" not in eval_kinds or "must-not-trigger" not in eval_kinds:
-        problems.append("eval suite needs should-trigger and must-not-trigger cases")
-    if not ({"forward", "adjacent-route"} & eval_kinds):
-        problems.append("eval suite needs forward or adjacent-route coverage")
+        eval_id = str(row["id"])
+        if eval_id in evals:
+            problems.append(f"duplicate eval id: {eval_id}")
+        evals[eval_id] = row
+        if row.get("status") not in ALLOWED_EVAL_STATUS:
+            problems.append(f"eval {eval_id} has invalid execution status")
 
-    skills = contract.get("skills")
-    if not isinstance(skills, list) or not skills:
-        return problems + ["contract skills must be a non-empty list"]
-    contract_names: set[str] = set()
+    categories = coverage.get("categories", []) if coverage else []
+    if not isinstance(categories, list):
+        categories = []
+    category_names: set[str] = set()
+    for row in categories:
+        if not isinstance(row, dict):
+            problems.append("coverage category row must be an object")
+            continue
+        name = str(row.get("name", "")).strip()
+        status = str(row.get("status", "")).strip()
+        evidence = row.get("evidence")
+        category_names.add(name)
+        if status not in ALLOWED_CATEGORY_STATUS:
+            problems.append(f"coverage category {name or '<missing>'} has invalid status")
+        if not isinstance(evidence, list) or not any(str(item).strip() for item in evidence):
+            problems.append(f"coverage category {name or '<missing>'} lacks evidence/reason")
+    missing_categories = sorted(REQUIRED_CATEGORIES - category_names)
+    if missing_categories:
+        problems.append("coverage categories missing: " + ", ".join(missing_categories))
+
+    skills = contract.get("skills", [])
+    if not isinstance(skills, list):
+        skills = []
+        problems.append("skill depth contract skills must be a list")
+    records: dict[str, dict] = {}
     for record in skills:
-        if not isinstance(record, dict):
-            problems.append("skill record must be an object")
+        if not isinstance(record, dict) or not str(record.get("name", "")).strip():
+            problems.append("skill inventory record missing name")
             continue
-        name = record.get("name")
-        if not isinstance(name, str) or not name:
-            problems.append("skill record name missing")
-            continue
-        contract_names.add(name)
-        missing = REQUIRED_FIELDS - set(record)
-        if missing:
-            problems.append(f"{name}: missing fields {sorted(missing)}")
-        if record.get("level") not in LEVELS:
-            problems.append(f"{name}: invalid evidence level")
-        for field in REQUIRED_FIELDS - {"name", "risk", "level"}:
-            if not nonempty_list(record, field):
-                problems.append(f"{name}: {field} must be a non-empty string list")
-        package = repo_root / "skills" / name / "SKILL.md"
-        if not package.is_file():
-            problems.append(f"{name}: package missing")
-            package_text = ""
-        else:
-            package_text = package.read_text(encoding="utf-8")
-            for required_pointer in ("skill-depth.md", "skill-depth.json", "evals/evals.json", "audit_skill_depth.py"):
-                if required_pointer not in package_text:
-                    problems.append(f"{name}: package does not link depth control {required_pointer}")
-        if name != router and name not in router_text:
-            problems.append(f"{name}: absent from router")
-        for authority in record.get("authority", []):
-            if not isinstance(authority, str):
-                continue
-            path_text = authority.split("#", 1)[0]
-            if path_text and not (repo_root / path_text).exists():
-                problems.append(f"{name}: authority path missing: {path_text}")
-        for eval_id in record.get("forward_eval_ids", []):
-            if isinstance(eval_id, str) and eval_id not in eval_ids:
-                problems.append(f"{name}: unknown eval id: {eval_id}")
+        name = str(record["name"])
+        records[name] = record
+        level = str(record.get("level", ""))
+        if level not in ALLOWED_LEVELS:
+            problems.append(f"skill {name} has invalid level: {level}")
+        for authority in record.get("authority", []) if isinstance(record.get("authority"), list) else []:
+            confined_path(repo, str(authority), repo, problems, f"skill {name} authority")
+        controls = record.get("mechanical_controls")
+        if not isinstance(controls, list) or not controls:
+            problems.append(f"skill {name} has no mechanical controls")
+            controls = []
+        for control in controls:
+            if not str(control).startswith(CONTROL_STATUS):
+                problems.append(f"skill {name} mechanical control lacks execution status: {control}")
+        forward_ids = record.get("forward_eval_ids")
+        if not isinstance(forward_ids, list):
+            problems.append(f"skill {name} forward_eval_ids must be a list")
+            forward_ids = []
+        for eval_id in forward_ids:
+            if str(eval_id) not in evals:
+                problems.append(f"skill {name} references unknown eval id: {eval_id}")
+        if risk_level(record.get("risk")) in {"high", "critical"}:
+            if level not in {"L2", "L3"}:
+                problems.append(f"high-risk skill {name} must be L2/L3 or remain a candidate")
+            if not any(str(control).startswith("executed-pass:") for control in controls):
+                problems.append(f"high-risk skill {name} lacks executed-pass mechanical evidence")
+            if level == "L3" and not any(
+                evals.get(str(eval_id), {}).get("status") == "executed-pass"
+                for eval_id in forward_ids
+            ):
+                problems.append(f"L3 skill {name} lacks an executed-pass hidden eval")
 
-    delivered = {path.parent.name for path in (repo_root / "skills").glob("*/SKILL.md")}
-    if contract_names != delivered:
+    actual_packages = {
+        path.parent.name
+        for path in (repo / "skills").glob("*/SKILL.md")
+        if path.is_file()
+    }
+    if set(records) != actual_packages:
         problems.append(
-            f"contract/package coverage mismatch: missing={sorted(delivered-contract_names)} extra={sorted(contract_names-delivered)}"
+            "skill inventory mismatch: expected="
+            + repr(sorted(actual_packages))
+            + " recorded="
+            + repr(sorted(records))
         )
+    if router not in records:
+        problems.append(f"router missing from skill inventory: {router}")
 
-    if not guide_path.is_file():
-        problems.append("skill-depth.md missing")
+    capabilities = coverage.get("capabilities", []) if coverage else []
+    if not isinstance(capabilities, list):
+        capabilities = []
+        problems.append("capability coverage capabilities must be a list")
+    primary_homes: set[str] = set()
+    for row in capabilities:
+        if not isinstance(row, dict):
+            problems.append("capability row must be an object")
+            continue
+        cap_id = str(row.get("id", "")).strip() or "<missing>"
+        category = str(row.get("category", "")).strip()
+        disposition = str(row.get("disposition", "")).strip()
+        primary_home = str(row.get("primary_home", "")).strip()
+        evidence = row.get("evidence")
+        if category not in REQUIRED_CATEGORIES:
+            problems.append(f"capability {cap_id} has invalid category: {category}")
+        if disposition not in ALLOWED_DISPOSITIONS:
+            problems.append(f"capability {cap_id} has invalid disposition: {disposition}")
+        if not isinstance(evidence, list) or not evidence:
+            problems.append(f"capability {cap_id} lacks evidence")
+        if disposition in {"skill", "router"}:
+            if primary_home not in records:
+                problems.append(f"capability {cap_id} has unknown primary_home: {primary_home}")
+            else:
+                primary_homes.add(primary_home)
+        elif not str(row.get("reason", "")).strip():
+            problems.append(f"capability {cap_id} disposition requires a reason")
+    unowned_packages = sorted(actual_packages - {router} - primary_homes)
+    if unowned_packages:
+        problems.append("delivered skill packages lack capability primary homes: " + ", ".join(unowned_packages))
+
+    router_text = (router_root / "SKILL.md").read_text(encoding="utf-8") if (router_root / "SKILL.md").is_file() else ""
+    for package in sorted(actual_packages - {router}):
+        if package not in router_text:
+            problems.append(f"router does not name delivered package: {package}")
+    for package in sorted(actual_packages):
+        text_path = repo / "skills" / package / "SKILL.md"
+        text = text_path.read_text(encoding="utf-8") if text_path.is_file() else ""
+        for marker in ("skill-depth", "evals/evals.json", "audit_skill_depth.py"):
+            if marker not in text:
+                problems.append(f"skill {package} does not link {marker}")
+
+    depth_doc = router_root / "references" / "skill-depth.md"
+    if depth_doc.is_file():
+        for link in re.findall(r"\[[^]]+\]\(([^)]+)\)", depth_doc.read_text(encoding="utf-8")):
+            if "://" not in link and not link.startswith("#"):
+                confined_path(depth_doc.parent, link, repo, problems, "depth document link")
     else:
-        for target in LINK_RE.findall(guide_path.read_text(encoding="utf-8")):
-            if "://" in target or target.startswith("#"):
-                continue
-            resolved = (guide_path.parent / target.split("#", 1)[0]).resolve()
-            if not resolved.exists():
-                problems.append(f"broken guide link: {target}")
+        problems.append("router depth document missing")
     return problems
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    parser.add_argument("--repo", required=True, type=Path)
     parser.add_argument("--router", required=True)
     args = parser.parse_args()
-    problems = audit(args.repo_root.resolve(), args.router)
-    if problems:
-        for problem in problems:
-            print(f"FAIL: {problem}")
-        return 1
-    print(f"PASS: {args.router} skill depth contract")
-    return 0
+    problems = audit(args.repo, args.router)
+    print(json.dumps({"status": "failed" if problems else "ok", "problems": problems}, indent=2))
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":

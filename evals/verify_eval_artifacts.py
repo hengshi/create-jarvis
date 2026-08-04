@@ -190,14 +190,58 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
     router = skills_root / "invoice-service" / "SKILL.md"
     router_text = router.read_text(encoding="utf-8") if router.is_file() else ""
     delivered = [path for path in skill_files if path != router]
+    coverage_path = router.parent / "references" / "capability-coverage.json"
+    try:
+        coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        coverage = {}
+    categories = coverage.get("categories", []) if isinstance(coverage, dict) else []
+    capabilities = coverage.get("capabilities", []) if isinstance(coverage, dict) else []
+    category_names = {row.get("name") for row in categories if isinstance(row, dict)}
+    expected_categories = {
+        "build", "runtime", "lifecycle", "config", "concurrency", "security",
+        "diagnostics", "compatibility", "repo-specific",
+    }
+    capability_by_id = {
+        row.get("id"): row for row in capabilities
+        if isinstance(row, dict) and row.get("id")
+    }
+    primary_homes = {
+        row.get("primary_home") for row in capabilities
+        if isinstance(row, dict) and row.get("disposition") in {"skill", "router"}
+    }
     checks.add(
-        "Skill topology has a router and does not under-generate from the two named issues",
-        router.is_file() and len(skill_files) >= 4 and len(delivered) >= 3,
-        repr([str(path.relative_to(repo)) for path in skill_files]),
+        "Capability ledger covers every required repository surface",
+        category_names == expected_categories
+        and all(
+            row.get("status") in {"covered", "not-applicable"}
+            and isinstance(row.get("evidence"), list)
+            and bool(row.get("evidence"))
+            for row in categories if isinstance(row, dict)
+        ),
+        repr(sorted(category_names)),
+    )
+    checks.add(
+        "Current and historical fixture capabilities all have explicit dispositions",
+        {"webhook-idempotency", "invoice-lifecycle", "audit-export"}
+        <= set(capability_by_id)
+        and all(
+            capability_by_id[name].get("disposition")
+            in {"skill", "router", "reference", "mechanical-gate", "no-skill", "candidate"}
+            for name in {"webhook-idempotency", "invoice-lifecycle", "audit-export"}
+        ),
+        repr(sorted(capability_by_id)),
+    )
+    checks.add(
+        "Skill topology follows capability primary homes without a fixed package count",
+        router.is_file()
+        and {path.parent.name for path in delivered} <= primary_homes
+        and all(home in {path.parent.name for path in skill_files} for home in primary_homes),
+        f"skills={sorted(path.parent.name for path in skill_files)!r}; homes={sorted(primary_homes)!r}",
     )
     checks.add(
         "Router names every delivered skill package",
-        len(delivered) >= 3
+        bool(delivered)
         and all(path.parent.name in router_text for path in delivered)
         and "route" in router_text.lower(),
         f"router={router}; delivered={[path.parent.name for path in delivered]}",

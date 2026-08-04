@@ -222,10 +222,11 @@ Phase B 必须让每个主要当前 task family 都有 disposition。`candidate`
 #### 六维深度合同：不能只靠正文“看起来详细”
 
 每个有 router 的最终 topology 都必须在 router package 内交付以下四个互相链接的产物；使用
-`templates/replay/repository-skill-depth-contract.md`、`repository-skill-depth.json`、
-`repository-forward-evals.json` 和 `audit_skill_depth.py` 作为起点，但必须替换占位内容并按当前仓库定制：
+`templates/replay/repository-skill-depth-contract.md`、`repository-capability-coverage.json`、
+`repository-skill-depth.json`、`repository-forward-evals.json` 和 `audit_skill_depth.py` 作为起点，但必须替换占位内容并按当前仓库定制：
 
 - `references/skill-depth.md`：给执行 Agent 按需读取的六维解释、重点实现模型和使用边界；
+- `references/capability-coverage.json`：对 build、runtime、lifecycle、config、concurrency、security、diagnostics、compatibility 和 repo-specific 九类表面逐项记录 `covered` 或有证据的 `not-applicable`，并为每个当前 capability 指定 disposition 与 primary home；
 - `references/skill-depth.json`：覆盖**全部**交付 packages 的机器可读 inventory；
 - `evals/evals.json`：与普通任务上下文隔离的 route、negative、forward、cross-repo eval；
 - `scripts/audit_skill_depth.py`：能在该 repo 独立运行的确定性 audit，并由 router 给出精确命令。
@@ -263,7 +264,7 @@ pointer 只写在哪里读和何时运行，不复制 depth 正文或 hidden exp
 7. 检查过生成：是否有 skills 仅按目录命名、trigger 重叠、没有独立 workflow/proof，或只是已有 skill 的 reference？
 8. 回到 fixed revision 核对所有路径、symbols、命令、构建和测试仍成立；区分 `executed-pass`、`executed-fail` 与 `observed-not-executed`。
 9. 按 delivery policy commit、push、创建或更新 PR/MR。记录 branch、exact commit、PR/MR、验证、approval/merge 状态；不得自动合并受保护分支。
-10. 从 repo root 实际运行 router 的 `scripts/audit_skill_depth.py`；audit 必须证明六个 dimension 已声明、每个 package 都进入 inventory、每个 package 直接链接 depth/eval/audit controls、authority paths 当前存在、router 覆盖全部 packages、eval ID 可解析且至少包含 should-trigger、must-not-trigger 和 forward/adjacent 类型。
+10. 从 repo root 实际运行 router 的 `scripts/audit_skill_depth.py`；audit 必须证明九类 capability surface 均有 disposition、六个 dimension 已声明、每个 package 都进入 inventory 且映射到 capability primary home、每个 package 直接链接 depth/eval/audit controls、所有 authority/link 均被限制在 repo root、risk 等级与实际执行证据一致、router 覆盖全部 packages、eval ID 和执行状态可解析。
 11. eval artifact 的“存在”和 JSON 合法只算结构证据。需要 L3 的 case 必须在隔离 task context 中实际执行并由外层 evaluator 读 hidden expectations 后评分；没有独立执行条件时标 `prepared-not-executed`，不能报 forward pass。
 
 ## 必须保存的证据

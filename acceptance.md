@@ -60,6 +60,7 @@
 - 客户只选择 Native 或 Docker；其余安装和运维步骤来自已校验 jarvis-box public release contract，不依赖私有源码。
 - Native 使用安装者当前 OS 用户；Docker 从当前 Host 用户自动导入批准的可移植认证。Dedicated machine account 是可选策略，不是部署前置条件。
 - work card 记录实际 deployment mode、runtime owner/root、release version、Docker image digest（适用时）和 connector boundary，不预设客户路径。
+- Construction Workspace、Company Jarvis checkout 与 Docker deployment home 使用三个绝对、物理不相交的路径，并保存路径验证器证据；runtime 不得位于建设目录或源码 checkout 内。
 - selected environment 中的 Agent discovery、source、provider ingress、Task/Run、workspace、writeback 和 cleanup probes 实际通过。
 - selected Agent 的显式 skill root 中已由 pinned create-jarvis 安装 method packages；doctor 与 fresh discovery 同时证明 exact method commit、content hash 和 `jarvis-self-improve-skill` 可见。模板存在或 prompt 提及不算安装。
 - Host HOME、SSH agent、Keychain、完整 credential store 和 token 不进入 runtime evidence 或客户仓库。

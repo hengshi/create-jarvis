@@ -100,13 +100,10 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
     git_init(repo)
     write(
         repo / "AGENTS.md",
-        "# Repository guidance\n\nKeep `skills/invoice-service/SKILL.md` as the "
-        "repo router. Before finalizing topology, record every current task family in "
-        "`skills/invoice-service/references/capability-coverage.md`. Stable independently triggered "
-        "capabilities may become skills after current-state validation; risky behavior loops require "
-        "historical replay. Do not split skills merely by file or module, and do not flatten validated "
-        "capabilities into the router. Preserve customer changes and run "
-        "`python3 -m unittest discover -s tests`.\n",
+        "# Repository guidance\n\nPreserve customer changes. Derive current behavior from "
+        "code and tests, use history as evidence rather than commit-message authority, and run "
+        "`python3 -m unittest discover -s tests`. Do not invent repository policy that is not "
+        "supported by the repository.\n",
     )
     write(repo / "invoice_service" / "__init__.py", "")
     write(

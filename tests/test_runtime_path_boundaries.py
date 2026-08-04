@@ -24,7 +24,10 @@ class RuntimePathBoundaryTests(unittest.TestCase):
                 str(root / "repos" / "acme-jarvis"),
                 str(root / "runtime" / "jarvis-box"),
             )
-            self.assertEqual(result["deployment_home"], str(root / "runtime" / "jarvis-box"))
+            self.assertEqual(
+                result["deployment_home"],
+                str((root / "runtime" / "jarvis-box").resolve()),
+            )
 
     def test_every_nested_role_pair_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

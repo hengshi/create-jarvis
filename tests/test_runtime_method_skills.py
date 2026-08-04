@@ -103,7 +103,7 @@ class RuntimeMethodSkillsTests(unittest.TestCase):
                     script="$2"
                     shift 3
                     command_name="$1"
-                    skills_root="${2/\/home\/jarvis/$FAKE_RUNTIME_HOME}"
+                    skills_root="$FAKE_RUNTIME_HOME${2#/home/jarvis}"
                     method_commit="$3"
                     HOME="$FAKE_RUNTIME_HOME" sh -ceu "$script" -- "$command_name" "$skills_root" "$method_commit"
                     """

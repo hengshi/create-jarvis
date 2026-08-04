@@ -61,6 +61,7 @@
 - Native 使用安装者当前 OS 用户；Docker 从当前 Host 用户自动导入批准的可移植认证。Dedicated machine account 是可选策略，不是部署前置条件。
 - work card 记录实际 deployment mode、runtime owner/root、release version、Docker image digest（适用时）和 connector boundary，不预设客户路径。
 - selected environment 中的 Agent discovery、source、provider ingress、Task/Run、workspace、writeback 和 cleanup probes 实际通过。
+- selected Agent 的显式 skill root 中已由 pinned create-jarvis 安装 method packages；doctor 与 fresh discovery 同时证明 exact method commit、content hash 和 `jarvis-self-improve-skill` 可见。模板存在或 prompt 提及不算安装。
 - Host HOME、SSH agent、Keychain、完整 credential store 和 token 不进入 runtime evidence 或客户仓库。
 - Docker socket 未单独授权时不挂载；若挂载，审计中明确 host-root-equivalent。
 - 安装观察到的客户级稳定事实可回写 Company runtime governance；jarvis-box execution contract、control plane 和 operator runbook 不复制。
@@ -70,6 +71,7 @@
 
 - `ready-for-shadow` workflow 在客户监督下处理代表性真实任务，并使用不可变 snapshot。
 - learning/self-improve 只写新 ref，不直接改变当前 snapshot。
+- 每个 repo router 的六维 depth contract 覆盖全部交付 packages；机械 audit 实际通过，forward eval 区分 `prepared-not-executed` 与隔离执行结果。
 - routing、execution、verification、END 和隐藏客户步骤稳定闭合且客户批准后，workflow 才进入 `active`。
 - `active` 记录对应 workflow 与 exact deployment revisions，不宣称整个客户范围同时 active。
 

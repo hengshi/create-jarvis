@@ -4,16 +4,22 @@
 
 1. new journey → preparation → verified Part 1 stop;
 2. interrupted Part 2 → customer Host runtime foundation → published runtime constitution;
-3. interrupted Part 3 → historical replay → repo-local delivery → Reconciliation Gate.
+3. interrupted Part 3 → full current capability inventory + two historical logic-loop replays → coverage-complete repo-local topology delivery → Reconciliation Gate.
 
 Each executor starts in a fresh directory and runs the attached
 `fixtures/build_customer_journey_fixture.py`. The builder creates disposable customer inputs with real
 Git repositories, commits, bare remotes, dirty-worktree boundaries and, for resume cases, a valid
 Construction Workspace plus Company scaffold. It refuses to overwrite an existing fixture root.
 
-The fixture is visible input, not a checked-in expected output. Case 3's executor must discover the
-episode by reading real patch/code/test history; commit messages are deliberately non-authoritative.
-An isolated replay worker should see the issue, replay and selected parent snapshot, not the later fix.
+The fixture is visible input, not a checked-in expected output. Case 3's executor must discover two
+independently triggerable risky loops by reading real patch/code/test history, while also inventorying
+the complete current task-family surface. A stable current-state capability is intentionally absent
+from the customer brief, so an issue-only learner under-generates and fails. Commit messages remain
+non-authoritative. Each isolated replay worker sees its issue, replay and selected parent snapshot,
+not the later fix. The scorer requires a lightweight router, distinct focused loop skills, a capability
+coverage ledger and independently triggerable guidance for the unprompted current capability. It does
+not require an exact total skill count. A one-repo-one-skill result, issue-only topology, directory
+quota, or risky loops without cross-route separation fails.
 
 ## Scoring
 

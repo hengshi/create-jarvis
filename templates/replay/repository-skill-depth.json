@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "repository": "<repository>",
+  "fixed_revision": "<40-character commit>",
+  "router": "<repository-development>",
+  "dimensions": {
+    "implementation_anchors": "references/skill-depth.md",
+    "mechanical_controls": "scripts/audit_skill_depth.py",
+    "risk_promotion": "per-skill risk and level",
+    "runtime_hidden_forward_eval": "evals/evals.json",
+    "cross_repository_closure": "per-skill cross_repo",
+    "drift_self_improve": "per-skill drift_watch"
+  },
+  "skills": [
+    {
+      "name": "<delivered-skill>",
+      "risk": "normal: <reason>",
+      "level": "L1",
+      "authority": ["<repo-relative path>"],
+      "entrypoints": ["<repo-relative path or exact command>"],
+      "transitions": ["<trigger -> state/data/resource change -> close>"],
+      "mechanical_controls": ["observed-not-executed: <command and reason>"],
+      "forward_eval_ids": ["<repository>-route-001"],
+      "cross_repo": ["none: repository-local loop"],
+      "drift_watch": ["<repo-relative path or symbol/contract>" ]
+    }
+  ],
+  "evals_file": "evals/evals.json"
+}

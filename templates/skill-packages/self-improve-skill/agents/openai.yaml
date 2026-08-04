@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jarvis Self Improve"
+  short_description: "从真实任务证据迭代 Jarvis 决策模型"
+  default_prompt: "Use $jarvis-self-improve-skill to turn repeated task failures or review corrections into a validated durable control."

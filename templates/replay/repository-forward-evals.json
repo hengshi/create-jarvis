@@ -1,0 +1,26 @@
+{
+  "skill_name": "<repository-development>",
+  "evaluation_boundary": "Do not load expected_route, forbidden_routes, invariants or proof into the task Agent context.",
+  "evals": [
+    {
+      "id": "<repository>-route-001",
+      "kind": "should-trigger",
+      "prompt": "<current-revision task, unseen while authoring the skill>",
+      "expected_route": ["<primary-skill>"],
+      "forbidden_routes": ["<plausible-but-wrong-skill>"],
+      "invariants": ["<behavior the result must preserve>"],
+      "proof": ["<observable or executable proof>"],
+      "oracle_source": "<current code/test/contract pointer outside task context>"
+    },
+    {
+      "id": "<repository>-negative-001",
+      "kind": "must-not-trigger",
+      "prompt": "<adjacent task owned elsewhere>",
+      "expected_route": ["<correct owner or no repo skill>"],
+      "forbidden_routes": ["<over-broad repo skill>"],
+      "invariants": ["<ownership boundary>"],
+      "proof": ["<handoff evidence>"],
+      "oracle_source": "<authority pointer>"
+    }
+  ]
+}

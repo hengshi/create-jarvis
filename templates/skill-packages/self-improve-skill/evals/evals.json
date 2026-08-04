@@ -48,6 +48,18 @@
         "Records accept, reject-with-reason, or defer-with-owner disposition for review evidence.",
         "Avoids adding a new runtime state, manifest, service owner or unrelated operational feature."
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "一个 repo skill 在真实任务中选对了大方向，但引用的入口已改名、只建议人工检查、L1 却声称并发安全；其 eval 是从历史修复改写的同答案题，跨仓调用只写了‘通知下游’，没有 owner/payload/proof。请执行 self-improve decision。",
+      "expected_output": "Treat this as separable D1-D6 failures: reconcile exact current anchors, convert deterministic checks into a gate, narrow or promote the risk claim with real evidence, create a runtime-hidden current-revision forward case, close the cross-repo handoff contract, and add drift watches before validating the candidate in isolated same/adjacent/forward runs.",
+      "expectations": [
+        "Reports distinct effects for implementation anchors, mechanical controls, risk promotion, forward evaluation, cross-repository closure, and drift rather than merely expanding prose.",
+        "Runs the repo-local depth audit and verifies every delivered package remains inventoried and routed.",
+        "Does not expose expected route, forbidden route, invariants, proof or oracle to the task Agent before scoring.",
+        "Narrows an L1 concurrency claim unless isolated historical/current behavioral evidence supports L2/L3 promotion.",
+        "Records local last authority, downstream first authority, handoff payload and final proof owner for the cross-repo edge."
+      ]
     }
   ]
 }

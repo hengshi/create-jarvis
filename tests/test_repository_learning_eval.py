@@ -40,7 +40,7 @@ class RepositoryLearningEvalTests(unittest.TestCase):
             )
         )
 
-    def test_fixture_contains_two_distinct_replayable_logic_loops(self) -> None:
+    def test_fixture_contains_replay_loops_and_an_unprompted_current_capability(self) -> None:
         with tempfile.TemporaryDirectory(prefix="repository-learning-eval-") as temp:
             output = Path(temp) / "customer-fixture"
             completed = subprocess.run(
@@ -70,10 +70,11 @@ class RepositoryLearningEvalTests(unittest.TestCase):
                     "webhook_fixed",
                     "lifecycle_vulnerable",
                     "lifecycle_fixed",
+                    "audit_export",
                     "head",
                 },
             )
-            self.assertEqual(len(set(history.values())), 6)
+            self.assertEqual(len(set(history.values())), 7)
 
             repo = Path(manifest["repository"])
             commit_count = subprocess.run(
@@ -82,15 +83,17 @@ class RepositoryLearningEvalTests(unittest.TestCase):
                 text=True,
                 check=True,
             ).stdout.strip()
-            self.assertEqual(commit_count, "6")
+            self.assertEqual(commit_count, "7")
             self.assertTrue((repo / "invoice_service" / "webhooks.py").is_file())
             self.assertTrue((repo / "invoice_service" / "lifecycle.py").is_file())
+            self.assertTrue((repo / "invoice_service" / "audit.py").is_file())
 
             brief = (output / "customer-input" / "customer-brief.md").read_text()
             self.assertIn("ACME-17", brief)
             self.assertIn("ACME-18", brief)
             self.assertIn("logic loops", brief)
-            self.assertIn("cross-loop route separation", brief)
+            self.assertIn("cross-loop route", brief)
+            self.assertNotIn("audit", brief.lower())
             self.assertTrue(
                 (output / "customer-input" / "replay_duplicate_webhook.py").is_file()
             )

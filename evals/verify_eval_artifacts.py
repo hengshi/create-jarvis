@@ -189,32 +189,32 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
     skill_files = sorted(skills_root.glob("*/SKILL.md"))
     router = skills_root / "invoice-service" / "SKILL.md"
     router_text = router.read_text(encoding="utf-8") if router.is_file() else ""
-    focused = [path for path in skill_files if path != router]
+    delivered = [path for path in skill_files if path != router]
     checks.add(
-        "Skill topology is one lightweight router plus two focused logic loops",
-        router.is_file() and len(skill_files) == 3 and len(focused) == 2,
+        "Skill topology has a router and does not under-generate from the two named issues",
+        router.is_file() and len(skill_files) >= 4 and len(delivered) >= 3,
         repr([str(path.relative_to(repo)) for path in skill_files]),
     )
     checks.add(
-        "Router uniquely names both focused skill packages",
-        len(focused) == 2
-        and all(path.parent.name in router_text for path in focused)
+        "Router names every delivered skill package",
+        len(delivered) >= 3
+        and all(path.parent.name in router_text for path in delivered)
         and "route" in router_text.lower(),
-        f"router={router}; focused={[path.parent.name for path in focused]}",
+        f"router={router}; delivered={[path.parent.name for path in delivered]}",
     )
-    focused_text = {
-        path: path.read_text(encoding="utf-8") for path in focused if path.is_file()
+    delivered_text = {
+        path: path.read_text(encoding="utf-8") for path in delivered if path.is_file()
     }
     webhook_skills = [
         path
-        for path, text in focused_text.items()
+        for path, text in delivered_text.items()
         if "idempot" in text.lower()
         and "invoice_service/webhooks.py" in text
         and "test" in text.lower()
     ]
     lifecycle_skills = [
         path
-        for path, text in focused_text.items()
+        for path, text in delivered_text.items()
         if "invoice_service/lifecycle.py" in text
         and "refund" in text.lower()
         and ("state" in text.lower() or "transition" in text.lower())
@@ -231,8 +231,28 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         and (not webhook_skills or lifecycle_skills[0] != webhook_skills[0]),
         repr([str(path.relative_to(repo)) for path in lifecycle_skills]),
     )
+    audit_skills = [
+        path
+        for path, text in delivered_text.items()
+        if "invoice_service/audit.py" in text
+        and "audit" in text.lower()
+        and "test" in text.lower()
+        and any(marker in text.lower() for marker in ("current-state", "current state", "l1"))
+    ]
     checks.add(
-        "Focused skills declare triggers, loop guardrails, and proof",
+        "Unprompted current-state audit export capability is independently represented",
+        len(audit_skills) == 1
+        and (not webhook_skills or audit_skills[0] != webhook_skills[0])
+        and (not lifecycle_skills or audit_skills[0] != lifecycle_skills[0]),
+        repr([str(path.relative_to(repo)) for path in audit_skills]),
+    )
+    focused_text = {
+        path: delivered_text[path]
+        for path in webhook_skills + lifecycle_skills
+        if path in delivered_text
+    }
+    checks.add(
+        "Risky focused skills declare triggers, loop guardrails, and proof",
         len(focused_text) == 2
         and all(
             skill_description_has_use(text)
@@ -243,6 +263,30 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
             for text in focused_text.values()
         ),
         repr([str(path.relative_to(repo)) for path in focused_text]),
+    )
+    checks.add(
+        "Every delivered skill has an explicit use trigger",
+        bool(delivered_text)
+        and all(skill_description_has_use(text) for text in delivered_text.values()),
+        repr([str(path.relative_to(repo)) for path in delivered_text]),
+    )
+    coverage = skills_root / "invoice-service" / "references" / "capability-coverage.md"
+    coverage_text = coverage.read_text(encoding="utf-8") if coverage.is_file() else ""
+    checks.add(
+        "Capability ledger covers replay loops and the unprompted current capability",
+        coverage.is_file()
+        and all(
+            marker in coverage_text
+            for marker in (
+                "invoice_service/webhooks.py",
+                "invoice_service/lifecycle.py",
+                "invoice_service/audit.py",
+            )
+        )
+        and "focused-loop" in coverage_text
+        and "capability-skill" in coverage_text
+        and any(marker in coverage_text.lower() for marker in ("l1", "current-state", "current state")),
+        str(coverage),
     )
     checks.add(
         "No legacy eval-loop skill was created",
@@ -302,6 +346,11 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         "Work-card evidence identifies both actual historical fix revisions",
         all(revision in evidence_text for revision in fixed),
         f"expected revisions={fixed}",
+    )
+    checks.add(
+        "Coverage evidence accounts for the current-state audit capability commit",
+        manifest["history"]["audit_export"] in (coverage_text + evidence_text),
+        f"expected revision={manifest['history']['audit_export']}",
     )
 
 

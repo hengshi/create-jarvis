@@ -101,8 +101,11 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
     write(
         repo / "AGENTS.md",
         "# Repository guidance\n\nKeep `skills/invoice-service/SKILL.md` as the "
-        "repo router. Put an independently replayed logic loop in its own skill under `skills/`; "
-        "do not split skills merely by file or module. Preserve customer changes and run "
+        "repo router. Before finalizing topology, record every current task family in "
+        "`skills/invoice-service/references/capability-coverage.md`. Stable independently triggered "
+        "capabilities may become skills after current-state validation; risky behavior loops require "
+        "historical replay. Do not split skills merely by file or module, and do not flatten validated "
+        "capabilities into the router. Preserve customer changes and run "
         "`python3 -m unittest discover -s tests`.\n",
     )
     write(repo / "invoice_service" / "__init__.py", "")
@@ -230,6 +233,34 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
     )
     lifecycle_fixed = git_commit(repo, "follow up on account report")
     write(
+        repo / "invoice_service" / "audit.py",
+        "def export_audit_record(invoice_id, state, total_cents):\n"
+        "    if not invoice_id:\n"
+        "        raise ValueError('invoice id is required')\n"
+        "    if total_cents < 0:\n"
+        "        raise ValueError('invoice total cannot be negative')\n"
+        "    return {\n"
+        "        'invoice_id': invoice_id,\n"
+        "        'state': state,\n"
+        "        'total_cents': total_cents,\n"
+        "    }\n",
+    )
+    write(
+        repo / "tests" / "test_audit.py",
+        "import unittest\nfrom invoice_service.audit import export_audit_record\n\n"
+        "class InvoiceAuditTest(unittest.TestCase):\n"
+        "    def test_exports_stable_record(self):\n"
+        "        self.assertEqual(\n"
+        "            export_audit_record('inv-7', 'paid', 1250),\n"
+        "            {'invoice_id': 'inv-7', 'state': 'paid', 'total_cents': 1250},\n"
+        "        )\n\n"
+        "    def test_rejects_negative_total(self):\n"
+        "        with self.assertRaises(ValueError):\n"
+        "            export_audit_record('inv-7', 'paid', -1)\n\n"
+        "if __name__ == '__main__':\n    unittest.main()\n",
+    )
+    audit_export = git_commit(repo, "add invoice audit export")
+    write(
         repo / "README.md",
         "# invoice-service\n\nConsumes invoice events. Queue delivery is at least once.\n",
     )
@@ -242,6 +273,7 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
         "webhook_fixed": webhook_fixed,
         "lifecycle_vulnerable": lifecycle_vulnerable,
         "lifecycle_fixed": lifecycle_fixed,
+        "audit_export": audit_export,
         "head": head,
     }
 
@@ -585,7 +617,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
     for label, value in (
         ("Status", "ready"),
         ("Blocker", "none"),
-        ("Next", "Replay ACME-17 and ACME-18, derive logic-loop skill topology, and deliver repo-local guidance"),
+        ("Next", "Build full capability coverage, replay ACME-17 and ACME-18, and deliver repo-local guidance"),
     ):
         replace_field(repo_card, label, value)
 
@@ -607,7 +639,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         )
         .replace(
             "| `work/repositories/invoice-service.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
-            "| `work/repositories/invoice-service.md` | ready | unassigned | Part 1 and Part 2 verified | replay ACME-17 and ACME-18 |",
+            "| `work/repositories/invoice-service.md` | ready | unassigned | Part 1 and Part 2 verified | inventory capabilities and replay ACME-17/18 |",
         ),
         encoding="utf-8",
     )
@@ -659,9 +691,11 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         f"# Resume instruction\n\nContinue at `{workspace}`. Execute the invoice-service repository card using "
         f"`{root / 'customer-input' / 'issue-ACME-17.md'}` with `{root / 'customer-input' / 'replay_duplicate_webhook.py'}`, "
         f"and `{root / 'customer-input' / 'issue-ACME-18.md'}` with `{root / 'customer-input' / 'replay_invoice_lifecycle.py'}`. "
-        "Inspect real patches and code across all reachable history; preserve the uncommitted CUSTOMER-NOTE.md. Derive skill topology "
-        "from independently triggerable logic loops, not from repo/module/directory count. Deliver a lightweight repo router plus one focused "
-        "skill per validated loop through the recorded branch policy, with same-case replay and cross-loop route separation evidence. "
+        "Inspect real patches and code across all reachable history; preserve the uncommitted CUSTOMER-NOTE.md. Before selecting replay cases, "
+        "inventory every current task family and give each an evidence-backed topology disposition. Derive skills from independently triggerable "
+        "capabilities and logic loops, not from repo/module/directory count or a fixed skill quota. Use current-state validation for stable capability "
+        "workflows and same-case plus cross-loop route evidence for risky historical loops. Deliver a lightweight repo router and the complete validated "
+        "repo-local topology through the recorded branch policy. "
         "Then run Reconciliation Gate: replace the pending Company handoff with the delivered router entry, prove both controlled cases route "
         "to their distinct focused skills, customize the bugfix workflow enough to move it to construction-ready if evidence supports it, "
         "publish the Company ref, and stop. "

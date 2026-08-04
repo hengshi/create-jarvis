@@ -52,9 +52,13 @@
 - **Proof oracle**: `<tests or observables that independently close this loop>`
 - **Excluded adjacent behavior**: `<similar trigger or code area owned by a different loop>`
 
+> 本节用于 L2/L3 behavioral validation。它不是所有 capability skills 的唯一来源。仅有 L1 current-state validation 的 task family 记录在 repository capability coverage ledger 和 skill-update decision 中，不要伪造 incident replay。
+
 ## Skill Topology Decision
 
-- **Classification**: `code-schema-gate` / `router` / `focused-loop` / `reference` / `script` / `no-skill-gap` / `candidate-unvalidated`
+- **Capability ledger ID**: `<task-family id>`
+- **Validation target**: `L2` / `L3`
+- **Classification**: `code-schema-gate` / `router` / `capability-skill` / `focused-loop` / `cross-cutting-skill` / `reference` / `script` / `no-skill-gap` / `candidate-unvalidated`
 - **Primary home before**: `<skill or none>`
 - **Primary home after**: `<skill/reference/script or unchanged>`
 - **Why this is independently triggerable**: `<stable user/task trigger; not a directory label>`
@@ -62,6 +66,8 @@
 - **Router behavior**: `<unique route and unmatched boundary, or not-applicable>`
 - **Focused skill description trigger**: `<the exact Use when condition, or not-applicable>`
 - **Topology contamination**: `<whether this case already influenced the proposed topology; if yes, regression-only limitation>`
+- **Coverage impact**: `<which task-family disposition changes; which neighboring families remain independently covered>`
+- **Under-generation check**: `<does requiring this replay accidentally suppress other L1-valid task families?>`
 
 ## Source Search & Selection
 

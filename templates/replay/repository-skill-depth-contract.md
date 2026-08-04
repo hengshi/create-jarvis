@@ -13,6 +13,10 @@ Companion artifacts:
 - `../scripts/audit_skill_depth.py`: deterministic structure, path, coverage
   and eval-integrity gate.
 
+Every delivered focused/capability `SKILL.md` directly points back to these
+artifacts. Direct description-triggering can bypass the router; the pointer is
+therefore part of discovery correctness, not optional documentation.
+
 ## Six required depth dimensions
 
 ### D1 — Implementation anchors

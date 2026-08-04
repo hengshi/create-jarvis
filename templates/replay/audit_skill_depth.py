@@ -125,6 +125,12 @@ def audit(repo_root: Path, router: str) -> list[str]:
         package = repo_root / "skills" / name / "SKILL.md"
         if not package.is_file():
             problems.append(f"{name}: package missing")
+            package_text = ""
+        else:
+            package_text = package.read_text(encoding="utf-8")
+            for required_pointer in ("skill-depth.md", "skill-depth.json", "evals/evals.json", "audit_skill_depth.py"):
+                if required_pointer not in package_text:
+                    problems.append(f"{name}: package does not link depth control {required_pointer}")
         if name != router and name not in router_text:
             problems.append(f"{name}: absent from router")
         for authority in record.get("authority", []):

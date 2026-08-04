@@ -31,7 +31,9 @@ class RepositorySkillDepthTests(unittest.TestCase):
         for package in (router_root, focused_root):
             package.mkdir(parents=True)
             (package / "SKILL.md").write_text(
-                f"---\nname: {package.name}\ndescription: Use when sample work arrives.\n---\n",
+                f"---\nname: {package.name}\ndescription: Use when sample work arrives.\n---\n"
+                + "\nRead skill-depth.md and skill-depth.json. Keep evals/evals.json hidden; "
+                + "run audit_skill_depth.py after changes.\n",
                 encoding="utf-8",
             )
         router_skill = router_root / "SKILL.md"

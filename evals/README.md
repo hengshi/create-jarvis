@@ -4,16 +4,20 @@
 
 1. new journey → preparation → verified Part 1 stop;
 2. interrupted Part 2 → customer Host runtime foundation → published runtime constitution;
-3. interrupted Part 3 → historical replay → repo-local delivery → Reconciliation Gate.
+3. interrupted Part 3 → two historical logic-loop replays → repo-local topology delivery → Reconciliation Gate.
 
 Each executor starts in a fresh directory and runs the attached
 `fixtures/build_customer_journey_fixture.py`. The builder creates disposable customer inputs with real
 Git repositories, commits, bare remotes, dirty-worktree boundaries and, for resume cases, a valid
 Construction Workspace plus Company scaffold. It refuses to overwrite an existing fixture root.
 
-The fixture is visible input, not a checked-in expected output. Case 3's executor must discover the
-episode by reading real patch/code/test history; commit messages are deliberately non-authoritative.
-An isolated replay worker should see the issue, replay and selected parent snapshot, not the later fix.
+The fixture is visible input, not a checked-in expected output. Case 3's executor must discover two
+independently triggerable loops in one repository by reading real patch/code/test history; commit
+messages are deliberately non-authoritative. Each isolated replay worker should see its issue, replay
+and selected parent snapshot, not the later fix. The scored delivery is one lightweight repository
+router plus two focused loop skills. This count follows from the fixture's two validated loops; it is
+not a general quota. A one-repo-one-skill result, directory-based split, or two skills without
+cross-loop route separation fails the deterministic scorer.
 
 ## Scoring
 

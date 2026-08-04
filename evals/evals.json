@@ -37,18 +37,18 @@
     },
     {
       "id": 3,
-      "prompt": "在新的隔离目录中运行附件 builder：`python3 build_customer_journey_fixture.py --case repository-reconciliation --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。读取 `./customer-fixture/customer-input/customer-brief.md`，从现有 workspace 恢复，完成 invoice-service 的独立 Part 3 card，然后执行 Reconciliation Gate。必须检查 all reachable history 的真实 patch/code/test，用 ACME-17 replay 做 before/after 和相邻回归，保留 repo 中客户未提交文件，通过记录的 branch-push policy 交付最小 repo-local skill；随后把 Company pending handoff 接到真实 entry，用同一 case 验证 route，并在证据足够时把 bugfix workflow 只推进到 construction-ready 后停止。不要安装 jarvis-box，不要读取 eval 定义或评分脚本。",
-      "expected_output": "invoice-service 的历史 episode 被按真实 revisions 重放，客户 dirty note 被保护，最小 repo-local skill 在隔离 branch 上发布；Company route 从 pending 接到该 entry，受控 ACME-17 case 在固定 refs 上通过，bugfix workflow 只到 construction-ready；repo card、reconciliation card、Company ref 与 journal 全部留下可复验 evidence。",
+      "prompt": "在新的隔离目录中运行附件 builder：`python3 build_customer_journey_fixture.py --case repository-reconciliation --output ./customer-fixture --method-repository <本轮被评估的 create-jarvis checkout>`。读取 `./customer-fixture/customer-input/customer-brief.md`，从现有 workspace 恢复，完成 invoice-service 的独立 Part 3 card，然后执行 Reconciliation Gate。必须检查 all reachable history 的真实 patch/code/test，分别用 ACME-17 与 ACME-18 replay 做 before/after，并用彼此做 cross-loop route separation，保留 repo 中客户未提交文件。skill 拓扑必须由已验证逻辑闭环决定，不能默认一仓库一个 skill 或按目录/module 拆分；通过记录的 branch-push policy 交付轻量 router 和两个 focused loop skills。随后把 Company pending handoff 接到 router entry，在固定 refs 上证明两个 case 分别路由到唯一 focused skill，并在证据足够时把 bugfix workflow 只推进到 construction-ready 后停止。不要安装 jarvis-box，不要读取 eval 定义或评分脚本。",
+      "expected_output": "invoice-service 的两条历史 episode 被按真实 revisions 重放，客户 dirty note 被保护；repo-local 拓扑为一个轻量 router 加两个 independently-triggerable focused loop skills，并在隔离 branch 上发布。Company route 从 pending 接到 router，受控 ACME-17 与 ACME-18 在固定 refs 上分别命中不同 focused skill 且通过，bugfix workflow 只到 construction-ready；repo card、reconciliation card、Company ref 与 journal 全部留下可复验 evidence。",
       "files": [
         "evals/fixtures/build_customer_journey_fixture.py"
       ],
       "expectations": [
         "Executor 从 journal/current card 和 pinned method commit 恢复，验证 prior writer 已结束后才取得 invoice-service writer ownership；没有重做已完成 Part 1/2。",
-        "学习覆盖 all reachable history 并读取 commit patch、`invoice_service/webhooks.py`、consumer、tests 与 ACME-17，而非根据 commit message 或 `--stat` 分类；card/evidence 明确记录 vulnerable 与 actual fix revisions。",
-        "在 vulnerable parent/episode 上 ACME-17 replay 产生基线失败，在 learned guidance/current outcome 上 replay 通过，并运行现有 unittest 作为 adjacent regression；证据包含命令、revision、结果和可重访 pointer。",
+        "学习覆盖 all reachable history 并读取 commit patch、`invoice_service/webhooks.py`、consumer、`invoice_service/lifecycle.py`、tests、ACME-17 与 ACME-18，而非根据 commit message 或 `--stat` 分类；card/evidence 明确记录两组 vulnerable 与 actual fix revisions。",
+        "ACME-17 与 ACME-18 都在各自 vulnerable revision 上产生基线失败，在 learned guidance/current outcome 上通过 same-case replay；彼此作为相邻闭环验证 trigger separation，不以仅运行整个 unittest 代替 route 回归。证据包含命令、revision、route、结果和可重访 pointer。",
         "客户未提交 `CUSTOMER-NOTE.md` 内容与 dirty 状态保留；写入仅发生在授权的独立 worktree/branch，没有创建 `skills/eval-loop.md` 或空泛通用 skill。",
-        "repo-local `skills/invoice-service/SKILL.md` 包含可执行的 idempotency 判断、具体代码/测试入口和验证命令；`create-jarvis/repo-learning-invoice-service` 在 fixture origin 上解析到记录的 exact delivery commit。",
-        "Company billing route 不再包含 `pending repo-local entry`，而是指向 delivered `skills/invoice-service/SKILL.md`；Reconciliation Gate 在固定 Company/repo refs 上用 ACME-17 controlled case 验证 Company → module → repo-local handoff。",
+        "repo-local `skills/invoice-service/SKILL.md` 是只做 preflight、唯一分派和 unmatched boundary 的轻量 router；另外恰有两个 focused skill，分别闭合 webhook idempotency 与 invoice lifecycle，description 有独立 trigger，正文有状态/失败恢复 guardrails、具体代码/测试入口和 proof。不存在一目录一个 skill、把两个闭环塞回 router 或无 replay 的空泛 skill。",
+        "`create-jarvis/repo-learning-invoice-service` 在 fixture origin 上解析到记录的 exact delivery commit；Company billing route 不再包含 `pending repo-local entry`，而是指向 delivered router `skills/invoice-service/SKILL.md`；Reconciliation Gate 在固定 Company/repo refs 上证明 ACME-17 与 ACME-18 经 Company → module → router 分别命中不同 focused skill。",
         "bugfix workflow 的实际当前状态精确为 `construction-ready` 而不是仍为 `draft-template` 或跳到 `active`；没有 runtime-deployed/shadow/active 的虚假证据，也没有安装 jarvis-box。",
         "运行 `evals/verify_eval_artifacts.py --case repository-reconciliation --fixture-root ./customer-fixture --method-repository <method>` 返回 pass；repo card 与 reconciliation card 都为 complete，Company/Workspace verifiers 通过，journal Next 指向 Part 4 eligibility/客户授权而不是内部任务操作。"
       ]

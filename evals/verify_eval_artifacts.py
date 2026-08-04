@@ -31,6 +31,17 @@ def field(path: Path, label: str) -> str | None:
     return matches[0].strip().strip("`") if len(matches) == 1 else None
 
 
+def skill_description_has_use(text: str) -> bool:
+    frontmatter = re.match(r"\A---\s*\n(.*?)\n---", text, re.DOTALL)
+    if not frontmatter:
+        return False
+    description = re.search(
+        r"(?ms)^description:\s*(.*)\Z",
+        frontmatter.group(1),
+    )
+    return bool(description and re.search(r"\buse\b", description.group(1), re.IGNORECASE))
+
+
 class Checks:
     def __init__(self) -> None:
         self.items: list[dict[str, object]] = []
@@ -174,15 +185,64 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         field(repo_card, "Status") == "complete" and field(reconciliation, "Status") == "complete",
         f"repo={field(repo_card, 'Status')!r}; reconciliation={field(reconciliation, 'Status')!r}",
     )
-    skill = repo / "skills" / "invoice-service" / "SKILL.md"
-    skill_text = skill.read_text(encoding="utf-8") if skill.is_file() else ""
+    skills_root = repo / "skills"
+    skill_files = sorted(skills_root.glob("*/SKILL.md"))
+    router = skills_root / "invoice-service" / "SKILL.md"
+    router_text = router.read_text(encoding="utf-8") if router.is_file() else ""
+    focused = [path for path in skill_files if path != router]
     checks.add(
-        "Repo-local skill captures concrete idempotency and proof routes",
-        skill.is_file()
-        and "idempot" in skill_text.lower()
-        and "invoice_service/webhooks.py" in skill_text
-        and "test" in skill_text.lower(),
-        str(skill),
+        "Skill topology is one lightweight router plus two focused logic loops",
+        router.is_file() and len(skill_files) == 3 and len(focused) == 2,
+        repr([str(path.relative_to(repo)) for path in skill_files]),
+    )
+    checks.add(
+        "Router uniquely names both focused skill packages",
+        len(focused) == 2
+        and all(path.parent.name in router_text for path in focused)
+        and "route" in router_text.lower(),
+        f"router={router}; focused={[path.parent.name for path in focused]}",
+    )
+    focused_text = {
+        path: path.read_text(encoding="utf-8") for path in focused if path.is_file()
+    }
+    webhook_skills = [
+        path
+        for path, text in focused_text.items()
+        if "idempot" in text.lower()
+        and "invoice_service/webhooks.py" in text
+        and "test" in text.lower()
+    ]
+    lifecycle_skills = [
+        path
+        for path, text in focused_text.items()
+        if "invoice_service/lifecycle.py" in text
+        and "refund" in text.lower()
+        and ("state" in text.lower() or "transition" in text.lower())
+        and "test" in text.lower()
+    ]
+    checks.add(
+        "Webhook idempotency is an independently focused loop",
+        len(webhook_skills) == 1,
+        repr([str(path.relative_to(repo)) for path in webhook_skills]),
+    )
+    checks.add(
+        "Invoice lifecycle is a distinct independently focused loop",
+        len(lifecycle_skills) == 1
+        and (not webhook_skills or lifecycle_skills[0] != webhook_skills[0]),
+        repr([str(path.relative_to(repo)) for path in lifecycle_skills]),
+    )
+    checks.add(
+        "Focused skills declare triggers, loop guardrails, and proof",
+        len(focused_text) == 2
+        and all(
+            skill_description_has_use(text)
+            and "trigger" in text.lower()
+            and "guardrail" in text.lower()
+            and "proof" in text.lower()
+            and any(word in text.lower() for word in ("failure", "recovery", "retry"))
+            for text in focused_text.values()
+        ),
+        repr([str(path.relative_to(repo)) for path in focused_text]),
     )
     checks.add(
         "No legacy eval-loop skill was created",
@@ -233,12 +293,15 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         and not re.search(r"(?m)^\*\*当前状态：`active`\*\*$", workflow_text),
         str(workflow),
     )
-    fixed = manifest["history"]["fixed"]
+    fixed = [
+        manifest["history"]["webhook_fixed"],
+        manifest["history"]["lifecycle_fixed"],
+    ]
     evidence_text = repo_card.read_text(encoding="utf-8") if repo_card.is_file() else ""
     checks.add(
-        "Work-card evidence identifies the actual historical fix revision",
-        fixed in evidence_text,
-        f"expected revision={fixed}",
+        "Work-card evidence identifies both actual historical fix revisions",
+        all(revision in evidence_text for revision in fixed),
+        f"expected revisions={fixed}",
     )
 
 

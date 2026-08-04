@@ -100,8 +100,9 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
     git_init(repo)
     write(
         repo / "AGENTS.md",
-        "# Repository guidance\n\nDurable repo-local Agent guidance belongs under "
-        "`skills/invoice-service/SKILL.md`. Preserve customer changes and run "
+        "# Repository guidance\n\nKeep `skills/invoice-service/SKILL.md` as the "
+        "repo router. Put an independently replayed logic loop in its own skill under `skills/`; "
+        "do not split skills merely by file or module. Preserve customer changes and run "
         "`python3 -m unittest discover -s tests`.\n",
     )
     write(repo / "invoice_service" / "__init__.py", "")
@@ -130,7 +131,7 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
         "    # The queue may deliver the same event more than once.\n"
         "    return handler.apply_paid(event['id'])\n",
     )
-    vulnerable = git_commit(repo, "wire queue consumer")
+    webhook_vulnerable = git_commit(repo, "wire queue consumer")
     write(
         repo / "invoice_service" / "webhooks.py",
         "class InvoiceLedger:\n"
@@ -157,7 +158,77 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
         "        self.assertEqual(ledger.apply_paid('evt-duplicate'), 1)\n\n"
         "if __name__ == '__main__':\n    unittest.main()\n",
     )
-    fixed = git_commit(repo, "follow up on retry report")
+    webhook_fixed = git_commit(repo, "follow up on retry report")
+    write(
+        repo / "invoice_service" / "lifecycle.py",
+        "class Invoice:\n"
+        "    def __init__(self):\n"
+        "        self.state = 'draft'\n\n"
+        "    def issue(self):\n"
+        "        self.state = 'issued'\n"
+        "        return self.state\n\n"
+        "    def mark_paid(self):\n"
+        "        self.state = 'paid'\n"
+        "        return self.state\n\n"
+        "    def refund(self):\n"
+        "        self.state = 'refunded'\n"
+        "        return self.state\n",
+    )
+    write(
+        repo / "tests" / "test_lifecycle.py",
+        "import unittest\nfrom invoice_service.lifecycle import Invoice\n\n"
+        "class InvoiceLifecycleTest(unittest.TestCase):\n"
+        "    def test_paid_invoice_can_be_refunded(self):\n"
+        "        invoice = Invoice()\n"
+        "        invoice.issue()\n"
+        "        invoice.mark_paid()\n"
+        "        self.assertEqual(invoice.refund(), 'refunded')\n\n"
+        "if __name__ == '__main__':\n    unittest.main()\n",
+    )
+    lifecycle_vulnerable = git_commit(repo, "support invoice refunds")
+    write(
+        repo / "invoice_service" / "lifecycle.py",
+        "class Invoice:\n"
+        "    def __init__(self):\n"
+        "        self.state = 'draft'\n\n"
+        "    def issue(self):\n"
+        "        if self.state != 'draft':\n"
+        "            raise ValueError('invoice must be draft before issue')\n"
+        "        self.state = 'issued'\n"
+        "        return self.state\n\n"
+        "    def mark_paid(self):\n"
+        "        if self.state != 'issued':\n"
+        "            raise ValueError('invoice must be issued before payment')\n"
+        "        self.state = 'paid'\n"
+        "        return self.state\n\n"
+        "    def refund(self):\n"
+        "        if self.state != 'paid':\n"
+        "            raise ValueError('only a paid invoice can be refunded')\n"
+        "        self.state = 'refunded'\n"
+        "        return self.state\n",
+    )
+    write(
+        repo / "tests" / "test_lifecycle.py",
+        "import unittest\nfrom invoice_service.lifecycle import Invoice\n\n"
+        "class InvoiceLifecycleTest(unittest.TestCase):\n"
+        "    def test_paid_invoice_can_be_refunded(self):\n"
+        "        invoice = Invoice()\n"
+        "        invoice.issue()\n"
+        "        invoice.mark_paid()\n"
+        "        self.assertEqual(invoice.refund(), 'refunded')\n\n"
+        "    def test_draft_invoice_cannot_be_refunded(self):\n"
+        "        with self.assertRaises(ValueError):\n"
+        "            Invoice().refund()\n\n"
+        "    def test_refund_is_terminal(self):\n"
+        "        invoice = Invoice()\n"
+        "        invoice.issue()\n"
+        "        invoice.mark_paid()\n"
+        "        invoice.refund()\n"
+        "        with self.assertRaises(ValueError):\n"
+        "            invoice.refund()\n\n"
+        "if __name__ == '__main__':\n    unittest.main()\n",
+    )
+    lifecycle_fixed = git_commit(repo, "follow up on account report")
     write(
         repo / "README.md",
         "# invoice-service\n\nConsumes invoice events. Queue delivery is at least once.\n",
@@ -167,8 +238,10 @@ def create_invoice_history(root: Path) -> tuple[Path, dict[str, str]]:
     write(repo / "CUSTOMER-NOTE.md", "keep this uncommitted customer investigation note\n")
     return repo, {
         "baseline": baseline,
-        "vulnerable": vulnerable,
-        "fixed": fixed,
+        "webhook_vulnerable": webhook_vulnerable,
+        "webhook_fixed": webhook_fixed,
+        "lifecycle_vulnerable": lifecycle_vulnerable,
+        "lifecycle_fixed": lifecycle_fixed,
         "head": head,
     }
 
@@ -479,7 +552,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         route.read_text(encoding="utf-8")
         + "\n## Invoice webhook execution\n\n- repo: invoice-service\n"
         "- repo-local entry: pending repo-local entry\n"
-        "- first proof: customer issue ACME-17 and current repository history\n",
+        "- first proofs: customer issues ACME-17 and ACME-18 plus current repository history\n",
         encoding="utf-8",
     )
     company_commit = git_commit(company, "record pending invoice-service handoff")
@@ -512,7 +585,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
     for label, value in (
         ("Status", "ready"),
         ("Blocker", "none"),
-        ("Next", "Replay the ACME-17 episode and deliver minimal repo-local guidance"),
+        ("Next", "Replay ACME-17 and ACME-18, derive logic-loop skill topology, and deliver repo-local guidance"),
     ):
         replace_field(repo_card, label, value)
 
@@ -534,7 +607,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         )
         .replace(
             "| `work/repositories/invoice-service.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
-            "| `work/repositories/invoice-service.md` | ready | unassigned | Part 1 and Part 2 verified | replay ACME-17 |",
+            "| `work/repositories/invoice-service.md` | ready | unassigned | Part 1 and Part 2 verified | replay ACME-17 and ACME-18 |",
         ),
         encoding="utf-8",
     )
@@ -553,13 +626,45 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         "print('duplicate webhook replay: pass')\n",
     )
     write(
+        root / "customer-input" / "issue-ACME-18.md",
+        "# ACME-18: unpaid invoice accepted a refund\n\n"
+        "Refund is a terminal transition and is valid only after issue and payment. Draft invoices and already-refunded "
+        "invoices must reject refund. The incident was resolved somewhere in the supplied repository history; commit "
+        "messages are not authoritative.\n",
+    )
+    write(
+        root / "customer-input" / "replay_invoice_lifecycle.py",
+        "from invoice_service.lifecycle import Invoice\n"
+        "draft = Invoice()\n"
+        "try:\n"
+        "    draft.refund()\n"
+        "except ValueError:\n"
+        "    pass\n"
+        "else:\n"
+        "    raise AssertionError('draft refund must fail')\n"
+        "paid = Invoice()\n"
+        "paid.issue()\n"
+        "paid.mark_paid()\n"
+        "assert paid.refund() == 'refunded'\n"
+        "try:\n"
+        "    paid.refund()\n"
+        "except ValueError:\n"
+        "    pass\n"
+        "else:\n"
+        "    raise AssertionError('refund must be terminal')\n"
+        "print('invoice lifecycle replay: pass')\n",
+    )
+    write(
         root / "customer-input" / "customer-brief.md",
         f"# Resume instruction\n\nContinue at `{workspace}`. Execute the invoice-service repository card using "
-        f"`{root / 'customer-input' / 'issue-ACME-17.md'}` and the replay at "
-        f"`{root / 'customer-input' / 'replay_duplicate_webhook.py'}`. Inspect real patches and code across all reachable history; "
-        "preserve the uncommitted CUSTOMER-NOTE.md. Deliver the smallest durable repo-local guidance through the recorded branch policy. "
-        "Then run Reconciliation Gate: replace the pending Company handoff with the delivered entry, prove the route with the same controlled "
-        "case, customize the bugfix workflow enough to move it to construction-ready if evidence supports it, publish the Company ref, and stop. "
+        f"`{root / 'customer-input' / 'issue-ACME-17.md'}` with `{root / 'customer-input' / 'replay_duplicate_webhook.py'}`, "
+        f"and `{root / 'customer-input' / 'issue-ACME-18.md'}` with `{root / 'customer-input' / 'replay_invoice_lifecycle.py'}`. "
+        "Inspect real patches and code across all reachable history; preserve the uncommitted CUSTOMER-NOTE.md. Derive skill topology "
+        "from independently triggerable logic loops, not from repo/module/directory count. Deliver a lightweight repo router plus one focused "
+        "skill per validated loop through the recorded branch policy, with same-case replay and cross-loop route separation evidence. "
+        "Then run Reconciliation Gate: replace the pending Company handoff with the delivered router entry, prove both controlled cases route "
+        "to their distinct focused skills, customize the bugfix workflow enough to move it to construction-ready if evidence supports it, "
+        "publish the Company ref, and stop. "
         "Do not mark the workflow active and do not install jarvis-box.\n",
     )
     return {

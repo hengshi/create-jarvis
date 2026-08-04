@@ -148,7 +148,7 @@ Disposition every capability candidate and close product, implementation and ver
 
 Follow `playbooks/prompts/repository-learning.md` once per `work/repositories/<repo>.md` card.
 
-Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules; then preserve a minimal repo-local delta only when discriminating replay improves that model's decisions and adjacent regression remains acceptable.
+Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules. Project that decision model into independently triggerable trigger-to-proof logic loops, and let validated loop boundaries determine repo-local skill topology. Do not default to one skill per repository or split by directories/modules. Preserve a minimal delta only when discriminating replay improves the model's decisions and an adjacent case proves behavioral safety and route separation.
 
 Each repository delivers its own commit, branch and PR/MR or an explicit read-only/blocked result. Never edit the Company Jarvis repo from a repository card. A dirty local worktree is not a consumable skill delivery.
 

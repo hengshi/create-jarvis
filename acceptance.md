@@ -63,6 +63,7 @@
 - Construction Workspace、Company Jarvis checkout 与 Docker deployment home 使用三个绝对、物理不相交的路径，并保存路径验证器证据；runtime 不得位于建设目录或源码 checkout 内。
 - selected environment 中的 Agent discovery、source、provider ingress、Task/Run、workspace、writeback 和 cleanup probes 实际通过。
 - selected Agent 的显式 skill root 中已由 pinned create-jarvis 安装 method packages；doctor 与 fresh discovery 同时证明 exact method commit、content hash 和 `jarvis-self-improve-skill` 可见。模板存在或 prompt 提及不算安装。
+- Docker 使用 `tests/run-docker-method-skills-e2e.sh` 证明 pinned archive 经 Jarvis Box `runtime-job` 安装到持久 Agent HOME 且在容器重建后 doctor 仍通过；这不取代后续 fresh Agent discovery。
 - Host HOME、SSH agent、Keychain、完整 credential store 和 token 不进入 runtime evidence 或客户仓库。
 - Docker socket 未单独授权时不挂载；若挂载，审计中明确 host-root-equivalent。
 - 安装观察到的客户级稳定事实可回写 Company runtime governance；jarvis-box execution contract、control plane 和 operator runbook 不复制。

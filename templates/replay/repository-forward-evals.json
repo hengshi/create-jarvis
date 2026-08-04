@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "evals": [
+    {
+      "id": "REPLACE_WITH_EVAL_ID",
+      "kind": "forward",
+      "status": "prepared-not-executed",
+      "prompt": "REPLACE_WITH_VISIBLE_TASK",
+      "expected_route": ["REPLACE_WITH_PRIMARY_SKILL"],
+      "forbidden_routes": ["REPLACE_WITH_WRONG_SKILL"],
+      "invariants": ["REPLACE_WITH_INVARIANT"],
+      "proof": ["REPLACE_WITH_SUCCESS_ORACLE"],
+      "oracle_source": "REPLACE_WITH_REPOSITORY_RELATIVE_PATH"
+    }
+  ]
+}

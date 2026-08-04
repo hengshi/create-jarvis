@@ -6,7 +6,10 @@
 - Allowed writes: approved deployment target, this card, task-local evidence, Company governance factual writeback
 - Selected deployment mode: `unresolved`
 - Runtime owner: `unresolved`
+- Construction Workspace: `unresolved`
+- Canonical Company Jarvis checkout: `unresolved`
 - Actual runtime root/deployment home: `unresolved`
+- Runtime path-separation evidence: `none`
 - Target deployment: `unresolved`
 - Target workspace: `unresolved`
 - Target release/image: `unresolved`
@@ -27,6 +30,7 @@
 - [ ] Customer selected Native or Docker
 - [ ] Public release and checksum are verified
 - [ ] Runtime owner and actual runtime root/deployment home are observed
+- [ ] Construction Workspace, Company Jarvis checkout and deployment home are absolute, pairwise disjoint and pass `validate_runtime_paths.py`
 - [ ] Native identity reuse or Docker credential import capability is verified without recording secrets
 - [ ] Runtime Foundation doctor and real Agent discovery pass
 - [ ] Provider or IM ingress → Task/Run → workspace → Agent → writeback → cleanup passes

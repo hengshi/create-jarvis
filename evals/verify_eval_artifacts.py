@@ -31,6 +31,17 @@ def field(path: Path, label: str) -> str | None:
     return matches[0].strip().strip("`") if len(matches) == 1 else None
 
 
+def skill_description_has_use(text: str) -> bool:
+    frontmatter = re.match(r"\A---\s*\n(.*?)\n---", text, re.DOTALL)
+    if not frontmatter:
+        return False
+    description = re.search(
+        r"(?ms)^description:\s*(.*)\Z",
+        frontmatter.group(1),
+    )
+    return bool(description and re.search(r"\buse\b", description.group(1), re.IGNORECASE))
+
+
 class Checks:
     def __init__(self) -> None:
         self.items: list[dict[str, object]] = []
@@ -174,16 +185,184 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         field(repo_card, "Status") == "complete" and field(reconciliation, "Status") == "complete",
         f"repo={field(repo_card, 'Status')!r}; reconciliation={field(reconciliation, 'Status')!r}",
     )
-    skill = repo / "skills" / "invoice-service" / "SKILL.md"
-    skill_text = skill.read_text(encoding="utf-8") if skill.is_file() else ""
+    skills_root = repo / "skills"
+    skill_files = sorted(skills_root.glob("*/SKILL.md"))
+    router = skills_root / "invoice-service" / "SKILL.md"
+    router_text = router.read_text(encoding="utf-8") if router.is_file() else ""
+    delivered = [path for path in skill_files if path != router]
+    coverage_path = router.parent / "references" / "capability-coverage.json"
+    try:
+        coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        coverage = {}
+    categories = coverage.get("categories", []) if isinstance(coverage, dict) else []
+    capabilities = coverage.get("capabilities", []) if isinstance(coverage, dict) else []
+    category_names = {row.get("name") for row in categories if isinstance(row, dict)}
+    expected_categories = {
+        "build", "runtime", "lifecycle", "config", "concurrency", "security",
+        "diagnostics", "compatibility", "repo-specific",
+    }
+    capability_by_id = {
+        row.get("id"): row for row in capabilities
+        if isinstance(row, dict) and row.get("id")
+    }
+    primary_homes = {
+        row.get("primary_home") for row in capabilities
+        if isinstance(row, dict) and row.get("disposition") in {"skill", "router"}
+    }
     checks.add(
-        "Repo-local skill captures concrete idempotency and proof routes",
-        skill.is_file()
-        and "idempot" in skill_text.lower()
-        and "invoice_service/webhooks.py" in skill_text
-        and "test" in skill_text.lower(),
-        str(skill),
+        "Capability ledger covers every required repository surface",
+        category_names == expected_categories
+        and all(
+            row.get("status") in {"covered", "not-applicable"}
+            and isinstance(row.get("evidence"), list)
+            and bool(row.get("evidence"))
+            for row in categories if isinstance(row, dict)
+        ),
+        repr(sorted(category_names)),
     )
+    checks.add(
+        "Current and historical fixture capabilities all have explicit dispositions",
+        {"webhook-idempotency", "invoice-lifecycle", "audit-export"}
+        <= set(capability_by_id)
+        and all(
+            capability_by_id[name].get("disposition")
+            in {"skill", "router", "reference", "mechanical-gate", "no-skill", "candidate"}
+            for name in {"webhook-idempotency", "invoice-lifecycle", "audit-export"}
+        ),
+        repr(sorted(capability_by_id)),
+    )
+    checks.add(
+        "Skill topology follows capability primary homes without a fixed package count",
+        router.is_file()
+        and {path.parent.name for path in delivered} <= primary_homes
+        and all(home in {path.parent.name for path in skill_files} for home in primary_homes),
+        f"skills={sorted(path.parent.name for path in skill_files)!r}; homes={sorted(primary_homes)!r}",
+    )
+    checks.add(
+        "Router names every delivered skill package",
+        bool(delivered)
+        and all(path.parent.name in router_text for path in delivered)
+        and "route" in router_text.lower(),
+        f"router={router}; delivered={[path.parent.name for path in delivered]}",
+    )
+    delivered_text = {
+        path: path.read_text(encoding="utf-8") for path in delivered if path.is_file()
+    }
+    webhook_skills = [
+        path
+        for path, text in delivered_text.items()
+        if "idempot" in text.lower()
+        and "invoice_service/webhooks.py" in text
+        and "test" in text.lower()
+    ]
+    lifecycle_skills = [
+        path
+        for path, text in delivered_text.items()
+        if "invoice_service/lifecycle.py" in text
+        and "refund" in text.lower()
+        and ("state" in text.lower() or "transition" in text.lower())
+        and "test" in text.lower()
+    ]
+    checks.add(
+        "Webhook idempotency is an independently focused loop",
+        len(webhook_skills) == 1,
+        repr([str(path.relative_to(repo)) for path in webhook_skills]),
+    )
+    checks.add(
+        "Invoice lifecycle is a distinct independently focused loop",
+        len(lifecycle_skills) == 1
+        and (not webhook_skills or lifecycle_skills[0] != webhook_skills[0]),
+        repr([str(path.relative_to(repo)) for path in lifecycle_skills]),
+    )
+    audit_skills = [
+        path
+        for path, text in delivered_text.items()
+        if "invoice_service/audit.py" in text
+        and "audit" in text.lower()
+        and "test" in text.lower()
+        and any(marker in text.lower() for marker in ("current-state", "current state", "l1"))
+    ]
+    checks.add(
+        "Unprompted current-state audit export capability is independently represented",
+        len(audit_skills) == 1
+        and (not webhook_skills or audit_skills[0] != webhook_skills[0])
+        and (not lifecycle_skills or audit_skills[0] != lifecycle_skills[0]),
+        repr([str(path.relative_to(repo)) for path in audit_skills]),
+    )
+    focused_text = {
+        path: delivered_text[path]
+        for path in webhook_skills + lifecycle_skills
+        if path in delivered_text
+    }
+    checks.add(
+        "Risky focused skills declare triggers, loop guardrails, and proof",
+        len(focused_text) == 2
+        and all(
+            skill_description_has_use(text)
+            and "trigger" in text.lower()
+            and "guardrail" in text.lower()
+            and "proof" in text.lower()
+            and any(word in text.lower() for word in ("failure", "recovery", "retry"))
+            for text in focused_text.values()
+        ),
+        repr([str(path.relative_to(repo)) for path in focused_text]),
+    )
+    checks.add(
+        "Every delivered skill has an explicit use trigger",
+        bool(delivered_text)
+        and all(skill_description_has_use(text) for text in delivered_text.values()),
+        repr([str(path.relative_to(repo)) for path in delivered_text]),
+    )
+    coverage = skills_root / "invoice-service" / "references" / "capability-coverage.md"
+    coverage_text = coverage.read_text(encoding="utf-8") if coverage.is_file() else ""
+    checks.add(
+        "Capability ledger covers replay loops and the unprompted current capability",
+        coverage.is_file()
+        and all(
+            marker in coverage_text
+            for marker in (
+                "invoice_service/webhooks.py",
+                "invoice_service/lifecycle.py",
+                "invoice_service/audit.py",
+            )
+        )
+        and "focused-loop" in coverage_text
+        and "capability-skill" in coverage_text
+        and any(marker in coverage_text.lower() for marker in ("l1", "current-state", "current state")),
+        str(coverage),
+    )
+    depth_assets = [
+        skills_root / "invoice-service" / "references" / "skill-depth.md",
+        skills_root / "invoice-service" / "references" / "skill-depth.json",
+        skills_root / "invoice-service" / "evals" / "evals.json",
+        skills_root / "invoice-service" / "scripts" / "audit_skill_depth.py",
+    ]
+    checks.add(
+        "Router delivers the six-dimension depth, eval, and mechanical audit assets",
+        all(path.is_file() for path in depth_assets)
+        and all(str(path.relative_to(skills_root / "invoice-service")) in router_text for path in depth_assets),
+        repr([str(path.relative_to(repo)) for path in depth_assets]),
+    )
+    audit = skills_root / "invoice-service" / "scripts" / "audit_skill_depth.py"
+    if audit.is_file():
+        audit_run = command(
+            [
+                sys.executable,
+                str(audit),
+                "--repo-root",
+                str(repo),
+                "--router",
+                "invoice-service",
+            ]
+        )
+        checks.add(
+            "Repository depth audit actually passes",
+            audit_run.returncode == 0,
+            (audit_run.stdout or audit_run.stderr).strip(),
+        )
+    else:
+        checks.add("Repository depth audit actually passes", False, str(audit))
     checks.add(
         "No legacy eval-loop skill was created",
         not (repo / "skills" / "eval-loop.md").exists(),
@@ -233,12 +412,20 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
         and not re.search(r"(?m)^\*\*当前状态：`active`\*\*$", workflow_text),
         str(workflow),
     )
-    fixed = manifest["history"]["fixed"]
+    fixed = [
+        manifest["history"]["webhook_fixed"],
+        manifest["history"]["lifecycle_fixed"],
+    ]
     evidence_text = repo_card.read_text(encoding="utf-8") if repo_card.is_file() else ""
     checks.add(
-        "Work-card evidence identifies the actual historical fix revision",
-        fixed in evidence_text,
-        f"expected revision={fixed}",
+        "Work-card evidence identifies both actual historical fix revisions",
+        all(revision in evidence_text for revision in fixed),
+        f"expected revisions={fixed}",
+    )
+    checks.add(
+        "Coverage evidence accounts for the current-state audit capability commit",
+        manifest["history"]["audit_export"] in (coverage_text + evidence_text),
+        f"expected revision={manifest['history']['audit_export']}",
     )
 
 

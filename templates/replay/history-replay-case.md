@@ -24,6 +24,51 @@
 - **Replay eligibility**: `eligible-direct` / `eligible-reconstructed` / `ineligible-leaky` / `needs-better-start`
 - **Status**: `draft` / `ready-for-replay` / `replayed` / `closed` / `needs-better-start`
 
+## Repository Model Hypothesis
+
+- **Model before**: `<current repository decision model pointer/version>`
+- **Entities and owners**: `<domain entities, lifecycle/resource owners and ownership transfers>`
+- **Authorities**: `<canonical state, data, configuration and policy sources>`
+- **Legal states and transitions**: `<allowed transitions and terminal states>`
+- **Invariants**: `<conditions that must remain true across paths>`
+- **Optional capability / fallback**: `<presence, absence and degraded behavior>`
+- **Failure-close boundary**: `<where partial work stops, rolls back or releases>`
+- **Wrong alternative model**: `<plausible competing model this case can distinguish>`
+- **Evidence effect**: `confirm` / `refine` / `replace` / `remove` / `not-evaluated`
+- **Model after**: `<resulting model pointer/version or unchanged>`
+
+## Logic Loop Identity
+
+- **Loop name**: `<verb-led behavior loop, not repo/module/directory name>`
+- **Projected model assertions**: `<which repository-model assertions this loop executes>`
+- **Supporting evidence points**: `<multiple issue/diff/test/review/trajectory pointers, not one episode label>`
+- **Trigger**: `<task, signal, event, or failure that selects this loop>`
+- **Preconditions**: `<state and ownership that must exist before execution>`
+- **State transitions**: `<ordered lifecycle or state-machine transitions>`
+- **Data transitions**: `<inputs, normalization, publication, persistence, invalidation>`
+- **Resource transitions**: `<acquire/start/use/stop/join/release or not-applicable>`
+- **Success terminal state**: `<observable completed state>`
+- **Failure / recovery / retry**: `<partial success, rollback, cancellation, retry and idempotence behavior>`
+- **Proof oracle**: `<tests or observables that independently close this loop>`
+- **Excluded adjacent behavior**: `<similar trigger or code area owned by a different loop>`
+
+> 本节用于 L2/L3 behavioral validation。它不是所有 capability skills 的唯一来源。仅有 L1 current-state validation 的 task family 记录在 repository capability coverage ledger 和 skill-update decision 中，不要伪造 incident replay。
+
+## Skill Topology Decision
+
+- **Capability ledger ID**: `<task-family id>`
+- **Validation target**: `L2` / `L3`
+- **Classification**: `code-schema-gate` / `router` / `capability-skill` / `focused-loop` / `cross-cutting-skill` / `reference` / `script` / `no-skill-gap` / `candidate-unvalidated`
+- **Primary home before**: `<skill or none>`
+- **Primary home after**: `<skill/reference/script or unchanged>`
+- **Why this is independently triggerable**: `<stable user/task trigger; not a directory label>`
+- **Merge/split evidence**: `<same or different trigger, state/resource lifecycle and proof versus neighboring episodes>`
+- **Router behavior**: `<unique route and unmatched boundary, or not-applicable>`
+- **Focused skill description trigger**: `<the exact Use when condition, or not-applicable>`
+- **Topology contamination**: `<whether this case already influenced the proposed topology; if yes, regression-only limitation>`
+- **Coverage impact**: `<which task-family disposition changes; which neighboring families remain independently covered>`
+- **Under-generation check**: `<does requiring this replay accidentally suppress other L1-valid task families?>`
+
 ## Source Search & Selection
 
 - **Selection source**: `git-history` / `pilot` / `issue` / `MR` / `incident` / `ticket` / `task`
@@ -69,6 +114,16 @@ episode 是否曾直接影响当前 skill 的内容：
 
 - **Episode 相关事实已写入当前 skill？** `yes` / `no`
 - **若 yes**: <哪些内容已被包含，此 case 只能做回归验证，不能独立证明发现新 gap 或泛化>
+
+### Adjacent Route-Separation Case
+
+- **Adjacent case pointer**: `<different real episode with a nearby trigger>`
+- **Expected route for this case**: `<one focused loop skill or router fallback>`
+- **Expected route for adjacent case**: `<different focused loop skill or router fallback>`
+- **Cross-trigger forbidden**: `<skills that must not activate for either case>`
+- **Behavioral regression proof**: `<test/observable for both cases>`
+- **Result**: `pass` / `fail` / `not-run`
+- **If not-run**: `<why the focused skill remains candidate-unvalidated rather than delivered>`
 
 ### Known Unknowns at START
 

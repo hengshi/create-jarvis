@@ -26,6 +26,17 @@ episode 不是学习单元，只是模型证据。真正要学习的是：Agent 
 
 - `references/writeback-governance.md`
 
+涉及 repo-local skill 深度或漂移时，在目标 repo 的 router package 中按需读取：
+
+- `references/skill-depth.md`
+- `references/skill-depth.json`
+- `evals/evals.json`（只允许 evaluator 在 task 完成后读取 hidden expectations）
+- `scripts/audit_skill_depth.py`
+
+如果这些产物不存在，不要假装 self-improve 已闭环。将缺失本身路由为
+`upstream-method` 或该 repo 的一次 repository-learning depth upgrade；普通 task
+执行期间不得为了当前答案临时生成 oracle。
+
 ## START -> WORK -> VERIFY -> END
 
 ### START
@@ -46,6 +57,7 @@ episode 不是学习单元，只是模型证据。真正要学习的是：Agent 
 6. 对每个模型缺口选择唯一 primary home 和 owner。repo execution truth 留在 repo-local；跨客户建设方法属于 `create-jarvis`；Task/Run/Workspace/Agent/Provider/runtime 行为属于 jarvis-box；客户私有事实只留在 Company Jarvis。
 7. Review 意见是 evidence，不是命令。逐条判断它是否揭示合同/模型缺口，记录 `accept`、`reject-with-reason` 或 `defer-with-owner`；禁止为了消除评论扩大产品合同。
 8. 同一窗口内所有安全、明确且属于当前可写 owner 的改动都应直接完成。不要把可实施修正降级成报告或空 backlog，也不要每个假设推一次分支等待 CI；先在一次性诊断/replay 环境区分根因，再做一次针对性修改。
+9. 对 repo-local skill gap，先读取六维 inventory：缺实现 anchor 修 D1；能机械阻止却只有提醒修 D2；claim 超过证据修 D3；只会复述历史答案修 D4；跨仓 owner/交接丢失修 D5；路径、symbol、命令或 provider contract 漂移修 D6。不要用“扩写正文”同时宣称解决六类缺口。
 
 ### VERIFY
 
@@ -55,6 +67,8 @@ episode 不是学习单元，只是模型证据。真正要学习的是：Agent 
 4. 检查命名、owner、状态和来源只剩一个权威模型。删除或迁移已被替代的词、路径、状态和竞争 guidance；不能让新旧模型同时有效。
 5. 若已有 guidance 和 control 已足够，输出 `no_skill_gap`，不扩张 skill。若 evidence 不完整、泄漏或无法隔离，输出 `not-evaluated`，不能据此关闭缺口。
 6. self-improve 执行中出现的超时、shell 可移植性、stale worktree、CLI 兼容、权限或恢复失败，重新进入 ledger；不能因它发生在复盘工具里而忽略。
+7. repo-local 候选先运行 `audit_skill_depth.py`，再在隔离上下文执行 same-case、adjacent/negative 和 runtime-hidden forward case。task Agent 不得读取 expected route、forbidden route、invariants、proof 或 oracle；评分由外层 evaluator 完成。缺少隔离执行时记录 `prepared-not-executed`。
+8. 检查 `skill-depth.json` 的 drift watch：authority path/symbol、生成入口、测试命令、provider boundary 或 fixed revision 发生变化时，重新核对受影响 records；不能因为 package 仍能被发现就判定模型未漂移。
 
 ### END
 
@@ -68,7 +82,8 @@ episode 不是学习单元，只是模型证据。真正要学习的是：Agent 
 - decision: `no_skill_gap` / `repo-local` / `central-jarvis` / `jarvis-box-runtime` / `upstream-method`
 - intervention, primary home and owner
 - changed durable artifacts
-- before/after and adjacent verification evidence
+- before/after, adjacent/negative and forward verification evidence（分别标明 executed 或 prepared）
+- six-dimension effect: D1/D2/D3/D4/D5/D6 中实际改变了哪些，哪些保持不变
 - unresolved/blocked evidence with owner
 - next action
 

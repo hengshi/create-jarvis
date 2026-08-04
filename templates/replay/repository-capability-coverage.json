@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "repository": "REPLACE_WITH_REPOSITORY",
+  "fixed_revision": "REPLACE_WITH_FULL_COMMIT",
+  "categories": [
+    {"name": "build", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "runtime", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "lifecycle", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "config", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "concurrency", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "security", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "diagnostics", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "compatibility", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "repo-specific", "status": "covered", "evidence": ["REPLACE_WITH_CURRENT_CODE_TEST_OR_COMMAND"]}
+  ],
+  "capabilities": [
+    {
+      "id": "REPLACE_WITH_STABLE_CAPABILITY_ID",
+      "category": "repo-specific",
+      "task_family": "REPLACE_WITH_USER_TRIGGER",
+      "disposition": "candidate",
+      "primary_home": "",
+      "evidence": ["REPLACE_WITH_CURRENT_AUTHORITY_OR_PROOF"],
+      "reason": "REPLACE_WITH_MISSING_VALIDATION_AND_NEXT_PROOF"
+    }
+  ]
+}

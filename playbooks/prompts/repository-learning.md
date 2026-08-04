@@ -1,71 +1,329 @@
 # Part 3: independent repository learning
 
-你的唯一目标是执行一个 `work/repositories/<repo>.md` card，从真实历史证据收敛该仓库的决策模型，并把经过区分性 replay 验证的知识留在它自己的 repo-local skills 中。episode 是证据样本，不是学习单元。每个 repo 是独立、可长时间运行、可恢复的任务。
+你的唯一目标是执行一个 `work/repositories/<repo>.md` card：完整学习该客户代码仓库在客户授权范围内的当前实现和真实历史，把足以改善未来工程行为的仓库知识写入可消费的 repo-local skills，并按 delivery policy 交付。每个 repo 是独立、可长时间运行、可恢复的任务。
 
-## 边界
+这里的“完整学习”包含两个同等重要、不能互相替代的结果：
+
+1. **coverage completeness**：仓库当前仍有效的主要任务族、能力面、构建/测试/生成/发布入口和高风险横切约束都有明确 disposition，不能因为没有挑中 replay case 就静默丢失；
+2. **behavioral correctness**：写入 skill 的工作流、状态转换、失败恢复、责任边界和 proof 与当前代码及历史 outcome 一致，高风险规则经过足够强的 replay/回归验证。
+
+不要把“读完所有 commits”误当成“知识已经覆盖”，也不要把“只有少量 replay 通过”误当成“仓库只有少量值得保留的 skills”。history coverage、knowledge coverage 和 behavioral validation 是三张不同的账，必须分别闭合。
+
+## 核心术语与不可混淆的学习对象
+
+- **repository decision model**：仓库当前有效的实体、所有者、权威来源、合法状态和转换、不变量、可选能力/fallback、构建与验证方法、失败关闭边界及跨 repo 责任边界。它是学习目标。
+- **task family / capability surface**：用户或工程 Agent 会独立提出的一类稳定任务，例如“修改产品配置并保持迁移兼容”“新增设备变体”“生成插件接口”“排查显示管线”“导出审计记录”。它必须能用真实 trigger、owner、入口和 proof 描述，不能只是目录名。
+- **trajectory / episode**：从当时可见问题到真实 outcome 的历史证据样本。它用于确认、修正或反驳 repository model，不等于一个 skill。
+- **logic loop**：task family 中可重复执行和验证的闭合行为投影，覆盖 trigger、前置条件、状态/数据/资源转换、成功终态、失败/恢复/清理、可观测结果和责任边界。
+- **skill topology**：router、capability skill、focused loop skill、cross-cutting skill、reference、script/gate 与 `no-skill` disposition 的组合。拓扑由知识覆盖和独立触发边界共同决定，不由预设数量决定。
+- **primary home**：一条知识的唯一权威写入位置。唯一 primary home 用于防止重复和冲突，不表示整个仓库只能有一个或很少的 skills。
+
+## 边界与安全约束
 
 - 当前任务只处理 work card 指定的一个 repo；其他 repo 有自己的 card 和 writer。
 - 只按当前 repo 的 write/delivery policy 写入该 repo、当前 card 和任务指定的 replay/evidence workspace。
-- company Jarvis target 始终只读，不能把 repo-local knowledge 写进去。
-- 不批量铺设固定 skill 骨架，不创建 `eval-loop` skill，不以 commit message 分类作为结果。
+- Company Jarvis target 在 Repository learning 阶段始终只读；repo-local execution truth 不写入 Company repo，等 Reconciliation Gate 再接线。
 - 保留客户已有未提交修改；使用独立 worktree/branch，遵守 repo 自己的 commit、push、PR/MR 和 review policy。
-- 每个保留的 delta 都要形成可追溯 Git ref；无法发布的 read-only candidate 只能标为候选，不能声称是正式可消费的 repo-local skill。
 - 同一 repo 同时只能有一个 writer。provider/session handle 只是重连提示；ownership 不明时阻止重复 writer。
+- 每个保留的 delta 都要形成可追溯 Git ref；无法发布的 read-only candidate 只能标为候选，不能声称为正式可消费的 repo-local skill。
+- 不创建 `eval-loop`、`history-scan`、`commit-category` 等只描述学习过程的客户 skill。学习证据留在 evidence workspace，客户 repo 只保留未来执行任务需要的知识。
+- 不按固定数量批量铺设空 skill，也不允许用“一仓库一个 skill”压扁多个独立任务族。
+- commit message、目录、语言、模块和文件扩展名都只能是发现线索，不能单独决定 skill。但模块/子系统如果同时拥有稳定任务 trigger、authority、工作流和 proof，可以成为合理的 capability boundary。
 
-## Work card 与恢复
+## Work card、恢复与开始前核验
 
-先读取：
+开始或恢复时依次读取并核验：
 
-1. pinned create-jarvis method；
-2. `BUILD-CONTEXT.md` 中当前 repo 的 inventory；
+1. pinned create-jarvis method 的 exact commit；
+2. `BUILD-CONTEXT.md` 中当前 repo 的 canonical remote、revision、history range、write/delivery policy 和授权边界；
 3. 当前 `work/repositories/<repo>.md`；
-4. `CONSTRUCTION-JOURNAL.md` 的指针；
-5. repo 当前文件、Git/worktree 和 remote 状态。
+4. `CONSTRUCTION-JOURNAL.md` 的当前 pointer、前序 Company delivery ref 和 writer 状态；
+5. repo 的 `AGENTS.md`、`CLAUDE.md`、已有 skills、Git/worktree、remote/default branch、dirty state；
+6. 已存在的 coverage ledger、repository model、case/evidence 和最后 delivery ref。
 
-先核验 Part 1 Company scaffold 的远端 ref，再核验 card 中的 repo revision、history range、target workspace/branch、delivery policy 和 writer ownership。恢复时重新验证最后 checkpoint 的文件与 Git 事实；旧 writer 活着就重连，已结束才替换，ownership 不明时停止重复写入。
+先确认 Part 1 Company scaffold 的远端 ref 仍可解析，再确认 card 记录的 repo revision 和 history boundary 没有漂移。恢复时重新验证最后 checkpoint 的文件与 Git 事实：旧 writer 活着就重连；已结束才能替换；无法判断 ownership 时停止重复写入。
 
-card 记录当前 evidence batch、model hypothesis、case 目录、START pointer、历史 outcome pointer、replay 状态、delivery ref、blocker、最后已验证 checkpoint 和 `Next`。它是接手合同，不是机器协议；不要创建 parser、JSON state 或 heartbeat。每次 model decision 闭合后更新 card，并把 verified pointer 报给 Coordinator 更新 journal；只有声明的历史范围确实扫描到边界，当前 repo 才能写 `completed`。
+card 至少记录：固定 revision、history range、history cursor、coverage ledger pointer、repository model pointer、当前 validation batch/case、target worktree/branch、delivery ref、blocker、最后已验证 checkpoint 和 `Next`。card 是给接手 Agent 的恢复合同，不要创建额外 parser、JSON 状态机或 heartbeat。
 
-## Repository learning loop
+## 总体执行顺序
 
-对当前 repo 按声明的历史范围持续执行：
+严格按以下阶段推进。可以在长任务中交替增量更新 ledger 和 model，但不能跳过 Phase B 的全仓能力覆盖盘点，直接从少量 replay cases 决定最终 skill 拓扑。
 
-1. **固定并遍历客户选择的范围。** 枚举该 repo 在解析后边界内从当前 revision 可达的 commits，记录 next commit/ref 以便恢复。除非客户或 repo 证据要求其他顺序，默认 oldest-to-newest，使后续真实 episode 能检验前面沉淀的知识。`all` 必须从最早可达 commit 走到当前 revision；一年、两年或自定义范围必须完整走过对应边界。不要用固定 case 数量提前停止。
-2. **读取 code changes，不能只读 message。** 对范围内 commit 实际检查 patch、changed files 和必要的 parent/final code；大变更可以分块读取，但不能仅凭 message、tag、`--stat` 或语义分类标记为已学习。相关 tests、review、CI 和相邻 commits 也要读取到足以理解行为变化。每个 commit 最终要么属于某个 episode，要么作为已检查的 supporting/preconsumed commit，要么有基于 code change 的排除理由。
-3. **还原 trajectory，不把分类当结果。** 从真实 issue、MR/PR、review、CI、tests、release 和 Git history 中还原“当时可见事实 → decision points → state transitions → 实际工作 → 可验证结果”。commits 是定位、代码变化和 outcome 证据；内部 coverage 记录不是最终 skill。
-4. **建立当前 model hypothesis。** 用仓库语言写清实体、所有者、权威来源、合法状态与转换、不变量、可选能力与 fallback、失败关闭边界。先检查现有 guidance 是否已经表达该模型，禁止为同一事实再造第二套名词、状态文件或 owner。
-5. **判断 evidence 对模型的作用。** 每条 trajectory 只能标为 `confirm`、`refine`、`replace`、`remove` 或 `not-evaluated`，并说明它支持或反驳哪条 model assertion。重复用户纠正、同类 review 和跨入口生产逃逸优先指向模型缺陷，而不是更多局部规则。
-6. **选择区分模型的完整 case。** 必须能找到 visible START、pre-change snapshot 和真实 outcome，且该 case 能区分当前模型与至少一个错误替代模型。只重复已知 happy case、只看单个 commit message、diff 摘要或无法验证 outcome 的候选不能执行。
-7. **隔离 START 与答案。** replay agent 只能看到当时可见的问题、允许的 sources、parent snapshot 和当时已有的 skills；final diff、最终 commit、root cause、review 结论和验收结果属于 hidden oracle。
-8. **执行 baseline replay。** 使用当前累计 repo-local skills 处理原始任务，保留完整输出和验证结果。没有真正执行不能判断 model/skill gap。
-9. **外层比较 decision trajectory。** 外层 Agent 读取完整真实 code changes，再比较实体识别、authority、ownership、状态转换、fallback、范围、实现策略、验证和 END 行为。先判断失败是 repo model 缺口，还是 runtime/tool、跨 repo 方法、一次性外部故障或任务不确定性。
-10. **选择唯一 intervention 与 primary home。** 当前模型已足够或差异不可复用时记录 `no_skill_gap`。确有缺口时优先选择能让错误不可发生的代码、schema、script/hook、test/review gate；只有判断本身需要上下文时才写 skill/reference。不得把非 repo 所有的机制塞入 repo-local prose。
-11. **最小写回。** 使用当前 Agent 已有的 `skill-creator`；若没有，则按本 method pack 的边界修改唯一 primary home。主 skill 保持短，稳定细节进入 focused reference，确定性约束进入机械门禁。删除被新模型替代的旧词、旧状态和竞争路径，不只追加例外。
-12. **同 case 重放。** 用更新后的累计 guidance 重跑完全相同的 visible START。只有 decision trajectory 改善、真实验收满足且没有泄漏 oracle 才保留 delta；否则撤销 candidate，而不是继续堆 prompt。
-13. **反例与相邻回归。** 至少选一个错误替代模型会给出不同答案的反例，再选相邻真实 trajectory 验证泛化；失败就收窄、替换或删除模型规则。
-14. **推进进度。** 保存 commit/code-read coverage、model before/after、evidence effect、case comparison、intervention/owner decision、before/after ref 和验证证据，再更新 card checkpoint 与 `Next`。
-15. **在当前 revision 收口。** 到达 requested boundary 后回到 context 固定的当前 revision，核对累计 guidance 的实体、路径、authority、命令、构建和测试仍成立；删除历史遗留名称和只适用于旧架构的规则，并运行当前 repo 的机械门禁与 replay。没有这一步不能标记 `completed`。
-16. **发布可消费 ref。** 按 delivery policy 提交、推送并创建 PR/MR，或明确停在 local/read-only candidate。记录 branch、commit、PR/MR、验证和 approval/merge 状态；不得自动合并受保护分支。
+### Phase A：固定范围并完整读取历史与当前状态
 
-## Learning evidence
+1. 解析并记录 fixed current revision、default branch 和 requested history boundary。
+2. 枚举从 fixed revision 可达且位于授权范围内的全部 commits。默认 oldest-to-newest；`all` 必须从最早可达 commit 到 fixed revision，不能用固定 case 数量提前停止。
+3. 对每个 commit 实际读取 patch、changed files 和理解变化所需的 parent/final code。大 patch 可以分块，但不能只读 message、tag、`--stat` 或文件名。
+4. 读取关联 tests、issue、MR/PR、review、CI、release notes 和相邻 commits，直到能判断变化的行为、owner、验证状态和当前有效性。
+5. 每个 commit 必须落入以下一种 coverage disposition：
+   - 某个 task family / capability 的 evidence；
+   - 某个 trajectory/episode 的 seed 或 supporting evidence；
+   - 已被其他 evidence batch 预消费；
+   - 基于实际 code change 的明确排除理由。
+6. 回到 fixed current revision，读取当前目录结构、公开 API、构建入口、生成器、配置、测试、发布/打包入口、运行时入口、观测/诊断和安全相关 surface。历史已经删除或更名的路径不能直接写入当前 skill。
 
-每个执行过的 case 在 replay workspace 使用独立目录，至少保存：
+Phase A 的完成只说明 history/code-read coverage 闭合，不说明 knowledge coverage 或 skills 已完成。
+
+### Phase B：先建立 capability coverage ledger，再选择 cases
+
+在任何最终 topology 决定前，创建或更新一个可恢复的 capability coverage ledger。推荐使用 `templates/replay/repository-capability-coverage.md`。至少盘点以下类别；不存在时写 `not-present + evidence`，不能默默跳过：
+
+- build、dependency、toolchain、code generation、format/lint/test、package/release；
+- 主要 runtime/service/library entrypoints 与公开 API；
+- 主要 domain state machines、data flows、resource lifecycles 和 provider/plugin boundaries；
+- configuration、persistence、migration、product/platform/device variants；
+- concurrency、callback、timer、queue、retry、cancellation、startup/shutdown；
+- security、identity、permissions、sensitive data；
+- observability、logging、metrics、crash/support diagnostics；
+- compatibility、generated ABI/schema、cross-repo consumer/provider contracts；
+- 仓库特有且在历史中反复出现的用户任务族。
+
+ledger 中每个 task family 至少记录：
+
+| 字段 | 必须回答的问题 |
+|---|---|
+| ID / verb-led name | Agent 将执行什么稳定动作，而不是目录叫什么？ |
+| trigger examples | 用户、issue、CI 或代码信号在什么情况下应命中它？ |
+| owner / authority | 哪个模型、配置、schema、controller、provider 或 build file 是权威？ |
+| current entrypoints | fixed revision 上应先读哪些路径、symbol、command、test？ |
+| historical evidence | 哪些实际 patches/episodes 支撑这个模型？ |
+| loop/risk model | 有哪些状态、资源、失败恢复或横切不变量？ |
+| validation level | 当前达到 L0/L1/L2/L3 中哪一级？证据 pointer 是什么？ |
+| topology disposition | router / capability-skill / focused-loop / cross-cutting / reference / script-gate / no-skill / candidate？ |
+| rationale | 为什么独立、合并、降级或不写 skill？ |
+| current-state reconciliation | 路径、命令、行为在 fixed revision 是否仍成立？ |
+
+发现 candidate task family 的充分线索包括但不限于：
+
+- 当前公开 API、用户可见功能、构建/发布入口或运维任务有独立请求方式；
+- 多个历史 changes 指向同一 owner、状态机、数据流或验证方法；
+- 一个小模块虽 commit 少，但承担安全、兼容、身份、持久化或生成 ABI 等高 blast-radius 责任；
+- 多个目录共同完成同一个端到端任务，应合并为一个 task family；
+- 同一目录承载多个 trigger、状态机或 proof，应拆成多个 task families；
+- 当前测试或脚本定义了稳定、可重复的操作，即使没有适合隔离的历史 issue，也可能形成 capability skill。
+
+禁止以下 shortcut：
+
+- 只把选中的 replay cases 写进 ledger；
+- 只统计 commit 数量或目录大小；
+- 因为某能力没有 issue 链接就直接丢弃；
+- 用 router 中的一行模糊描述替代本应独立可发现的稳定 task family；
+- 为凑数量把每个目录都变成 skill；
+- 把所有横切约束都做成会与每个 capability 同时触发的泛化 skill。
+
+Phase B 必须让每个主要当前 task family 都有 disposition。`candidate` 可以存在，但必须说明缺失证据和下一步；高影响能力不能在没有理由的情况下全部停留为 candidate。
+
+### Phase C：收敛 repository decision model
+
+1. 用仓库自己的语言记录实体、owner、authority、合法状态/转换、不变量、optional capability/fallback、失败关闭边界、build/test/release 方法和跨 repo 边界。
+2. 从真实 issue、MR/PR、review、CI、tests、release 和 Git history 还原 trajectory：当时可见事实 → decision points → state/data/resource transitions → actual work → observable outcome。
+3. 每条 evidence 对 model assertion 标记为 `confirm`、`refine`、`replace`、`remove` 或 `not-evaluated`。
+4. 重复用户纠正、同类 review、跨入口生产逃逸和反复回滚优先指向模型缺陷；不要不断追加互相竞争的局部例外。
+5. repository model 是跨 cases 累积的。一个 case 可以证明某个 assertion，但不能独占整个 task family 的定义。
+
+### Phase D：按风险选择验证等级
+
+不要再把“完整历史 replay”设为所有有用 skill 的唯一准入条件。采用以下分级，并诚实记录证据：
+
+- **L0 discovered**：只发现 candidate，尚未验证当前路径、命令或行为。只能留在 ledger/router unmatched boundary，不能写成正式执行结论。
+- **L1 current-state verified**：在 fixed revision 核对 authority、路径、symbols、命令、测试/生成器和可观测结果；运行可用的静态/结构/单测/build probe。适合稳定 build/config/API/task-family guidance。L1 不是高风险生命周期规则的充分证明。
+- **L2 historical outcome/replay verified**：找到完整 visible START、pre-change snapshot 和真实 outcome，读取实际 diff/code/test，隔离 hidden oracle，执行 baseline 与 same-case rerun，证明 guidance 改善行为。适合状态机、并发、重试、迁移、资源生命周期和历史高频陷阱。
+- **L3 route/negative/forward verified**：增加相邻 trigger route separation、错误替代模型反例、负例或当前 revision forward test，证明不误触发且没有只记住一个历史答案。对高风险且与相邻 skill 重叠的规则、拆分新 focused skill、或可能泄漏 oracle 的规则必须达到 L3。
+
+晋升规则：
+
+- 一个稳定、独立触发、有当前 authority/entrypoint/workflow/proof 的 capability task family，可以在 L1 后形成 capability skill；不要求凭空制造历史 incident。
+- 涉及并发、身份/密钥、持久化迁移、幂等、状态机、startup/shutdown、跨进程资源或失败恢复的核心行为，通常至少需要 L2；若与相邻 route 易混淆则需要 L3。
+- 历史 evidence 丰富但当前实现已删除的规律不能晋升；可记录为 retired/no-skill。
+- 只有单个一次性实现细节、没有独立 trigger、没有当前 proof 或通用模型已经足够时，放入现有 reference、任务本地证据或 `no-skill`。
+- validation level 决定 claim 强度，不决定是否强行把所有内容合并进 router。
+
+#### L2/L3 replay 的完整要求
+
+1. 选择能区分当前模型与至少一个错误替代模型的完整 case；只重复 happy case 不够。
+2. replay agent 只能看到 cutoff 当时可见问题、允许 sources、pre-change snapshot 和当时已有 skills；final diff、root cause、review 结论和验收结果属于 hidden oracle。
+3. 先执行 baseline；没有真正执行就不能判断 skill/model gap。
+4. 外层 Agent 完整读取真实 code changes，比较 owner、authority、状态转换、fallback、scope、implementation、verification 和 END behavior。
+5. 先判断失败属于 repo model/skill gap，还是 runtime/tool、一次性外部事实、跨 repo 方法或 case construction 泄漏。
+6. candidate 更新后重放相同 visible START。只有行为改善、真实验收满足且没有泄漏 oracle 才保留。
+7. 需要 L3 时，使用相邻真实 trajectory 或独立负例验证 route separation 和行为泛化；失败时合并、拆分、收窄、替换或删除候选。
+
+### Phase E：决定 skill topology
+
+先看完整 capability ledger，再逐项选择 primary home。允许的 topology 类型如下：
+
+#### Router skill
+
+- 当 repo 有多个独立 task families，或用户任务经常先以模糊症状到达时保留一个轻量 router。
+- router 负责 repo preflight、task-family 路由、跨 repo owner 边界和 unmatched/candidate 处理。
+- router 必须列出所有已交付 repo-local skill，并给出互斥或有优先级的 trigger；不能只列两个 replay cases 而遗漏其他已验证能力。
+- router 不能复制所有 focused skill 正文，也不能成为“其余知识垃圾桶”。
+
+#### Capability skill
+
+- 用于稳定、可独立请求的工程任务族，至少达到 L1。
+- description 写清实际用户任务、artifact/symbol/command 信号和何时使用。
+- 正文包含 owner/authority、入口选择、核心 workflow、重要边界和 proof；详细路径矩阵、历史模式和命令放 references。
+- capability skill 可以覆盖多个目录，也可以对应一个有明确责任的模块；判断依据是 trigger-to-proof 闭环，不是目录配额。
+
+#### Focused loop skill
+
+- 用于有独立 trigger、状态/资源生命周期、失败恢复和独立 proof 的高风险闭环，通常达到 L2/L3。
+- 正文必须明确 trigger、preconditions、ordered transitions、success state、failure/recovery/retry/idempotence、guardrails、proof 和 excluded adjacent behavior。
+- 一个 historical episode 只是 evidence，不能把 issue 号、commit 答案或一次性 patch 写成通用 skill。
+
+#### Cross-cutting skill 或 reference
+
+- concurrency、device variants、security、compatibility 等横切知识只有在用户会独立请求它、且有独立 proof 时才做 skill。
+- 如果它主要约束若干 capability workflows，就作为这些 skills 直接链接的 reference/checklist，或由 router 明确要求在相应条件下共同加载。
+- 不要创建 description 宽到几乎所有任务都会触发的横切 skill。
+
+#### Reference / script / mechanical gate
+
+- 与某个 skill 共享 trigger，只是路径表、schema、配置矩阵、历史模式、命令或详细例子时放 reference。
+- 重复且确定性的生成、校验、迁移、格式化或安全检查优先写 script/hook/test/gate，并实际运行验证。
+- reference 必须由 SKILL.md 直接链接并写明何时读取；不要深层嵌套或复制同一事实。
+
+#### `no-skill` / candidate
+
+- `no-skill` 必须有具体理由：当前通用模型已覆盖、一次性事实、已删除能力、缺少独立 trigger、应由代码/schema/gate 所有，或不属于当前 repo。
+- `candidate` 必须写缺失的 validation、影响范围和下一 proof；不能成为永久忽略主要能力的借口。
+
+#### 合并与拆分判断
+
+两个 candidate 在以下维度实质相同时优先合并：用户 trigger、owner/authority、核心 state/data/resource model、工作顺序、failure recovery 和 proof。仅文件或产品变体不同通常不足以拆分。
+
+以下任一维度存在稳定且有行为意义的差异时可以拆分：
+
+- 用户会用不同语言独立请求；
+- authority/owner 和第一执行入口不同；
+- 状态机或资源生命周期不同；
+- 失败恢复、兼容/安全边界不同；
+- 验证命令和 success oracle 不同；
+- 同时加载会带来明显无关上下文或误路由。
+
+不要预设“一模块一个 skill”“一仓库一个 skill”或“每仓固定 N 个 skills”。最终数量是完整 coverage ledger、trigger independence、proof 和 context cost 共同作用的结果。
+
+### Phase F：按 progressive disclosure 写入
+
+使用当前 Agent 已有的 `skill-creator`；若不可用，则遵循本 method pack 的 skill 边界。每个 skill：
+
+1. folder/name 使用简短、verb-led、仓库命名空间明确的 kebab-case；
+2. frontmatter 只保留 `name` 和 `description`；description 是主要触发器，必须同时说明“做什么”和“何时使用”，包含用户语言与关键 artifact/signal；
+3. SKILL.md 保留执行所需的 owner、workflow、guardrails、失败行为和 proof，不写学习过程报告；
+4. detailed path maps、configuration/product matrices、historical pitfalls、search patterns 和长命令进入一层 `references/`；
+5. 机械、易错、重复操作进入 `scripts/`，并实际运行；
+6. 生成或更新 `agents/openai.yaml`，确保 UI metadata 与 SKILL.md 一致；
+7. router 直接链接所有交付 skills/references，并说明相邻 route 如何区分；
+8. 删除过时路径、竞争性旧规则和重复内容，不只追加新段落。
+
+**“最小写回”的唯一正确解释**：每条知识只写到最合适的 primary home，skill body 只保留执行所需内容，细节按需加载，避免重复和无关上下文。它绝不意味着减少 task-family 覆盖、把多个独立 trigger 强塞进一个 router、或只为少数 replay cases 建 skill。
+
+#### 六维深度合同：不能只靠正文“看起来详细”
+
+每个有 router 的最终 topology 都必须在 router package 内交付以下四个互相链接的产物；使用
+`templates/replay/repository-skill-depth-contract.md`、`repository-capability-coverage.json`、
+`repository-skill-depth.json`、`repository-forward-evals.json` 和 `audit_skill_depth.py` 作为起点，但必须替换占位内容并按当前仓库定制：
+
+- `references/skill-depth.md`：给执行 Agent 按需读取的六维解释、重点实现模型和使用边界；
+- `references/capability-coverage.json`：对 build、runtime、lifecycle、config、concurrency、security、diagnostics、compatibility 和 repo-specific 九类表面逐项记录 `covered` 或有证据的 `not-applicable`，并为每个当前 capability 指定 disposition 与 primary home；
+- `references/skill-depth.json`：覆盖**全部**交付 packages 的机器可读 inventory；
+- `evals/evals.json`：与普通任务上下文隔离的 route、negative、forward、cross-repo eval；
+- `scripts/audit_skill_depth.py`：能在该 repo 独立运行的确定性 audit，并由 router 给出精确命令。
+
+每个 focused/capability package 还必须用一个轻量段落直接链接 router 中的 depth guide、自己的
+`skill-depth.json` record、hidden eval suite 和 audit command。Agent 可能直接由 description 命中
+focused skill，不保证先读取 router；因此只有 router 链接这些资产会形成不可发现的旁路知识。
+pointer 只写在哪里读和何时运行，不复制 depth 正文或 hidden expectations。
+
+六维是六张不同的账，不能相互替代：
+
+1. **implementation anchors**：每个 skill 都记录当前 authority、第一入口、关键 symbol、状态/数据/资源转换、失败关闭和最近 proof surface。路径必须在 fixed revision 存在；仅有目录、commit 或抽象描述不算 anchor。
+2. **mechanical controls**：把可确定判断的规则落到 generator、parser、schema/ABI check、focused test、sanitizer、build target 或 audit script，并记录 `executed-pass`、`executed-fail`、`observed-not-executed`。不能把“建议运行”写成已经通过。
+3. **risk promotion**：为每个 skill 记录 risk reason 和 L1/L2/L3。并发、安全、持久化/迁移、状态机、resource lifecycle、startup/shutdown、retry/rollback 默认不能靠宽泛 L1 claim 关闭；如果缺少 L2/L3，必须收窄 claim 并列出下一 proof。
+4. **runtime-hidden forward eval**：高风险、相邻 route 重叠或存在明显错误替代模型的 skill，至少有一个未参与写作的 current-revision case。task Agent 只见 prompt/repo；`expected_route`、`forbidden_routes`、invariants、proof 和 oracle source 在 task 完成后才由外层 evaluator 读取。改写历史答案、让同一 Agent 同时见 prompt 和 expected answer、或只检查关键词都不算 forward eval。
+5. **cross-repository closure**：跨 repo 的 skill 必须写 local last authority、downstream first authority、handoff payload 和最终 proof owner。当前 repo 的 compile/provider invocation 不能冒充 downstream behavior；eval 必须同时检查主 owner、禁选 owner 和 handoff 信息是否保留。
+6. **drift/self-improve**：每个 skill 都列出会使模型失效的 path/symbol/command/schema/provider contract。真实任务失败、用户/reviewer correction、路径变化、eval 回归或 audit 失败先进入 evidence；再由 `jarvis-self-improve-skill` 比较旧模型与候选，在 same/adjacent/forward cases 上验证后写入唯一 primary home。禁止在当前任务中直接修改 skill 来为当前答案自证。
+
+`skill-depth.json` 的每个 skill record 至少包含 `name`、`risk`、`level`、`authority`、
+`entrypoints`、`transitions`、`mechanical_controls`、`forward_eval_ids`、`cross_repo` 和
+`drift_watch`。router 自身也必须入账：它的行为风险是错误路由、遗漏能力和跨 repo owner 误判。
+
+深度不等于统一升级到 L3。正确结果是：所有 skills 都有 D1/D2/D3/D6；只给需要的 routes 加 D4；只给真实跨仓边界加 D5；每条 claim 都与真实 evidence 等级一致。
+
+### Phase G：验证、覆盖收口与交付
+
+对最终累计 topology 执行：
+
+1. 对每个 skill 运行 `skill-creator` `quick_validate.py` 或等价 validator；检查 metadata、links、scripts 和 references。
+2. 对每个 L1 skill 在 fixed revision 重跑记录的 path/symbol/command/test/build/generator checks。
+3. 对每个 L2/L3 skill保存 same-case、oracle comparison、negative/adjacent route 和当前 revision reconciliation evidence。
+4. 做 route matrix：使用代表性用户请求验证唯一主 skill、必要共同加载的横切 reference、以及不应触发的相邻 skills。
+5. 回看 capability coverage ledger，确认每个主要当前 task family 都有 disposition；不得用“history fully read”替代这一步。
+6. 检查欠生成：是否有当前公开 API、构建/发布入口、高 blast-radius surface 或反复历史模式只剩 router 一行而无解释？
+7. 检查过生成：是否有 skills 仅按目录命名、trigger 重叠、没有独立 workflow/proof，或只是已有 skill 的 reference？
+8. 回到 fixed revision 核对所有路径、symbols、命令、构建和测试仍成立；区分 `executed-pass`、`executed-fail` 与 `observed-not-executed`。
+9. 按 delivery policy commit、push、创建或更新 PR/MR。记录 branch、exact commit、PR/MR、验证、approval/merge 状态；不得自动合并受保护分支。
+10. 从 repo root 实际运行 router 的 `scripts/audit_skill_depth.py`；audit 必须证明九类 capability surface 均有 disposition、六个 dimension 已声明、每个 package 都进入 inventory 且映射到 capability primary home、每个 package 直接链接 depth/eval/audit controls、所有 authority/link 均被限制在 repo root、risk 等级与实际执行证据一致、router 覆盖全部 packages、eval ID 和执行状态可解析。
+11. eval artifact 的“存在”和 JSON 合法只算结构证据。需要 L3 的 case 必须在隔离 task context 中实际执行并由外层 evaluator 读 hidden expectations 后评分；没有独立执行条件时标 `prepared-not-executed`，不能报 forward pass。
+
+## 必须保存的证据
+
+### Repository-level evidence
+
+- 完整 commit/code-read coverage 与 cursor；
+- capability coverage ledger；
+- repository model before/after；
+- topology/route matrix；
+- 六维 depth contract、完整 package inventory、机械 audit 结果；
+- runtime-hidden eval suite 及每个 case 的 `executed-pass` / `executed-fail` / `prepared-not-executed` 状态；
+- 每个 delivered skill 的 validation level 与证据 pointer；
+- current-revision reconciliation；
+- exact delivery ref 和 review state。
+
+### 每个执行过的 replay case
 
 - visible START 与 provenance；
-- hidden oracle 的外层 pointer，不把正文暴露给 replay agent；
-- episode commits、完整 patch/code inspection 的证据 pointer，以及每个相关 commit 的 coverage 归属；
+- hidden oracle pointer，正文不暴露给 replay agent；
+- episode commits、完整 patch/code inspection pointer 和 coverage 归属；
+- model assertion / wrong alternative model；
 - baseline replay result；
-- model hypothesis、被区分的错误替代模型和 evidence effect；
-- outcome 与 decision trajectory comparison；
-- `no_skill_gap` 或 intervention/primary-home decision；
+- outcome/decision trajectory comparison；
+- intervention/primary-home decision；
+- logic-loop model 与 topology decision；
 - candidate diff；
-- same-case rerun result；
-- 保留或撤销结论。
+- same-case rerun；
+- 需要时的 adjacent/negative route regression；
+- 保留、降级或撤销结论。
 
-这些是学习证据，不是客户 repo 里的新方法 skill。客户 repo 只保留最终经验证的 repo-local delta。
+这些是学习证据，不是客户 repo 里的新方法 skill。客户 repo 只保留未来任务需要的最终 repo-local delta。
 
-## 停止与恢复
+## 完成门槛
 
-遇到缺少授权、无可验证 outcome 或隔离运行不可用时，把当前 card 标为 `blocked`，写清已搜索范围和恢复动作，然后把控制权交还 Coordinator；其他 repo card 可以独立继续。repo 是 read-only 时可以完成学习证据，但最终状态必须是 `candidate-only`，不能冒充可部署交付。
+只有同时满足以下条件，当前 repo card 才能标为 `completed`：
 
-只有 requested range 内所有可达 commits 都有 code-read coverage、所有 trajectory 都已 accounted、选中 case 已闭合或明确 disposition、模型在反例和当前 revision 收口验证，并且接受的 delta 已形成 delivery policy 要求的可追溯 ref，当前 card 才能标为 `completed`。任务结束时只向 Coordinator 报告范围与覆盖状态、model changes、保留的 durable delta、交付 ref、blocker 和 card pointer；不向客户解释内部 eval 术语，也不声称其他 repo 已完成。
+- requested history range 内所有可达 commits 都有实际 code-read coverage disposition；
+- fixed revision 的主要 task families/capability surfaces 全部进入 ledger 且有明确 disposition；
+- 没有未解释的高影响能力遗漏，也没有用 router 一行替代应独立触发的已验证 workflow；
+- repository model 已根据历史和当前状态收口；
+- 所有交付 skills 通过结构校验，L1/L2/L3 claim 与证据强度匹配；
+- 高风险或易重叠 skills 已完成要求的 replay/negative/route 验证；
+- 最终 topology 通过 coverage、trigger precision、behavioral closure、duplication/context cost 和 current-state reconciliation 检查；
+- 客户 dirty state 被保留；
+- 接受的 delta 已形成 delivery policy 要求的可追溯 ref。
+
+遇到授权缺失、无法读取必要 outcome 或隔离 replay 不可用时，把受影响 case/capability 标为 `blocked` 或 `candidate`，写清已搜索范围、当前仍可完成的 L1 evidence 和恢复动作。只有当阻塞使 repository-level 完成门槛无法满足时，repo card 才标为 `blocked`；其他 repo cards 可以独立继续。
+
+任务结束时向 Coordinator 报告：history coverage、capability coverage、最终 skill topology、各 validation levels、精确 delivery ref、未验证/blocked 项和 card pointer。不要只报告 skill 数量或 eval 总分。
+
+## 解释性示例：防止再次欠生成
+
+假设一个 service 的全历史和当前代码呈现三类稳定任务：
+
+1. webhook 至少一次投递，需要幂等处理；有历史 incident、fix 和 replay；
+2. invoice payment/refund 状态机；有历史 incident、fix 和 replay；
+3. audit export；当前有公开函数、格式 contract、测试和独立用户请求方式，但没有合适的 incident replay。
+
+正确结果可以是：一个轻量 router、两个达到 L2/L3 的 focused loop skills，以及一个达到 L1 的 audit-export capability skill。不能因为第三类没有历史 issue replay 就把它丢进 router 一行；也不能因为 `export.py` 是单独目录/文件就无证据地建 skill。决定性证据是独立 trigger、当前 authority/workflow 和 proof。
+
+反过来，如果多个小目录共同完成同一个 media session，且共享 trigger、resource lifecycle、failure cleanup 和 integration test，就应形成一个 capability/focused skill，并把目录表放 reference，而不是为每个目录各建一个 skill。

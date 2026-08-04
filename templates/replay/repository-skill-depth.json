@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "repository": "REPLACE_WITH_REPOSITORY",
+  "fixed_revision": "REPLACE_WITH_FULL_COMMIT",
+  "router": "REPLACE_WITH_ROUTER_PACKAGE",
+  "coverage_file": "references/capability-coverage.json",
+  "evals_file": "evals/evals.json",
+  "dimensions": {
+    "implementation_anchors": "references/skill-depth.md",
+    "mechanical_controls": "scripts/audit_skill_depth.py",
+    "risk_promotion": "per skill record",
+    "runtime_hidden_forward_eval": "evals/evals.json",
+    "cross_repository_closure": "per skill record",
+    "drift_self_improve": "per skill record"
+  },
+  "skills": [
+    {
+      "name": "REPLACE_WITH_ROUTER_PACKAGE",
+      "risk": "medium: wrong route or omitted capability",
+      "level": "L1",
+      "authority": ["REPLACE_WITH_REPOSITORY_RELATIVE_PATH"],
+      "entrypoints": ["REPLACE_WITH_ENTRYPOINT"],
+      "transitions": ["request -> route -> proof owner"],
+      "mechanical_controls": ["observed-not-executed: REPLACE_WITH_CONTROL"],
+      "forward_eval_ids": [],
+      "cross_repo": ["none: local repository"],
+      "drift_watch": ["REPLACE_WITH_PATH_SYMBOL_OR_COMMAND"]
+    }
+  ]
+}

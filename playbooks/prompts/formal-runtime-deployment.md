@@ -60,7 +60,9 @@ After installation, record:
 
 ## 5. Docker path
 
-Use the released Docker onboarding helper and the customer-selected absolute deployment home. Start in read-only mode. Let the helper import approved portable Host identities into the persistent runtime; do not perform a blanket Host HOME mount or credential copy.
+Use three customer-selected absolute paths with different roles: the existing Construction Workspace, the canonical Company Jarvis checkout, and a dedicated Jarvis Box deployment home. They must be pairwise physically disjoint; none may equal, contain or be contained by another. Run `scripts/validate_runtime_paths.py` and record its successful report before creating the deployment home. Never place runtime state below `jarvis-build/` or a source checkout.
+
+Use the released Docker onboarding helper with that validated deployment home. Start in read-only mode. Let the helper import approved portable Host identities into the persistent runtime; do not perform a blanket Host HOME mount or credential copy.
 
 Use the customer Jarvis Runtime Foundation through the release's generic runtime-job transport to bootstrap, sync and run its doctor. The Host Scheduler Adapter is authoritative; bootstrap and recovery must disable an in-container scheduler.
 
@@ -113,4 +115,26 @@ Representative customer-supervised tasks advance `ready-for-shadow → shadowing
 
 ## Runtime Foundation scheduled jobs
 
-不要让客户手工编写 maintenance/self-improve 或 cron。使用生成后的 `runtime-foundation/manage.py` 按 Part 4 已选择的部署模式完成首次安装或同模式升级：Native 以当前已有 OS 用户直接安装；Docker 先在持久化 Agent HOME 中执行 `install-inner`，再在宿主机以 `install --mode docker` 安装唯一 scheduler owner。只有 `status` 同时证明所选 mode、唯一 owner 和 Docker transport reachability 时才能通过 Part 4；label loaded 或配置文件存在都不是充分证据。发现另一部署模式的配置或 scheduler owner 时立即停止，不得自动切换。
+不要让客户手工编写 maintenance/self-improve 或 cron。Native 从 clean、pinned create-jarvis checkout 安装到当前用户的显式 Agent skill root：
+
+```bash
+python3 scripts/install_runtime_method_skills.py install --skills-root <selected-agent-skills-root>
+python3 scripts/install_runtime_method_skills.py doctor --skills-root <selected-agent-skills-root>
+```
+
+Docker 不挂载 Host checkout，也不要求客户进入容器手工复制。使用 create-jarvis 的 Docker transport，把 clean pinned commit 的 `git archive` 通过 Jarvis Box 公开 `runtime-job` 送入持久 Agent HOME：
+
+```bash
+scripts/install_runtime_method_skills_docker.sh install \
+  --jarvis-box-helper <release>/scripts/deploy-production.sh \
+  --deployment-home <validated-deployment-home> \
+  --agent codex
+scripts/install_runtime_method_skills_docker.sh doctor \
+  --jarvis-box-helper <release>/scripts/deploy-production.sh \
+  --deployment-home <validated-deployment-home> \
+  --agent codex
+```
+
+不得猜测 Agent root，也不得把这些通用 skills 复制进 Company repo 的 `skills/`。安装器拒绝 dirty checkout、root 用户、非当前用户所有的 skills root 和非 create-jarvis 所有的同名 package；多 package 升级失败必须整体回滚。保存 exact method commit、packages 和 content hashes，并执行一次 fresh Agent discovery，证明 `jarvis-self-improve-skill` 可见。仅有模板文件、prompt 提及、文件复制成功或旧 session 发现记录都不算 discovery 证据。
+
+然后使用生成后的 `runtime-foundation/manage.py` 按 Part 4 已选择的部署模式完成首次安装或同模式升级：Native 以当前已有 OS 用户直接安装；Docker 先在持久化 Agent HOME 中执行 `install-inner`，再在宿主机以 `install --mode docker` 安装唯一 scheduler owner。只有 method-skill doctor、fresh discovery 和 Foundation `status` 同时证明 exact method ref、所选 mode、唯一 owner 和 Docker transport reachability时才能通过 Part 4；label loaded 或配置文件存在都不是充分证据。发现另一部署模式的配置或 scheduler owner 时立即停止，不得自动切换。

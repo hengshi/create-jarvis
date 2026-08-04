@@ -148,7 +148,7 @@ Disposition every capability candidate and close product, implementation and ver
 
 Follow `playbooks/prompts/repository-learning.md` once per `work/repositories/<repo>.md` card.
 
-Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules; then preserve a minimal repo-local delta only when discriminating replay improves that model's decisions and adjacent regression remains acceptable.
+Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules. Project that decision model into independently triggerable trigger-to-proof logic loops, and let validated loop boundaries determine repo-local skill topology. Do not default to one skill per repository or split by directories/modules. Preserve a minimal delta only when discriminating replay improves the model's decisions and an adjacent case proves behavioral safety and route separation.
 
 Each repository delivers its own commit, branch and PR/MR or an explicit read-only/blocked result. Never edit the Company Jarvis repo from a repository card. A dirty local worktree is not a consumable skill delivery.
 
@@ -164,9 +164,11 @@ A workflow is `construction-ready` only when its required Company and repo-local
 
 Follow `playbooks/prompts/formal-runtime-deployment.md` and `work/jarvis-box-onboarding.md`.
 
-Ask the customer one deployment question: Native or Docker. Use only the selected private `hengshi-jarvis/jarvis-box` Release's installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker runs with the same user's numeric UID/GID, persists data below the selected deployment home, and imports only approved portable identities from the current Host user. A dedicated machine account is optional customer policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
+Ask the customer one deployment question: Native or Docker. Use only the selected private `hengshi-jarvis/jarvis-box` Release's installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker runs with the same user's numeric UID/GID, persists data below a dedicated deployment home, and imports only approved portable identities from the current Host user. Before Docker installation, resolve and validate three pairwise-disjoint absolute paths: Construction Workspace, canonical Company Jarvis checkout and deployment home. A dedicated machine account is optional customer policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
 
-Record the selected mode, actual runtime owner/root, release version, Docker image digest when applicable, credential capability evidence, optional connector boundary and real Agent/provider/writeback/cleanup evidence. Do not copy Compose files, environment-variable catalogs, container paths or the jarvis-box runbook into Company Jarvis. After the selected environment's real probes pass, advance the selected workflow to `ready-for-shadow`.
+Before scheduled jobs can be accepted, install the pinned method packages with `scripts/install_runtime_method_skills.py` into the selected Agent's explicit discovery root, run its doctor, and prove fresh discovery of `jarvis-self-improve-skill`. Company repos do not vendor these generic packages; a template in create-jarvis or a prompt that names the skill is not runtime installation evidence.
+
+Record the selected mode, actual runtime owner/root, release version, Docker image digest when applicable, exact create-jarvis method-skill manifest, credential capability evidence, optional connector boundary and real Agent/provider/writeback/cleanup evidence. Do not copy Compose files, environment-variable catalogs, container paths or the jarvis-box runbook into Company Jarvis. After the selected environment's real probes pass, advance the selected workflow to `ready-for-shadow`.
 
 ## Shadow delivery and evolution
 

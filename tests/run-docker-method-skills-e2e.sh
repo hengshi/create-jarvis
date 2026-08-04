@@ -55,6 +55,15 @@ chmod 0600 "$deployment_home"/*.env
 "$helper" "$deployment_home" runtime-job test -r \
   /home/jarvis/.codex/skills/jarvis-self-improve-skill/SKILL.md
 
+fresh_discovery=required-separately
+if [ "${JARVIS_E2E_FRESH_AGENT_DISCOVERY:-0}" = 1 ]; then
+  fresh_output="$("$helper" "$deployment_home" runtime-job codex exec \
+    --skip-git-repo-check --sandbox read-only --color never \
+    'This is a read-only deployment probe. Inspect the skills available to this fresh session. If and only if a skill named jarvis-self-improve-skill is available, output exactly JARVIS_SELF_IMPROVE_SKILL_DISCOVERED.')"
+  printf '%s\n' "$fresh_output" | grep -Fx 'JARVIS_SELF_IMPROVE_SKILL_DISCOVERED' >/dev/null
+  fresh_discovery=executed-pass
+fi
+
 "$helper" "$deployment_home" compose up -d --force-recreate jarvis-box >/dev/null
 "$root/scripts/install_runtime_method_skills_docker.sh" doctor \
   --jarvis-box-helper "$helper" \
@@ -62,4 +71,4 @@ chmod 0600 "$deployment_home"/*.env
   --agent codex >/dev/null
 
 printf 'Docker method-skill transport and persistence passed\n'
-printf 'fresh_agent_discovery=required-separately\n'
+printf 'fresh_agent_discovery=%s\n' "$fresh_discovery"

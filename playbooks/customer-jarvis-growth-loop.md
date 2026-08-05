@@ -22,7 +22,7 @@ Customer request
 
 客户只需对当前 Host Agent 说：
 
-> 请确认当前 GitHub 账号已获 `hengshi-jarvis` 组织授权，用 `gh` 获取 `hengshi-jarvis/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 Host Agent 固定 create-jarvis commit 后成为 Construction Coordinator。若 Construction Workspace 已存在，必须先恢复，不能重新初始化。若是新旅程，它引导客户提供 company identity、docs、code repos 和 work-system pointers，只探测这些明确授权的材料。
 
@@ -118,7 +118,7 @@ Coordinator 在当前 route-scoped 范围内：
 
 ## Part 4. jarvis-box install, start and onboarding
 
-达到 Reconciliation Gate 后，Coordinator 才使用已授权的私有 `hengshi-jarvis/jarvis-box` Release/runtime 接口：
+达到 Reconciliation Gate 后，Coordinator 才使用公开的 `hengshi/jarvis-box` Release/runtime 接口：
 
 - 固定 Company Jarvis 和 workflow 必需 repo-local commits；
 - 下载并校验 release bundle 与 OCI image digest；

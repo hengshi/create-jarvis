@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.2.0 - 2026-08-05
+## 0.1.1 - 2026-08-05
 
 - Add customer-owned maintenance and self-improvement runtime foundations for Native and Docker deployments.
 - Make repository learning derive coverage-complete, auditable skills from the customer's own logic loops.

@@ -9,7 +9,7 @@
 在已经登录并获得授权的 Codex 或 Claude 中发送。Host Agent 必须使用 GitHub 最新 Release 的精确 tag，不得使用浮动 `main`：
 
 ```text
-请确认当前 GitHub 账号已获 hengshi-jarvis 组织授权，用 gh 获取 hengshi-jarvis/create-jarvis 的最新 Release，检出其精确 tag 和 commit，读取 SKILL.md，然后帮我构建属于我们公司的 Jarvis。
+请用 gh 获取 hengshi/create-jarvis 的最新 Release，检出其精确 tag 和 commit，读取 SKILL.md，然后帮我构建属于我们公司的 Jarvis。
 ```
 
 收到请求的 Host Agent 会成为 Construction Coordinator。它只读取客户明确提供的文档、代码仓库和工作系统，不扫描 HOME、历史会话、无关仓库或旧 runtime 猜测客户情况。

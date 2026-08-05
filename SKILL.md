@@ -9,15 +9,15 @@ description: Build, publish, deploy, resume, and evolve a customer-owned Jarvis 
 
 Its canonical product and skill identity is exactly `create-jarvis`. Resolve the current identity from this checked-out root skill and release metadata, never from an old transcript, branch, directory name or remembered alias. A renamed predecessor is obsolete vocabulary, not a second supported method.
 
-> 请确认当前 GitHub 账号已获 `hengshi-jarvis` 组织授权，用 `gh` 获取 `hengshi-jarvis/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 The authenticated Host Agent receiving that request is the **Construction Coordinator**. It owns continuity across repository initialization, long-running construction tasks, reconciliation, formal runtime onboarding, interruption recovery and shadow promotion.
 
 ## Materialize and pin the method
 
-The private GitHub repository is a boot pointer, not a set of pages to fetch. Verify that the current `gh` identity can read `hengshi-jarvis/create-jarvis`, resolve its latest Release, clone it into a dedicated directory in the customer-authorized workspace, check out the exact release tag, record `git rev-parse HEAD`, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
+The public GitHub repository is a boot pointer, not a set of pages to fetch. Resolve the latest Release of `hengshi/create-jarvis`, clone it into a dedicated directory in the customer-authorized workspace, check out the exact release tag, record `git rev-parse HEAD`, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
 
-The initial request authorizes access to this paid-customer method repository only. It does not authorize searching the customer home, shell profiles, Agent histories, installed skills, unrelated repositories or old runtime remnants. Customer evidence starts with explicit URLs or paths supplied by the customer.
+The initial request authorizes access to this public method repository only. It does not authorize searching the customer home, shell profiles, Agent histories, installed skills, unrelated repositories or old runtime remnants. Customer evidence starts with explicit URLs or paths supplied by the customer.
 
 ## Fixed ownership model
 
@@ -164,7 +164,7 @@ A workflow is `construction-ready` only when its required Company and repo-local
 
 Follow `playbooks/prompts/formal-runtime-deployment.md` and `work/jarvis-box-onboarding.md`.
 
-Ask the customer one deployment question: Native or Docker. Use only the selected private `hengshi-jarvis/jarvis-box` Release's installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker runs with the same user's numeric UID/GID, persists data below a dedicated deployment home, and imports only approved portable identities from the current Host user. Before Docker installation, resolve and validate three pairwise-disjoint absolute paths: Construction Workspace, canonical Company Jarvis checkout and deployment home. A dedicated machine account is optional customer policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
+Ask the customer one deployment question: Native or Docker. Use only the selected public `hengshi/jarvis-box` Release's installation and operations contract. Native uses the existing installing OS user and that user's authorized CLI identities. Docker runs with the same user's numeric UID/GID, persists data below a dedicated deployment home, and imports only approved portable identities from the current Host user. Before Docker installation, resolve and validate three pairwise-disjoint absolute paths: Construction Workspace, canonical Company Jarvis checkout and deployment home. A dedicated machine account is optional customer policy, not an installation prerequisite. Never copy Host HOME, SSH agent, Keychain or a complete credential store.
 
 Before scheduled jobs can be accepted, install the pinned method packages with `scripts/install_runtime_method_skills.py` into the selected Agent's explicit discovery root, run its doctor, and prove fresh discovery of `jarvis-self-improve-skill`. Company repos do not vendor these generic packages; a template in create-jarvis or a prompt that names the skill is not runtime installation evidence.
 

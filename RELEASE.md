@@ -6,13 +6,12 @@
 
 | Repository | Responsibility |
 | --- | --- |
-| `github.com/hengshi-jarvis/create-jarvis` | Private, versioned construction, recovery, reconciliation, and runtime-onboarding method consumed by a paid customer's authenticated Host Agent |
+| `github.com/hengshi/create-jarvis` | Public, versioned construction, recovery, reconciliation, and runtime-onboarding method consumed by the customer's Host Agent |
 | `gitlab.hengshi.org/henglabs/jarvis-box` | Canonical private Jarvis Box source, tests, CI, image build, and release artifacts |
-| `github.com/hengshi-jarvis/jarvis-box` | Private customer distribution of curated Jarvis Box documentation and verified runtime Releases |
-| `github.com/hengshi/create-jarvis` | Public Getting Started entry only; contains no product method or runtime source |
+| `github.com/hengshi/jarvis-box` | Public distribution of curated Jarvis Box documentation and verified runtime Releases |
 | Customer Company Jarvis | Customer-owned knowledge, workflow, governance, and skills |
 
-`create-jarvis` consumes only a published private `github.com/hengshi-jarvis/jarvis-box` Release during runtime onboarding. The current GitHub identity must be an authorized organization member. It never consumes the internal GitLab source or copies Jarvis Box internals into the customer repository.
+`create-jarvis` consumes only a published `github.com/hengshi/jarvis-box` Release during runtime onboarding. It never consumes the internal GitLab source or copies Jarvis Box internals into the customer repository.
 
 ## Version contract
 

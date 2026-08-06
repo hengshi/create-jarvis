@@ -241,10 +241,22 @@ def run(job: str) -> int:
                 f"detail={create_result.stderr.strip() or create_result.stdout.strip()}",
                 file=sys.stderr,
             )
-        subprocess.run(
-            ["git", "clone", "--quiet", company_repo, str(workspace)],
-            check=True,
-        )
+        clone_urls = [company_repo]
+        if company_repo.startswith("https://"):
+            ssh_url = company_repo.replace("https://", "git@", 1).replace("/", ":", 1)
+            clone_urls = [ssh_url, company_repo]
+        clone_error = None
+        for url in clone_urls:
+            result = subprocess.run(
+                ["git", "clone", "--quiet", url, str(workspace)],
+                check=False,
+            )
+            if result.returncode == 0:
+                clone_error = None
+                break
+            clone_error = result.stderr.strip() or "exit {}".format(result.returncode)
+        if clone_error:
+            raise RuntimeError("git clone failed for {}: {}".format(company_repo, clone_error))
         agent, base = selected_agent(jarvis_box_cli)
         prompt = compose_prompt(job, workspace, run_dir)
         (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")

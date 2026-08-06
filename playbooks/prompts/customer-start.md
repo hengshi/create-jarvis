@@ -2,13 +2,13 @@
 
 The customer says only:
 
-> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新代码，检出其 commit 和提交日期时间和提交人，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 Treat this as authorization to read the public method repository and coordinate the construction journey within the customer's already authorized Host Agent environment. It is not authorization to access undisclosed systems, copy credentials, publish to an unconfirmed namespace, or perform irreversible production actions.
 
 The receiving Agent:
 
-1. resolves the latest Release of `hengshi/create-jarvis`, clones it into a dedicated local checkout when one is not already available, checks out its exact tag, records its commit, and reads the method locally rather than through repeated WebFetch/raw-file requests;
+1. clones the latest code of `hengshi/create-jarvis` into a dedicated local checkout when one is not already available, records its commit hash, author date, and committer, and reads the method locally rather than through repeated WebFetch/raw-file requests;
 2. states that it will not scan the Host computer for company evidence;
 3. asks whether this is a new journey or a resume; for resume, requests the construction workspace path when it is not the current directory;
 4. for a new journey, asks the customer to provide company identity plus the docs, code repositories and work-system pointers Jarvis should learn from;

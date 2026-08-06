@@ -9,13 +9,13 @@ description: Build, publish, deploy, resume, and evolve a customer-owned Jarvis 
 
 Its canonical product and skill identity is exactly `create-jarvis`. Resolve the current identity from this checked-out root skill and release metadata, never from an old transcript, branch, directory name or remembered alias. A renamed predecessor is obsolete vocabulary, not a second supported method.
 
-> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新代码，检出其 commit 和提交日期时间和提交人，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 The authenticated Host Agent receiving that request is the **Construction Coordinator**. It owns continuity across repository initialization, long-running construction tasks, reconciliation, formal runtime onboarding, interruption recovery and shadow promotion.
 
 ## Materialize and pin the method
 
-The public GitHub repository is a boot pointer, not a set of pages to fetch. Resolve the latest Release of `hengshi/create-jarvis`, clone it into a dedicated directory in the customer-authorized workspace, check out the exact release tag, record `git rev-parse HEAD`, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
+The public GitHub repository is a boot pointer, not a set of pages to fetch. Clone `hengshi/create-jarvis` into a dedicated directory in the customer-authorized workspace, check out its latest commit, record the commit hash, author date, and committer, and read all referenced method files locally. Do not reconstruct the method from GitHub HTML, raw URLs, repeated WebFetch calls or copied fragments.
 
 The initial request authorizes access to this public method repository only. It does not authorize searching the customer home, shell profiles, Agent histories, installed skills, unrelated repositories or old runtime remnants. Customer evidence starts with explicit URLs or paths supplied by the customer.
 

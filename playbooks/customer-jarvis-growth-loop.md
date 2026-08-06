@@ -22,7 +22,7 @@ Customer request
 
 客户只需对当前 Host Agent 说：
 
-> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新 Release，检出其精确 tag 和 commit，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
+> 请用 `gh` 获取 `hengshi/create-jarvis` 的最新代码，检出其 commit 和提交日期时间和提交人，读取 `SKILL.md`，然后帮我构建属于我们公司的 Jarvis。
 
 Host Agent 固定 create-jarvis commit 后成为 Construction Coordinator。若 Construction Workspace 已存在，必须先恢复，不能重新初始化。若是新旅程，它引导客户提供 company identity、docs、code repos 和 work-system pointers，只探测这些明确授权的材料。
 

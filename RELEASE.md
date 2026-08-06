@@ -17,9 +17,9 @@
 
 - `create-jarvis vA.B.C` versions the construction method.
 - `jarvis-box vX.Y.Z` versions the runtime.
-- A Construction Workspace records the exact create-jarvis tag and commit.
+- A Construction Workspace records the exact create-jarvis commit, author date, and committer.
 - The onboarding card records the independently selected Jarvis Box tag, artifact checksum, and production image digest.
-- `main` is development state and is never a stable customer input.
+- Latest `main` commit is the stable customer input; pinned by commit hash, author date, and committer.
 
 ## Release flow
 

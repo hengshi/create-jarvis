@@ -74,7 +74,7 @@ Coordinator 会先核验文件、Git ref、PR/MR 和 runtime 事实，再决定�
 
 从本地 `SKILL.md` 开始。只读取当前 route 指定的 playbook，不一次加载整个仓库。`create-jarvis` 拥有建设方法和恢复合同；客户 Jarvis 拥有知识、workflow 和 Runtime Foundation；客户代码仓库拥有 repo-local 执行真相；jarvis-box 拥有 Task/Run、workspace、provider loop、writeback 和 operator contract。
 
-构建产出为 **Mode B**（jarvis-box 协同）。客户可选 **Mode A**（独立模式，无 jarvis-box）——将 `~/.hengshi-jarvis/` 复制到任意机器并 source `env.sh`，自动检测并切换为独立路径。详见 GOAL.md。
+构建产出为 **Mode B**（jarvis-box 协同）。客户可选 **Mode A**（独立模式，无 jarvis-box）——将 `~/.&lt;slug&gt;-jarvis/` 复制到任意机器并 source `env.sh`，自动检测并切换为独立路径。详见 GOAL.md。
 
 直接使用 GitHub 最新代码；Construction Workspace 必须记录 checkout commit、提交日期时间和提交人，不能依赖浮动分支。
 

@@ -72,18 +72,18 @@ Company Jarvis 构建完成后支持两种模式，由 `env.sh` 自动检测 `ja
 ### Mode B：jarvis-box 协同（构建目标）
 
 这是 create-jarvis 的构建产出。jarvis-box 接管 workspace 和 repo-cache（`~/.jarvis-box/`），
-hengshi-jarvis runtime foundation 负责 scheduler 定义、稳定工具和知识层（`~/.hengshi-jarvis/`）。
+hengshi-jarvis runtime foundation 负责 scheduler 定义、稳定工具和知识层（`~/.&lt;slug&gt;-jarvis/`）。
 维护和自改进任务通过 `jarvis-box tasks create` 注册为正式 Task，在 `jarvis-box tasks list` 中可见。
 
 ### Mode A：独立使用（可选）
 
 构建完成后，客户可以在任意无 jarvis-box 的机器上单独安装 hengshi-jarvis runtime foundation。
 此时 `env.sh` 检测不到 `jarvis-box`，自动将所有路径（workspace、repo-cache）保留在
-`~/.hengshi-jarvis/` 下自行管理。个人电脑上的 agent 可直接使用 Company Jarvis 的 skills、
+`~/.&lt;slug&gt;-jarvis/` 下自行管理。个人电脑上的 agent 可直接使用 Company Jarvis 的 skills、
 references 和 tools，无需 jarvis-box。
 
-客户切换方式：在已构建完成的 Company Jarvis 机器上运行 `~/.hengshi-jarvis/bin/pullall`，
-然后将整个 `~/.hengshi-jarvis/` 目录复制到目标机器，source `env.sh` 即可。
+客户切换方式：在已构建完成的 Company Jarvis 机器上运行 `~/.&lt;slug&gt;-jarvis/bin/pullall`，
+然后将整个 `~/.&lt;slug&gt;-jarvis/` 目录复制到目标机器，source `env.sh` 即可。
 
 ## 中断与恢复
 

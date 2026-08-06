@@ -16,6 +16,33 @@ import time
 
 FOUNDATION_ROOT = pathlib.Path(__file__).resolve().parents[1]
 CONFIG_PATH = FOUNDATION_ROOT / "config" / "runtime-foundation.json"
+JARVIS_BOX_ENV_FILE = pathlib.Path.home() / ".jarvis-box" / "envs" / ".env.jarvis-box"
+
+
+def load_jarvis_box_env() -> dict[str, str]:
+    """Load provider auth env vars from jarvis-box env file."""
+    env = {}
+    env_file = pathlib.Path(os.environ.get("JARVIS_ENV_FILE", JARVIS_BOX_ENV_FILE))
+    if not env_file.is_file():
+        return env
+    try:
+        with open(env_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if line.startswith("export "):
+                    line = line[7:]
+                if "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and value:
+                    env[key] = os.path.expandvars(value)
+    except OSError:
+        pass
+    return env
 
 
 def load_config() -> dict[str, object]:
@@ -222,9 +249,12 @@ def run(job: str) -> int:
         prompt = compose_prompt(job, workspace, run_dir)
         (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
         print(f"STATUS=RUNNING job={job} runtime_agent={agent} task_id={task_id} workspace={workspace}", flush=True)
+        agent_env = os.environ.copy()
+        agent_env.update(load_jarvis_box_env())
         completed = subprocess.run(
             agent_command(agent, base, workspace, prompt, run_dir),
             cwd=workspace,
+            env=agent_env,
             check=False,
         )
         if completed.returncode != 0:

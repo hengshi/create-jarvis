@@ -192,6 +192,7 @@ No initial construction request can manufacture future production evidence. With
 - Construction works without jarvis-box until Part 4.
 - Company Jarvis stores company semantics, routes and cross-runtime governance; repository execution truth stays repo-local.
 - jarvis-box internals stay in jarvis-box.
+- After Part 4, the Company Jarvis operates in Mode B (jarvis-box协同). The customer can optionally use Mode A (standalone, no jarvis-box) on other machines: copy `~/.hengshi-jarvis/` to the target machine, source `env.sh` — it auto-detects the absence of jarvis-box and uses standalone paths.
 - Eval/replay is an internal learning method, not the delivered skill.
 - Publication and deployment use verified remote revisions, not uncommitted Host paths.
 - The customer sees one launch command when a fresh Repository Learning process is required, then delivered repos/PRs, usable scope, approvals, blockers and the next business result—not internal phase mechanics or copied prompt fragments.

@@ -68,7 +68,7 @@ def install_payload(root: pathlib.Path) -> None:
     for executable in (root / "bin").iterdir():
         if executable.is_file():
             executable.chmod(0o755)
-    for directory in ("config", "locks", "logs", "workspaces"):
+    for directory in ("config", "locks", "logs"):
         (root / directory).mkdir(parents=True, exist_ok=True)
 
 

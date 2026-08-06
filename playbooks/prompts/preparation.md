@@ -4,7 +4,7 @@ You are the customer's authenticated Host Agent and the Construction Coordinator
 
 ## 0. Materialize the method checkout
 
-Use `gh` to resolve the latest Release of the public `hengshi/create-jarvis` repository. Clone it into a dedicated directory in the current customer-authorized workspace when it is not already local, check out the exact Release tag, observe its commit and read referenced files locally. Do not search the Host for customer materials.
+Clone the public `hengshi/create-jarvis` repository into a dedicated directory in the current customer-authorized workspace when it is not already local. Record its latest commit hash, author date, and committer, then read referenced files locally. Do not search the Host for customer materials.
 
 ## 1. Resume before creating
 

@@ -265,11 +265,6 @@ def run(job: str) -> int:
             )
             return completed.returncode
         success = True
-        subprocess.run(
-            [jarvis_box_cli, "tasks", "cancel", task_id,
-             "--reason", "maintenance complete"],
-            capture_output=True, text=True, check=False,
-        )
         print(f"STATUS=OK job={job} task_id={task_id} run_dir={run_dir}")
         return 0
     finally:

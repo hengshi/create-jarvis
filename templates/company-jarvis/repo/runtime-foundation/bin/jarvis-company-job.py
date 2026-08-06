@@ -175,18 +175,45 @@ def compose_prompt(job: str, workspace: pathlib.Path, run_dir: pathlib.Path) -> 
     )
 
 
+def jarvis_box_workspace_root(jarvis_box_cli: str) -> pathlib.Path:
+    """Derive the jarvis-box workspace root from its runtime environment."""
+    completed = subprocess.run(
+        [jarvis_box_cli, "status"],
+        capture_output=True, text=True, check=False,
+    )
+    if completed.returncode == 0:
+        for line in completed.stdout.splitlines():
+            if line.startswith("workspace_root="):
+                return pathlib.Path(line.split("=", 1)[1].strip())
+    return pathlib.Path.home() / ".jarvis-box" / "workspace"
+
+
 def run(job: str) -> int:
     config = load_config()
     company_repo = required_text(config, "company_repo")
     jarvis_box_cli = str(config.get("jarvis_box_cli") or "jarvis-box")
     run_id = time.strftime("%Y%m%d-%H%M%S")
+    task_id = f"{job}-{run_id}"
     run_dir = FOUNDATION_ROOT / "logs" / job / run_id
-    workspace = FOUNDATION_ROOT / "workspaces" / f"{job}-{run_id}"
+    workspace_root = jarvis_box_workspace_root(jarvis_box_cli)
+    workspace = workspace_root / f"{job}-{run_id}"
     run_dir.mkdir(parents=True, exist_ok=False)
     workspace.parent.mkdir(parents=True, exist_ok=True)
     lock = acquire_lock(job)
     success = False
     try:
+        # Register as a jarvis-box Task
+        create_result = subprocess.run(
+            [jarvis_box_cli, "tasks", "create", task_id,
+             "--reason", f"scheduled {job}", "--lane", "maintenance"],
+            capture_output=True, text=True, check=False,
+        )
+        if create_result.returncode != 0:
+            print(
+                f"STATUS=TASK_CREATE_FAILED job={job} task_id={task_id} "
+                f"detail={create_result.stderr.strip() or create_result.stdout.strip()}",
+                file=sys.stderr,
+            )
         subprocess.run(
             ["git", "clone", "--quiet", company_repo, str(workspace)],
             check=True,
@@ -194,7 +221,7 @@ def run(job: str) -> int:
         agent, base = selected_agent(jarvis_box_cli)
         prompt = compose_prompt(job, workspace, run_dir)
         (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
-        print(f"STATUS=RUNNING job={job} runtime_agent={agent} workspace={workspace}", flush=True)
+        print(f"STATUS=RUNNING job={job} runtime_agent={agent} task_id={task_id} workspace={workspace}", flush=True)
         completed = subprocess.run(
             agent_command(agent, base, workspace, prompt, run_dir),
             cwd=workspace,
@@ -203,12 +230,17 @@ def run(job: str) -> int:
         if completed.returncode != 0:
             print(
                 f"STATUS=RUNTIME_AGENT_FAILED job={job} exit_code={completed.returncode} "
-                f"workspace={workspace}",
+                f"task_id={task_id} workspace={workspace}",
                 file=sys.stderr,
             )
             return completed.returncode
         success = True
-        print(f"STATUS=OK job={job} run_dir={run_dir}")
+        subprocess.run(
+            [jarvis_box_cli, "tasks", "cancel", task_id,
+             "--reason", "maintenance complete"],
+            capture_output=True, text=True, check=False,
+        )
+        print(f"STATUS=OK job={job} task_id={task_id} run_dir={run_dir}")
         return 0
     finally:
         shutil.rmtree(lock, ignore_errors=True)

@@ -65,6 +65,26 @@ canonical runtime root、repo cache/workspace、同步入口、稳定工具、ch
 Part 4 只消费 jarvis-box 的公开能力。安装后观察到的稳定 runtime 事实可以回写 Company Jarvis
 宪法，但不得把 jarvis-box 的 injected contract、control plane 或 operator runbook 复制进去。
 
+## 两种使用模式
+
+Company Jarvis 构建完成后支持两种模式，由 `env.sh` 自动检测 `jarvis-box` 是否存在来切换：
+
+### Mode B：jarvis-box 协同（构建目标）
+
+这是 create-jarvis 的构建产出。jarvis-box 接管 workspace 和 repo-cache（`~/.jarvis-box/`），
+hengshi-jarvis runtime foundation 负责 scheduler 定义、稳定工具和知识层（`~/.hengshi-jarvis/`）。
+维护和自改进任务通过 `jarvis-box tasks create` 注册为正式 Task，在 `jarvis-box tasks list` 中可见。
+
+### Mode A：独立使用（可选）
+
+构建完成后，客户可以在任意无 jarvis-box 的机器上单独安装 hengshi-jarvis runtime foundation。
+此时 `env.sh` 检测不到 `jarvis-box`，自动将所有路径（workspace、repo-cache）保留在
+`~/.hengshi-jarvis/` 下自行管理。个人电脑上的 agent 可直接使用 Company Jarvis 的 skills、
+references 和 tools，无需 jarvis-box。
+
+客户切换方式：在已构建完成的 Company Jarvis 机器上运行 `~/.hengshi-jarvis/bin/pullall`，
+然后将整个 `~/.hengshi-jarvis/` 目录复制到目标机器，source `env.sh` 即可。
+
 ## 中断与恢复
 
 每个客户旅程都有独立 `jarvis-build/` Construction Workspace。它保存一个恢复入口、一个协调

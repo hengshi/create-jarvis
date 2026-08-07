@@ -40,15 +40,51 @@ class RepositorySkillDepthTests(unittest.TestCase):
         (router_root / "references" / "skill-depth.md").write_text(
             "# Depth\n\n[owner](../../../src/owner.py)\n", encoding="utf-8"
         )
-        categories = [
-            {"name": name, "status": "covered" if name == "repo-specific" else "not-applicable", "evidence": ["src/owner.py" if name == "repo-specific" else "not used by fixture"]}
-            for name in sorted(AUDITOR.REQUIRED_CATEGORIES)
-        ]
+        categories = []
+        for name in sorted(AUDITOR.REQUIRED_CATEGORIES):
+            covered = name == "repo-specific"
+            categories.append(
+                {
+                    "name": name,
+                    "status": "covered" if covered else "not-applicable",
+                    "surface_ids": ["close-surface"] if covered else [],
+                    "capability_ids": ["close"] if covered else [],
+                    "evidence": ["src/owner.py" if covered else "not used by fixture"],
+                }
+            )
         coverage = {
-            "schema_version": 1,
+            "schema_version": 2,
+            "repository": "sample",
+            "fixed_revision": "a" * 40,
             "categories": categories,
+            "surface_inventory": [
+                {
+                    "id": "close-surface",
+                    "category": "repo-specific",
+                    "name": "sample closure lifecycle",
+                    "status": "present",
+                    "entrypoints": ["src/owner.py#STATE"],
+                    "evidence": ["src/owner.py"],
+                    "capability_ids": ["close"],
+                }
+            ],
             "capabilities": [
-                {"id": "close", "category": "repo-specific", "task_family": "close", "disposition": "skill", "primary_home": "sample-close-loop", "evidence": ["src/owner.py"]}
+                {
+                    "id": "close",
+                    "category": "repo-specific",
+                    "task_family": "close sample lifecycle",
+                    "trigger_examples": ["close a ready sample"],
+                    "authority": ["src/owner.py#STATE"],
+                    "entrypoints": ["src/owner.py#STATE"],
+                    "state_or_resource_model": "ready -> closed; reject invalid state",
+                    "proof": ["executed focused test"],
+                    "route_eval_ids": ["forward-1"],
+                    "disposition": "focused-loop",
+                    "primary_home": "sample-close-loop",
+                    "evidence": ["src/owner.py"],
+                    "merge_split_rationale": "independent trigger and terminal-state proof",
+                    "current_state": "valid at fixed revision",
+                }
             ],
         }
         (router_root / "references" / "capability-coverage.json").write_text(json.dumps(coverage), encoding="utf-8")
@@ -118,6 +154,83 @@ class RepositorySkillDepthTests(unittest.TestCase):
             (router_root / "references" / "skill-depth.md").write_text("[outside](../../../../outside.py)\n")
             problems = AUDITOR.audit(repo, router)
             self.assertTrue(any("escapes repository root" in item for item in problems))
+
+    def test_generic_category_without_semantic_capability_fields_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            repo, router = self.fixture(pathlib.Path(temporary))
+            coverage_path = (
+                repo
+                / "skills"
+                / router
+                / "references"
+                / "capability-coverage.json"
+            )
+            coverage = json.loads(coverage_path.read_text())
+            capability = coverage["capabilities"][0]
+            for field in (
+                "trigger_examples",
+                "authority",
+                "state_or_resource_model",
+                "proof",
+                "merge_split_rationale",
+            ):
+                capability.pop(field)
+            coverage_path.write_text(json.dumps(coverage))
+            problems = AUDITOR.audit(repo, router)
+            for field in (
+                "trigger_examples",
+                "authority",
+                "state_or_resource_model",
+                "proof",
+                "merge_split_rationale",
+            ):
+                self.assertTrue(
+                    any(f"lacks {field}" in item for item in problems),
+                    (field, problems),
+                )
+
+    def test_present_surface_and_delivered_capability_require_real_routes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            repo, router = self.fixture(pathlib.Path(temporary))
+            coverage_path = (
+                repo
+                / "skills"
+                / router
+                / "references"
+                / "capability-coverage.json"
+            )
+            coverage = json.loads(coverage_path.read_text())
+            coverage["surface_inventory"][0]["capability_ids"] = []
+            coverage["capabilities"][0]["route_eval_ids"] = ["missing-route"]
+            coverage_path.write_text(json.dumps(coverage))
+            problems = AUDITOR.audit(repo, router)
+            self.assertTrue(any("present surface close-surface lacks capability_ids" in item for item in problems))
+            self.assertTrue(any("unknown route eval" in item for item in problems))
+            self.assertTrue(any("lacks an executed-pass representative route eval" in item for item in problems))
+
+    def test_schema_identity_and_surface_ownership_are_mechanically_enforced(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            repo, router = self.fixture(pathlib.Path(temporary))
+            coverage_path = (
+                repo
+                / "skills"
+                / router
+                / "references"
+                / "capability-coverage.json"
+            )
+            coverage = json.loads(coverage_path.read_text())
+            coverage["schema_version"] = 1
+            coverage["repository"] = ""
+            coverage["fixed_revision"] = "short"
+            coverage["categories"][0]["evidence"] = ["REPLACE_WITH_REASON"]
+            coverage["surface_inventory"][0]["capability_ids"] = []
+            coverage_path.write_text(json.dumps(coverage))
+            problems = AUDITOR.audit(repo, router)
+            self.assertTrue(any("schema_version 2" in item for item in problems))
+            self.assertTrue(any("missing repository identity" in item for item in problems))
+            self.assertTrue(any("fixed_revision must be a full commit" in item for item in problems))
+            self.assertTrue(any("unresolved template placeholders" in item for item in problems))
+            self.assertTrue(any("capabilities lack surface inventory ownership" in item for item in problems))
 
 
 if __name__ == "__main__":

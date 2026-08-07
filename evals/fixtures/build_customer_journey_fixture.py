@@ -571,7 +571,7 @@ def build_runtime_governance(root: Path, method: Path, commit: str) -> dict[str,
     }
 
 
-def build_repository_reconciliation(root: Path, method: Path, commit: str) -> dict[str, object]:
+def build_repository_learning_worker(root: Path, method: Path, commit: str) -> dict[str, object]:
     repo, history = create_invoice_history(root)
     company, company_remote, company_commit = instantiate_company(
         root, method, [str(repo)]
@@ -610,7 +610,7 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         replace_field(construction, label, value)
     set_checked(construction)
 
-    repo_card = workspace / "work" / "repositories" / "invoice-service.md"
+    repo_card = workspace / "work" / "repositories" / "invoice-service" / "CARD.md"
     for label, value in (
         ("Status", "ready"),
         ("Blocker", "none"),
@@ -620,12 +620,12 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
 
     journal = workspace / "CONSTRUCTION-JOURNAL.md"
     for label, value in (
-        ("Current work card", "work/repositories/invoice-service.md"),
+        ("Current work card", "work/repositories/invoice-service/CARD.md"),
         ("Company delivery", f"main {company_commit}"),
         ("Repository deliveries", "none; invoice-service ready"),
         ("Reconciliation", "waiting-for-construction"),
         ("Blocker", "none"),
-        ("Next", "Execute work/repositories/invoice-service.md"),
+        ("Next", "Prepare the customer-launched invoice-service Codex process"),
     ):
         replace_field(journal, label, value)
     journal.write_text(
@@ -635,8 +635,8 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
             f"| `work/company-construction.md` | complete | fixture integrator ended | Company main {company_commit} | run repository card |",
         )
         .replace(
-            "| `work/repositories/invoice-service.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
-            "| `work/repositories/invoice-service.md` | ready | unassigned | Part 1 and Part 2 verified | inventory capabilities and replay ACME-17/18 |",
+            "| `work/repositories/invoice-service/CARD.md` | waiting-for-part-1 | unassigned | none | wait for Part 1 delivery |",
+            "| `work/repositories/invoice-service/CARD.md` | ready | unassigned | Part 1 and Part 2 verified | generate clean-process handoff |",
         ),
         encoding="utf-8",
     )
@@ -683,23 +683,37 @@ def build_repository_reconciliation(root: Path, method: Path, commit: str) -> di
         "    raise AssertionError('refund must be terminal')\n"
         "print('invoice lifecycle replay: pass')\n",
     )
+    target_workspace = root / "worktrees" / "invoice-service"
+    run(["git", "clone", str(root / "remotes" / "invoice-service.git"), str(target_workspace)])
+    run(
+        [
+            sys.executable,
+            str(method / "scripts" / "instantiate_construction_workspace.py"),
+            "prepare-repository-learning",
+            "--workspace",
+            str(workspace),
+            "--name",
+            "invoice-service",
+            "--prepared-at",
+            "2026-07-30T01:00:00+00:00",
+        ]
+    )
+    start = repo_card.parent / "START-REPOSITORY-LEARNING.md"
     write(
         root / "customer-input" / "customer-brief.md",
-        f"# Resume instruction\n\nContinue at `{workspace}`. Execute the invoice-service repository card using "
+        f"# Fresh Repository Learning process\n\nThis is the customer-launched top-level Codex process for invoice-service. "
+        f"Read `{start}` and execute only its repository card using "
         f"`{root / 'customer-input' / 'issue-ACME-17.md'}` with `{root / 'customer-input' / 'replay_duplicate_webhook.py'}`, "
         f"and `{root / 'customer-input' / 'issue-ACME-18.md'}` with `{root / 'customer-input' / 'replay_invoice_lifecycle.py'}`. "
         "Inspect real patches and code across all reachable history; preserve the uncommitted CUSTOMER-NOTE.md. Before selecting replay cases, "
         "inventory every current task family and give each an evidence-backed topology disposition. Derive skills from independently triggerable "
         "capabilities and logic loops, not from repo/module/directory count or a fixed skill quota. Use current-state validation for stable capability "
         "workflows and same-case plus cross-loop route evidence for risky historical loops. Deliver a lightweight repo router and the complete validated "
-        "repo-local topology through the recorded branch policy. "
-        "Then run Reconciliation Gate: replace the pending Company handoff with the delivered router entry, prove both controlled cases route "
-        "to their distinct focused skills, customize the bugfix workflow enough to move it to construction-ready if evidence supports it, "
-        "publish the Company ref, and stop. "
-        "Do not mark the workflow active and do not install jarvis-box.\n",
+        "repo-local topology through the recorded branch policy. Leave the card at delivered-awaiting-coordinator-verification, then stop. "
+        "Do not edit the Company repo or journal, do not run Reconciliation Gate, do not start another repository, and do not install jarvis-box.\n",
     )
     return {
-        "case": "repository-reconciliation",
+        "case": "repository-learning-worker",
         "workspace": str(workspace),
         "company": str(company),
         "company_remote": str(company_remote),
@@ -715,7 +729,7 @@ def main() -> int:
     parser.add_argument(
         "--case",
         required=True,
-        choices=("new-journey", "runtime-governance", "repository-reconciliation"),
+        choices=("new-journey", "runtime-governance", "repository-learning-worker"),
     )
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--method-repository", required=True, type=Path)
@@ -737,7 +751,7 @@ def main() -> int:
         elif args.case == "runtime-governance":
             manifest = build_runtime_governance(root, method, commit)
         else:
-            manifest = build_repository_reconciliation(root, method, commit)
+            manifest = build_repository_learning_worker(root, method, commit)
     except (FixtureError, OSError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

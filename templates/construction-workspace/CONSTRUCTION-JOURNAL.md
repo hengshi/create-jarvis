@@ -1,6 +1,6 @@
 # Construction journal
 
-Only the Construction Coordinator writes this file. Delegated workers update their own work card and report a verified pointer.
+Only the Construction Coordinator writes this file. Customer-launched Repository Learning workers update their own repository card directory and stop before Coordinator acceptance.
 
 - Method commit: `{{METHOD_COMMIT}}`
 - Construction Workspace: `{{CONSTRUCTION_WORKSPACE}}`
@@ -26,4 +26,4 @@ Only the Construction Coordinator writes this file. Delegated workers update the
 <!-- REPOSITORY-WORK-INDEX:START -->
 <!-- REPOSITORY-WORK-INDEX:END -->
 
-There is one row between the repository-work markers for every repository work card under `work/repositories/`. This journal is an index; verify the referenced facts during recovery.
+There is one row between the repository-work markers for every repository `CARD.md` below `work/repositories/`. This journal is an index; verify the referenced facts during recovery.

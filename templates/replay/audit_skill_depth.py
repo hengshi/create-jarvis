@@ -21,13 +21,22 @@ REQUIRED_CATEGORIES = {
     "repo-specific",
 }
 ALLOWED_CATEGORY_STATUS = {"covered", "not-applicable"}
+ALLOWED_SURFACE_STATUS = {"present", "not-present", "not-authorized"}
 ALLOWED_DISPOSITIONS = {
-    "skill",
     "router",
+    "capability-skill",
+    "focused-loop",
+    "cross-cutting-skill",
     "reference",
-    "mechanical-gate",
+    "script-gate",
     "no-skill",
     "candidate",
+}
+DELIVERED_SKILL_DISPOSITIONS = {
+    "router",
+    "capability-skill",
+    "focused-loop",
+    "cross-cutting-skill",
 }
 ALLOWED_LEVELS = {"L0", "L1", "L2", "L3"}
 ALLOWED_EVAL_STATUS = {"executed-pass", "executed-fail", "prepared-not-executed"}
@@ -39,6 +48,19 @@ REQUIRED_DIMENSIONS = {
     "runtime_hidden_forward_eval",
     "cross_repository_closure",
     "drift_self_improve",
+}
+REQUIRED_CAPABILITY_TEXT = {
+    "task_family",
+    "state_or_resource_model",
+    "merge_split_rationale",
+    "current_state",
+}
+REQUIRED_CAPABILITY_LISTS = {
+    "trigger_examples",
+    "authority",
+    "entrypoints",
+    "proof",
+    "evidence",
 }
 
 
@@ -111,6 +133,15 @@ def audit(repo: Path, router: str) -> list[str]:
 
     coverage = load_json(coverage_path, problems, "capability coverage") if coverage_path else {}
     eval_payload = load_json(evals_path, problems, "eval suite") if evals_path else {}
+    if coverage and coverage.get("schema_version") != 2:
+        problems.append("capability coverage must use schema_version 2")
+    if coverage and not str(coverage.get("repository", "")).strip():
+        problems.append("capability coverage missing repository identity")
+    coverage_revision = str(coverage.get("fixed_revision", "")).strip().lower()
+    if coverage and not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", coverage_revision):
+        problems.append("capability coverage fixed_revision must be a full commit")
+    if coverage and "REPLACE_WITH_" in json.dumps(coverage, ensure_ascii=False):
+        problems.append("capability coverage contains unresolved template placeholders")
     eval_rows = eval_payload.get("evals", []) if eval_payload else []
     if not isinstance(eval_rows, list):
         problems.append("eval suite evals must be a list")
@@ -131,6 +162,7 @@ def audit(repo: Path, router: str) -> list[str]:
     if not isinstance(categories, list):
         categories = []
     category_names: set[str] = set()
+    category_rows: dict[str, dict] = {}
     for row in categories:
         if not isinstance(row, dict):
             problems.append("coverage category row must be an object")
@@ -138,11 +170,26 @@ def audit(repo: Path, router: str) -> list[str]:
         name = str(row.get("name", "")).strip()
         status = str(row.get("status", "")).strip()
         evidence = row.get("evidence")
+        if name in category_rows:
+            problems.append(f"duplicate capability category: {name}")
         category_names.add(name)
+        category_rows[name] = row
+        if name not in REQUIRED_CATEGORIES:
+            problems.append(f"unknown capability category: {name or '<missing>'}")
         if status not in ALLOWED_CATEGORY_STATUS:
             problems.append(f"coverage category {name or '<missing>'} has invalid status")
         if not isinstance(evidence, list) or not any(str(item).strip() for item in evidence):
             problems.append(f"coverage category {name or '<missing>'} lacks evidence/reason")
+        for field in ("surface_ids", "capability_ids"):
+            values = row.get(field)
+            if not isinstance(values, list):
+                problems.append(f"coverage category {name or '<missing>'} {field} must be a list")
+            elif status == "covered" and not values:
+                problems.append(f"covered category {name or '<missing>'} has no {field}")
+            elif status == "not-applicable" and values:
+                problems.append(
+                    f"not-applicable category {name or '<missing>'} must not list {field}"
+                )
     missing_categories = sorted(REQUIRED_CATEGORIES - category_names)
     if missing_categories:
         problems.append("coverage categories missing: " + ", ".join(missing_categories))
@@ -157,6 +204,8 @@ def audit(repo: Path, router: str) -> list[str]:
             problems.append("skill inventory record missing name")
             continue
         name = str(record["name"])
+        if name in records:
+            problems.append(f"duplicate skill inventory name: {name}")
         records[name] = record
         level = str(record.get("level", ""))
         if level not in ALLOWED_LEVELS:
@@ -208,11 +257,15 @@ def audit(repo: Path, router: str) -> list[str]:
         capabilities = []
         problems.append("capability coverage capabilities must be a list")
     primary_homes: set[str] = set()
+    capability_rows: dict[str, dict] = {}
     for row in capabilities:
         if not isinstance(row, dict):
             problems.append("capability row must be an object")
             continue
         cap_id = str(row.get("id", "")).strip() or "<missing>"
+        if cap_id in capability_rows:
+            problems.append(f"duplicate capability id: {cap_id}")
+        capability_rows[cap_id] = row
         category = str(row.get("category", "")).strip()
         disposition = str(row.get("disposition", "")).strip()
         primary_home = str(row.get("primary_home", "")).strip()
@@ -221,15 +274,136 @@ def audit(repo: Path, router: str) -> list[str]:
             problems.append(f"capability {cap_id} has invalid category: {category}")
         if disposition not in ALLOWED_DISPOSITIONS:
             problems.append(f"capability {cap_id} has invalid disposition: {disposition}")
-        if not isinstance(evidence, list) or not evidence:
-            problems.append(f"capability {cap_id} lacks evidence")
-        if disposition in {"skill", "router"}:
+        for field in REQUIRED_CAPABILITY_TEXT:
+            if not str(row.get(field, "")).strip():
+                problems.append(f"capability {cap_id} lacks {field}")
+        for field in REQUIRED_CAPABILITY_LISTS:
+            values = row.get(field)
+            if not isinstance(values, list) or not any(str(item).strip() for item in values):
+                problems.append(f"capability {cap_id} lacks {field}")
+        for authority in row.get("authority", []) if isinstance(row.get("authority"), list) else []:
+            confined_path(repo, str(authority), repo, problems, f"capability {cap_id} authority")
+        route_eval_ids = row.get("route_eval_ids", [])
+        if not isinstance(route_eval_ids, list):
+            problems.append(f"capability {cap_id} route_eval_ids must be a list")
+        else:
+            for eval_id in route_eval_ids:
+                if str(eval_id) not in evals:
+                    problems.append(f"capability {cap_id} references unknown route eval: {eval_id}")
+        if disposition in DELIVERED_SKILL_DISPOSITIONS:
             if primary_home not in records:
                 problems.append(f"capability {cap_id} has unknown primary_home: {primary_home}")
             else:
                 primary_homes.add(primary_home)
+            if not isinstance(route_eval_ids, list) or not any(
+                evals.get(str(eval_id), {}).get("status") == "executed-pass"
+                for eval_id in route_eval_ids
+            ):
+                problems.append(
+                    f"delivered capability {cap_id} lacks an executed-pass representative route eval"
+                )
         elif not str(row.get("reason", "")).strip():
             problems.append(f"capability {cap_id} disposition requires a reason")
+
+    surfaces = coverage.get("surface_inventory", []) if coverage else []
+    if not isinstance(surfaces, list):
+        surfaces = []
+        problems.append("capability coverage surface_inventory must be a list")
+    surface_rows: dict[str, dict] = {}
+    for row in surfaces:
+        if not isinstance(row, dict):
+            problems.append("surface inventory row must be an object")
+            continue
+        surface_id = str(row.get("id", "")).strip() or "<missing>"
+        if surface_id in surface_rows:
+            problems.append(f"duplicate surface id: {surface_id}")
+        surface_rows[surface_id] = row
+        category = str(row.get("category", "")).strip()
+        status = str(row.get("status", "")).strip()
+        if category not in REQUIRED_CATEGORIES:
+            problems.append(f"surface {surface_id} has invalid category: {category}")
+        if status not in ALLOWED_SURFACE_STATUS:
+            problems.append(f"surface {surface_id} has invalid status: {status}")
+        if not str(row.get("name", "")).strip():
+            problems.append(f"surface {surface_id} lacks name")
+        for field in ("entrypoints", "evidence", "capability_ids"):
+            values = row.get(field)
+            if not isinstance(values, list):
+                problems.append(f"surface {surface_id} {field} must be a list")
+            elif field != "capability_ids" and not any(str(item).strip() for item in values):
+                problems.append(f"surface {surface_id} lacks {field}")
+        surface_capabilities = row.get("capability_ids", [])
+        if status == "present" and (
+            not isinstance(surface_capabilities, list) or not surface_capabilities
+        ):
+            problems.append(f"present surface {surface_id} lacks capability_ids")
+        if isinstance(surface_capabilities, list):
+            for cap_id in surface_capabilities:
+                capability = capability_rows.get(str(cap_id))
+                if capability is None:
+                    problems.append(f"surface {surface_id} references unknown capability: {cap_id}")
+                elif capability.get("category") != category:
+                    problems.append(
+                        f"surface {surface_id} and capability {cap_id} have different categories"
+                    )
+
+    for category, row in category_rows.items():
+        surface_ids = row.get("surface_ids", [])
+        capability_ids = row.get("capability_ids", [])
+        if isinstance(surface_ids, list):
+            for surface_id in surface_ids:
+                surface = surface_rows.get(str(surface_id))
+                if surface is None:
+                    problems.append(f"category {category} references unknown surface: {surface_id}")
+                elif surface.get("category") != category:
+                    problems.append(f"category {category} owns mismatched surface: {surface_id}")
+        if isinstance(capability_ids, list):
+            for cap_id in capability_ids:
+                capability = capability_rows.get(str(cap_id))
+                if capability is None:
+                    problems.append(f"category {category} references unknown capability: {cap_id}")
+                elif capability.get("category") != category:
+                    problems.append(f"category {category} owns mismatched capability: {cap_id}")
+
+    referenced_surfaces = {
+        str(item)
+        for row in category_rows.values()
+        for item in (row.get("surface_ids", []) if isinstance(row.get("surface_ids"), list) else [])
+    }
+    referenced_capabilities = {
+        str(item)
+        for row in category_rows.values()
+        for item in (row.get("capability_ids", []) if isinstance(row.get("capability_ids"), list) else [])
+    }
+    if set(surface_rows) != referenced_surfaces:
+        problems.append(
+            "surface/category inventory mismatch: surfaces="
+            + repr(sorted(surface_rows))
+            + " referenced="
+            + repr(sorted(referenced_surfaces))
+        )
+    if set(capability_rows) != referenced_capabilities:
+        problems.append(
+            "capability/category inventory mismatch: capabilities="
+            + repr(sorted(capability_rows))
+            + " referenced="
+            + repr(sorted(referenced_capabilities))
+        )
+    capabilities_from_surfaces = {
+        str(item)
+        for row in surface_rows.values()
+        for item in (
+            row.get("capability_ids", [])
+            if isinstance(row.get("capability_ids"), list)
+            else []
+        )
+    }
+    capabilities_without_surfaces = sorted(set(capability_rows) - capabilities_from_surfaces)
+    if capabilities_without_surfaces:
+        problems.append(
+            "capabilities lack surface inventory ownership: "
+            + ", ".join(capabilities_without_surfaces)
+        )
     unowned_packages = sorted(actual_packages - {router} - primary_homes)
     if unowned_packages:
         problems.append("delivered skill packages lack capability primary homes: " + ", ".join(unowned_packages))

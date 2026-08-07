@@ -4,7 +4,7 @@
 
 1. new journey → preparation → verified Part 1 stop;
 2. interrupted Part 2 → customer Host runtime foundation → published runtime constitution;
-3. interrupted Part 3 → full current capability inventory + two historical logic-loop replays → coverage-complete repo-local topology delivery → Reconciliation Gate.
+3. Coordinator prepares one clean-process handoff → customer launches one top-level Codex for one repo → full current capability inventory + historical logic-loop replay → coverage-complete repo-local delivery awaiting Coordinator verification.
 
 Each executor starts in a fresh directory and runs the attached
 `fixtures/build_customer_journey_fixture.py`. The builder creates disposable customer inputs with real
@@ -28,7 +28,7 @@ run the deterministic artifact scorer from the method checkout:
 
 ```bash
 python3 evals/verify_eval_artifacts.py \
-  --case <new-journey|runtime-governance|repository-reconciliation> \
+  --case <new-journey|runtime-governance|repository-learning-worker> \
   --fixture-root <run-directory>/customer-fixture \
   --method-repository <evaluated-create-jarvis-checkout>
 ```

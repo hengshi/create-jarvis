@@ -50,6 +50,41 @@ REQUIRED_CARD_FIELDS = (
     "Next",
     "Last verified",
 )
+REQUIRED_REPOSITORY_CARD_FIELDS = (
+    "History range",
+    "Delivery policy",
+    "Execution mode",
+    "Scope lock",
+    "Method repository",
+    "Method commit",
+    "Handoff entry",
+    "Fixed revision",
+    "Default branch",
+    "Reachable commit count",
+    "History cursor",
+    "Code-read coverage",
+    "Capability coverage",
+    "Capability ledger",
+    "Repository model",
+    "Validation evidence",
+    "Validation cursor",
+    "Depth audit",
+    "Delivery ref",
+    "Review state",
+    "Coordinator finding",
+)
+REPOSITORY_WORKER_CHECKPOINTS = (
+    "Exact repository revision and history boundary are verified",
+    "Every reachable commit has actual code-change disposition, not message/stat-only coverage",
+    "Every current major business task family has trigger, owner, entrypoint, state/failure model, proof, validation level and topology disposition",
+    "Every merge/split/no-skill decision is explicit; no broad router/capability row hides independent workflows",
+    "Every delivered capability has an executed representative route probe; high-risk claims have the required replay/negative evidence",
+    "Skill structure, links, scripts, current-ref checks and depth audit pass",
+    "Worker delivered a commit/branch/PR/MR or explicit blocked result and stopped at Coordinator verification",
+)
+REPOSITORY_COORDINATOR_CHECKPOINT = (
+    "Coordinator independently verified semantic coverage, remote ref and review state before marking this card completed"
+)
 OBSOLETE_CONTRACTS = (
     "bootstrap-state.json",
     "bootstrap-result.json",
@@ -112,6 +147,10 @@ class Verifier:
         if self.require_dispatch_ready:
             self.verify_dispatch_ready()
         return self.report()
+
+    def repository_cards(self) -> list[Path]:
+        repo_root = self.workspace / "work" / "repositories"
+        return sorted(repo_root.glob("*/CARD.md")) if repo_root.is_dir() else []
 
     def verify_required_files(self) -> None:
         for relative in REQUIRED_FILES:
@@ -262,9 +301,7 @@ class Verifier:
 
     def verify_work_cards(self) -> None:
         cards = [self.workspace / relative for relative in CORE_WORK_CARDS]
-        repo_root = self.workspace / "work" / "repositories"
-        if repo_root.is_dir():
-            cards.extend(sorted(repo_root.glob("*.md")))
+        cards.extend(self.repository_cards())
         for card in cards:
             if not card.is_file() or card.is_symlink():
                 continue
@@ -281,8 +318,149 @@ class Verifier:
                 for label in ("Target repository", "Target workspace", "Target branch"):
                     self.require_field(text, label, relative)
             if relative.startswith("work/repositories/"):
-                for label in ("History range", "Delivery policy"):
+                for label in REQUIRED_REPOSITORY_CARD_FIELDS:
                     self.require_field(text, label, relative)
+                self.verify_repository_handoff(card, text, relative)
+                self.verify_repository_delivery_record(text, relative)
+
+    def verify_repository_delivery_record(self, text: str, relative: str) -> None:
+        status = field_value(text, "Status")
+        if status not in {"delivered-awaiting-coordinator-verification", "completed"}:
+            return
+        required_values = (
+            "Fixed revision",
+            "Default branch",
+            "Reachable commit count",
+            "History cursor",
+            "Code-read coverage",
+            "Capability coverage",
+            "Capability ledger",
+            "Repository model",
+            "Validation evidence",
+            "Validation cursor",
+            "Depth audit",
+            "Delivery ref",
+            "Review state",
+            "Delivered artifacts",
+            "Evidence",
+        )
+        placeholders = {"", "none", "unresolved", "not-run", "not-started", "pending"}
+        for label in required_values:
+            value = (field_value(text, label) or "").strip()
+            if value.lower() in placeholders:
+                self.add(
+                    "blocker",
+                    "repository_delivery_record_incomplete",
+                    f"{relative} cannot be {status} while '{label}' is {value!r}",
+                )
+        fixed_revision = field_value(text, "Fixed revision") or ""
+        if not COMMIT_RE.fullmatch(fixed_revision.lower()):
+            self.add(
+                "blocker",
+                "repository_fixed_revision_invalid",
+                f"{relative} must record one full fixed revision before delivery",
+            )
+        reachable_count = field_value(text, "Reachable commit count") or ""
+        if not reachable_count.isdigit() or int(reachable_count) < 1:
+            self.add(
+                "blocker",
+                "repository_history_count_invalid",
+                f"{relative} must record a positive reachable commit count before delivery",
+            )
+        if "pass" not in (field_value(text, "Depth audit") or "").lower():
+            self.add(
+                "blocker",
+                "repository_depth_audit_not_passed",
+                f"{relative} must record an actually passed depth audit before delivery",
+            )
+        for checkpoint in REPOSITORY_WORKER_CHECKPOINTS:
+            if not re.search(rf"(?mi)^- \[[xX]\] {re.escape(checkpoint)}$", text):
+                self.add(
+                    "blocker",
+                    "repository_worker_checkpoint_open",
+                    f"{relative} has an open worker checkpoint: {checkpoint}",
+                )
+        coordinator_checked = bool(
+            re.search(
+                rf"(?mi)^- \[[xX]\] {re.escape(REPOSITORY_COORDINATOR_CHECKPOINT)}$",
+                text,
+            )
+        )
+        if status == "completed" and not coordinator_checked:
+            self.add(
+                "blocker",
+                "repository_coordinator_checkpoint_open",
+                f"{relative} is completed without Coordinator verification",
+            )
+        if status == "completed" and (
+            field_value(text, "Coordinator finding") or ""
+        ).strip().lower() in placeholders:
+            self.add(
+                "blocker",
+                "repository_coordinator_finding_missing",
+                f"{relative} is completed without a recorded Coordinator finding",
+            )
+        if status == "delivered-awaiting-coordinator-verification" and coordinator_checked:
+            self.add(
+                "blocker",
+                "repository_coordinator_checkpoint_premature",
+                f"{relative} claims Coordinator verification before completed status",
+            )
+
+    def verify_repository_handoff(self, card: Path, text: str, relative: str) -> None:
+        if field_value(text, "Execution mode") != "user-launched-top-level-codex":
+            self.add(
+                "blocker",
+                "repository_execution_mode_invalid",
+                f"{relative} must use a user-launched top-level Codex process",
+            )
+        if field_value(text, "Scope lock") != (
+            "exactly one repository; primary writer multi-agent tools disabled"
+        ):
+            self.add(
+                "blocker",
+                "repository_scope_lock_invalid",
+                f"{relative} does not enforce one repository with primary multi-agent disabled",
+            )
+        status = field_value(text, "Status")
+        handoff = field_value(text, "Handoff entry")
+        if status not in {
+            "ready-for-user-launch",
+            "in-progress",
+            "paused",
+            "delivered-awaiting-coordinator-verification",
+            "completed",
+        }:
+            return
+        expected = card.parent / "START-REPOSITORY-LEARNING.md"
+        if handoff != str(expected):
+            self.add(
+                "blocker",
+                "repository_handoff_pointer_invalid",
+                f"{relative} records {handoff!r}, expected {str(expected)!r}",
+            )
+        if not expected.is_file() or expected.is_symlink():
+            self.add(
+                "blocker",
+                "repository_handoff_missing",
+                f"repository handoff is missing or unsafe: {expected.relative_to(self.workspace)}",
+            )
+            return
+        start_text = expected.read_text(encoding="utf-8")
+        for required in (
+            str(card),
+            field_value(text, "Method repository") or "",
+            field_value(text, "Method commit") or "",
+            "agents.enabled=false",
+            "delivered-awaiting-coordinator-verification",
+        ):
+            if not required or required not in start_text:
+                self.add(
+                    "blocker",
+                    "repository_handoff_content_invalid",
+                    f"{expected.relative_to(self.workspace)} is missing required pinned scope",
+                )
+                break
 
     def verify_repository_indexes(self) -> None:
         build = self.read("BUILD-CONTEXT.md")
@@ -298,9 +476,8 @@ class Verifier:
         for label, count in marker_counts.items():
             if count != 1:
                 self.add("blocker", "repository_index_marker_invalid", f"{label} count is {count}, expected 1")
-        repo_root = self.workspace / "work" / "repositories"
-        cards = sorted(repo_root.glob("*.md")) if repo_root.is_dir() else []
-        card_names = [card.stem for card in cards]
+        cards = self.repository_cards()
+        card_names = [card.parent.name for card in cards]
         inventory_block = build.split("<!-- REPOSITORY-INVENTORY:START -->", 1)[-1].split(
             "<!-- REPOSITORY-INVENTORY:END -->", 1
         )[0]
@@ -309,7 +486,9 @@ class Verifier:
             for line in inventory_block.splitlines()
             if line.startswith("|") and line.count("|") >= 2
         ]
-        journal_names = re.findall(r"(?m)^\| `work/repositories/([^`/]+)\.md` \|", journal)
+        journal_names = re.findall(
+            r"(?m)^\| `work/repositories/([^`/]+)/CARD\.md` \|", journal
+        )
         for label, names in (
             ("BUILD-CONTEXT.md repository inventory", inventory_names),
             ("CONSTRUCTION-JOURNAL.md repository index", journal_names),
@@ -381,9 +560,7 @@ class Verifier:
                     "dispatch_target_unresolved",
                     f"company initialization card: {label} is unresolved",
                 )
-        repo_root = self.workspace / "work" / "repositories"
-        cards = sorted(repo_root.glob("*.md")) if repo_root.is_dir() else []
-        for card in cards:
+        for card in self.repository_cards():
             text = card.read_text(encoding="utf-8")
             for label in (
                 "Target repository",
@@ -411,9 +588,7 @@ class Verifier:
             "status": "pass" if counts["blocker"] == 0 and counts["major"] == 0 else "fail",
             "scope": "deterministic Construction Workspace structure, recovery pointers and safety only",
             "workspace": str(self.workspace),
-            "repository_card_count": len(list((self.workspace / "work" / "repositories").glob("*.md")))
-            if (self.workspace / "work" / "repositories").is_dir()
-            else 0,
+            "repository_card_count": len(self.repository_cards()),
             "finding_counts": counts,
             "findings": [finding.to_dict() for finding in self.findings],
         }

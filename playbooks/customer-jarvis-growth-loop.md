@@ -38,7 +38,7 @@ jarvis-build/
 ├── work/
 │   ├── company-repo-initialization.md
 │   ├── company-construction.md
-│   ├── repositories/<repo>.md
+│   ├── repositories/<repo>/CARD.md
 │   ├── reconciliation.md
 │   └── jarvis-box-onboarding.md
 └── evidence/
@@ -85,7 +85,7 @@ template scaffold
 
 ## Part 3. Independent repository learning
 
-每个代码仓库有独立 work card、writer、workspace、branch、progress 和 delivery ref。不同 repo 可并行；同一 repo 同时只有一个 writer。
+每个代码仓库有独立 card 目录、顶层 Codex writer、workspace、branch、progress 和 delivery ref。Coordinator 为每个 repo 生成一条用户启动命令；主 writer 使用完整 pinned method、禁用 multi-agent，并且一次只拥有一个 repo。默认逐仓交接，客户明确要求时才可并行；同一 repo 始终只有一个 writer。
 
 学习按客户选择的历史范围检查实际 diff，并把 issue/MR、patch、相关代码、测试和最终 outcome 还原为完整 episode：
 
@@ -101,6 +101,8 @@ current guidance baseline
 只有能改善未来行为的知识进入 repo-local skill。每个 repo 必须留下可消费的 remote commit/branch/PR/MR，或明确的 read-only/blocked 结果。dirty worktree 不是交付。
 
 Parts 2 and 3 写入边界独立，可以并行。Company repo 可暂时记录 `pending Repository learning` pointer，但不能假装 repo-local entry 已交付。
+
+客户路径只包含两步：在新终端运行 Coordinator 给出的命令；完成后回原会话回复“继续”。worker 只把 card 标成 `delivered-awaiting-coordinator-verification`，Coordinator 复核逐 commit、逐 task-family、行为验证、机械审计和远端 ref 后才完成该 card。
 
 ## Reconciliation Gate and workflow construction
 

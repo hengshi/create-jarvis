@@ -137,7 +137,7 @@ class ConstructionWorkspaceTests(unittest.TestCase):
         self.assertEqual(self.init().returncode, 0)
         added = self.add_repo()
         self.assertEqual(added.returncode, 0, added.stderr)
-        card = self.workspace / "work" / "repositories" / "acme-api.md"
+        card = self.workspace / "work" / "repositories" / "acme-api" / "CARD.md"
         self.assertTrue(card.is_file())
         self.assertIn(
             "https://git.example.test/acme/api.git",
@@ -148,7 +148,7 @@ class ConstructionWorkspaceTests(unittest.TestCase):
             (self.workspace / "BUILD-CONTEXT.md").read_text(encoding="utf-8"),
         )
         self.assertIn(
-            "| `work/repositories/acme-api.md` |",
+            "| `work/repositories/acme-api/CARD.md` |",
             (self.workspace / "CONSTRUCTION-JOURNAL.md").read_text(encoding="utf-8"),
         )
         verified, report = self.verify()
@@ -160,7 +160,7 @@ class ConstructionWorkspaceTests(unittest.TestCase):
         self.assertEqual(
             (self.workspace / "CONSTRUCTION-JOURNAL.md")
             .read_text(encoding="utf-8")
-            .count("work/repositories/acme-api.md"),
+            .count("work/repositories/acme-api/CARD.md"),
             1,
         )
 
@@ -173,7 +173,7 @@ class ConstructionWorkspaceTests(unittest.TestCase):
     def test_verifier_rejects_stale_repository_indexes(self) -> None:
         self.assertEqual(self.init().returncode, 0)
         self.assertEqual(self.add_repo().returncode, 0)
-        (self.workspace / "work" / "repositories" / "acme-api.md").unlink()
+        (self.workspace / "work" / "repositories" / "acme-api" / "CARD.md").unlink()
         completed, report = self.verify()
         self.assertEqual(completed.returncode, 1)
         self.assertIn(
@@ -213,6 +213,126 @@ class ConstructionWorkspaceTests(unittest.TestCase):
         self.assertIn(
             "dispatch_fact_unresolved",
             {finding["code"] for finding in dispatch_report["findings"]},
+        )
+
+    def test_prepare_repository_learning_returns_one_clean_codex_command(self) -> None:
+        self.assertEqual(self.init().returncode, 0)
+        self.assertEqual(self.add_repo().returncode, 0)
+        target = self.root / "worktrees" / "acme-api"
+        subprocess.run(["git", "init", str(target)], check=True, capture_output=True)
+        card = self.workspace / "work" / "repositories" / "acme-api" / "CARD.md"
+        text = card.read_text(encoding="utf-8")
+        text = text.replace("- Status: `waiting-for-part-1`", "- Status: `ready`")
+        text = text.replace("- Blocker: `waiting for Part 1 remote delivery`", "- Blocker: `none`")
+        card.write_text(text, encoding="utf-8")
+
+        prepared = self.run_script(
+            INSTANTIATOR,
+            "prepare-repository-learning",
+            "--workspace",
+            str(self.workspace),
+            "--name",
+            "acme-api",
+            "--prepared-at",
+            CREATED_AT,
+        )
+        self.assertEqual(prepared.returncode, 0, prepared.stderr)
+        result = json.loads(prepared.stdout)
+        command = result["launch_command"]
+        self.assertIn(f"-C {target}", command)
+        self.assertIn("agents.enabled=false", command)
+        self.assertIn("--sandbox workspace-write", command)
+        self.assertIn("--ask-for-approval on-request", command)
+        self.assertEqual(
+            result["return_instruction"],
+            "完成后回到原 create-jarvis 会话回复：继续",
+        )
+
+        start = card.parent / "START-REPOSITORY-LEARNING.md"
+        self.assertTrue(start.is_file())
+        start_text = start.read_text(encoding="utf-8")
+        self.assertIn(str(card), start_text)
+        self.assertIn(METHOD_COMMIT, start_text)
+        self.assertIn("delivered-awaiting-coordinator-verification", start_text)
+        updated = card.read_text(encoding="utf-8")
+        self.assertIn("- Status: `ready-for-user-launch`", updated)
+        self.assertIn(f"- Handoff entry: `{start}`", updated)
+        self.assertNotIn("work/repositories/acme-api/CARD.md", start_text.split("Target workspace:", 1)[-1].splitlines()[0])
+
+        verified, report = self.verify()
+        self.assertEqual(verified.returncode, 0, verified.stdout)
+        self.assertEqual(report["status"], "pass", report)
+
+        repeated = self.run_script(
+            INSTANTIATOR,
+            "prepare-repository-learning",
+            "--workspace",
+            str(self.workspace),
+            "--name",
+            "acme-api",
+        )
+        self.assertEqual(repeated.returncode, 0, repeated.stderr)
+        self.assertEqual(json.loads(repeated.stdout)["launch_command"], command)
+
+    def test_prepare_repository_learning_rejects_waiting_card(self) -> None:
+        self.assertEqual(self.init().returncode, 0)
+        self.assertEqual(self.add_repo().returncode, 0)
+        (self.root / "worktrees" / "acme-api").mkdir(parents=True)
+        prepared = self.run_script(
+            INSTANTIATOR,
+            "prepare-repository-learning",
+            "--workspace",
+            str(self.workspace),
+            "--name",
+            "acme-api",
+        )
+        self.assertNotEqual(prepared.returncode, 0)
+        self.assertIn("must be ready", prepared.stderr)
+
+    def test_verifier_rejects_short_repository_delivery_claim(self) -> None:
+        self.assertEqual(self.init().returncode, 0)
+        self.assertEqual(self.add_repo().returncode, 0)
+        target = self.root / "worktrees" / "acme-api"
+        subprocess.run(["git", "init", str(target)], check=True, capture_output=True)
+        card = self.workspace / "work" / "repositories" / "acme-api" / "CARD.md"
+        text = card.read_text(encoding="utf-8")
+        text = text.replace("- Status: `waiting-for-part-1`", "- Status: `ready`")
+        text = text.replace(
+            "- Blocker: `waiting for Part 1 remote delivery`", "- Blocker: `none`"
+        )
+        card.write_text(text, encoding="utf-8")
+        prepared = self.run_script(
+            INSTANTIATOR,
+            "prepare-repository-learning",
+            "--workspace",
+            str(self.workspace),
+            "--name",
+            "acme-api",
+            "--prepared-at",
+            CREATED_AT,
+        )
+        self.assertEqual(prepared.returncode, 0, prepared.stderr)
+        card.write_text(
+            card.read_text(encoding="utf-8").replace(
+                "- Status: `ready-for-user-launch`",
+                "- Status: `delivered-awaiting-coordinator-verification`",
+            ),
+            encoding="utf-8",
+        )
+
+        completed, report = self.verify()
+        self.assertEqual(completed.returncode, 1)
+        codes = {finding["code"] for finding in report["findings"]}
+        self.assertTrue(
+            {
+                "repository_delivery_record_incomplete",
+                "repository_fixed_revision_invalid",
+                "repository_history_count_invalid",
+                "repository_depth_audit_not_passed",
+                "repository_worker_checkpoint_open",
+            }
+            <= codes,
+            report,
         )
 
 

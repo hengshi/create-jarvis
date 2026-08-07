@@ -74,7 +74,7 @@ Create and fill:
 
 - `work/company-repo-initialization.md` from its template;
 - `work/company-construction.md` from its template;
-- one `work/repositories/<repo>.md` per code repository;
+- one `work/repositories/<repo>/CARD.md` plus its generated launch entry per code repository;
 - `work/reconciliation.md`;
 - `work/jarvis-box-onboarding.md`.
 
@@ -109,13 +109,14 @@ Fix structural, pointer and unresolved dispatch findings before assigning Part 1
 
 Run Part 1 first. When its remote delivery is verified, start Part 2 and the independent Part 3 cards:
 
-- use native long-running subagents when available;
-- otherwise execute cards sequentially without changing their write boundaries;
-- maintain one Company repo writer and one writer per customer repo;
-- scanners may write evidence packets only;
+- the Coordinator may continue Part 2, but never delegates a primary Repository Learning writer to a subagent;
+- for one ready repository, run `prepare-repository-learning` and show only its `launch_command` followed by `完成后回到这里回复：继续`;
+- the customer launches that command in a new terminal; the resulting top-level Codex owns exactly one repository and runs with `agents.enabled=false`;
+- after the customer returns, verify the card, semantic coverage, audit evidence and remote ref before preparing the next repository;
+- prepare multiple commands at once only when the customer explicitly requests parallel execution; still maintain one writer per repository;
 - record provider/session handles as optional hints, never as proof of ownership.
 
-The customer does not copy commands or open multiple terminals. Before yielding or switching cards, update the active card, `CONSTRUCTION-JOURNAL.md` and the recovery phrase in `CONTINUE-JARVIS.md`.
+The customer-facing handoff is deliberately one command and one return phrase. Do not expose prompt fragments, card schemas, eval mechanics or a list of internal steps. Before yielding or switching cards, update the active card, `CONSTRUCTION-JOURNAL.md` and the recovery phrase in `CONTINUE-JARVIS.md`.
 
 ## 8. Continue through the gate
 

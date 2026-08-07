@@ -39,7 +39,7 @@ Route from durable artifacts, not an assumed phase number:
 - Existing Construction Workspace: resume it before creating anything.
 - A named work card: execute only that card within its read/write boundary.
 - Completed Part 1 with open company construction: continue Part 2.
-- Open `work/repositories/*.md` cards: continue the independent Part 3 tasks.
+- Open `work/repositories/*/CARD.md` cards: prepare or verify the independent Part 3 handoffs.
 - Parts 2 and 3 at a route-scoped boundary: run reconciliation and workflow construction.
 - Reconciliation passed and at least one workflow is `construction-ready`: continue Part 4.
 - Deployed candidate processing real work: continue shadow, promotion or evidence-driven evolution.
@@ -95,25 +95,36 @@ jarvis-build/
 ├── work/
 │   ├── company-repo-initialization.md
 │   ├── company-construction.md
-│   ├── repositories/<repo>.md
+│   ├── repositories/<repo>/
+│   │   ├── CARD.md
+│   │   └── START-REPOSITORY-LEARNING.md
 │   ├── reconciliation.md
 │   └── jarvis-box-onboarding.md
 └── evidence/
 ```
 
-`BUILD-CONTEXT.md` records exact pointers, observed revisions, access probes and delivery policy without credentials or source dumps. Each work card records objective, authorized inputs, allowed writes, target repo/workspace/branch, optional provider/session handle, status, last verified checkpoint, delivered artifacts, blocker, `Next` and verification time.
+`BUILD-CONTEXT.md` records exact pointers, observed revisions, access probes and delivery policy without credentials or source dumps. Each work card records objective, authorized inputs, allowed writes, target repo/workspace/branch, optional provider/session handle, status, last verified checkpoint, delivered artifacts, blocker, `Next` and verification time. Repository cards additionally keep code-read, capability, model, validation, audit and delivery accounts separate.
 
 Do not create `bootstrap-state.json`, `bootstrap-result.json` or `jarvis.toml`. These Markdown files are recovery facts, not a parser contract or runtime state service.
 
 ## Dispatch and writer ownership
 
-The Coordinator starts or resumes work; the customer never has to copy child commands or open multiple terminals.
+The Coordinator starts or resumes Company construction and runtime work. Part 3 is the deliberate exception: the Coordinator prepares one exact command for a customer-launched top-level Codex process, shows that command with one short return instruction, and stops. Do not use a subagent as the primary repository-learning writer.
 
 - Part 1 has one Company repo writer.
 - Part 2 keeps one integrator as the only Company repo writer; scanners return evidence packets only.
-- Part 3 has one independent card and at most one writer per customer code repo.
-- Parts 2 and 3 may run concurrently when native long-running agents exist; otherwise execute cards sequentially.
+- Part 3 has one independent card, one clean top-level Codex process and at most one writer per customer code repo. Never batch multiple repositories into one Codex chat or process. Disable multi-agent tools for the primary writer; isolated replay/eval processes may still receive only their bounded visible case.
+- Parts 2 and 3 may overlap after the customer launches a repository process; default to one repository command at a time.
 - Part 4 starts only after its reconciliation prerequisite is verified.
+
+Default to one repository handoff at a time so the customer sees one action:
+
+1. verify Part 1 and set the selected repository card to `ready` with no blocker;
+2. run `scripts/instantiate_construction_workspace.py prepare-repository-learning --workspace <jarvis-build> --name <repo>`;
+3. show only the returned `launch_command` under “请在新终端运行”，then say “完成后回到这里回复：继续”;
+4. when the customer returns, verify the card, evidence, Git ref and PR/MR before marking it `completed` or starting reconciliation.
+
+Prepare several distinct commands only when the customer explicitly asks to run repositories in parallel. A customer-launched process owns only its repository, card directory and task-local evidence; it never writes the Company Jarvis repo or `CONSTRUCTION-JOURNAL.md`.
 
 Before pausing, changing writer or ending a session, update the current work card and journal. Never promise daemon, heartbeat, process survival or native reattachment the Host provider does not actually support.
 
@@ -144,13 +155,13 @@ Discover the customer's real Host runtime root, storage roles, repo cache/worksp
 
 Disposition every capability candidate and close product, implementation and verification anchors. Starter workflows remain `draft-template` until customized and exercised.
 
-## Part 3 — Independent repository learning
+## Part 3 — Customer-launched repository learning
 
-Follow `playbooks/prompts/repository-learning.md` once per `work/repositories/<repo>.md` card.
+Prepare one clean top-level Codex handoff for each `work/repositories/<repo>/CARD.md`. The new process must read `playbooks/prompts/repository-learning.md` in full from the pinned method checkout; do not copy fragments of that prompt into a child-agent message.
 
-Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules. Project that decision model into independently triggerable trigger-to-proof logic loops, and let validated loop boundaries determine repo-local skill topology. Do not default to one skill per repository or split by directories/modules. Preserve a minimal delta only when discriminating replay improves the model's decisions and an adjacent case proves behavioral safety and route separation.
+Inspect actual code changes across the customer-selected history range. Commit messages are navigation only. Episodes are evidence samples, not the learning unit: infer the repository's current entities, ownership, state transitions, authorities, invariants and fallback rules. Project that decision model into independently triggerable trigger-to-proof logic loops. Deliver complete business task-family coverage with minimal duplication; “minimal” applies to repeated text and competing homes, never to the number of business workflows retained.
 
-Each repository delivers its own commit, branch and PR/MR or an explicit read-only/blocked result. Never edit the Company Jarvis repo from a repository card. A dirty local worktree is not a consumable skill delivery.
+Each repository worker delivers its own commit, branch and PR/MR or an explicit read-only/blocked result, then sets its card to `delivered-awaiting-coordinator-verification`. Only the Coordinator may verify the remote facts and mark the card `completed`. Never edit the Company Jarvis repo from a repository card. A dirty local worktree or worker completion claim is not a consumable skill delivery.
 
 ## Reconciliation and workflow construction
 
@@ -183,4 +194,4 @@ No initial construction request can manufacture future production evidence. With
 - jarvis-box internals stay in jarvis-box.
 - Eval/replay is an internal learning method, not the delivered skill.
 - Publication and deployment use verified remote revisions, not uncommitted Host paths.
-- The customer sees delivered repos/PRs, usable scope, approvals, blockers and the next business result—not internal phase or child-process mechanics.
+- The customer sees one launch command when a fresh Repository Learning process is required, then delivered repos/PRs, usable scope, approvals, blockers and the next business result—not internal phase mechanics or copied prompt fragments.

@@ -102,11 +102,14 @@ def remote_commit_count(remote: Path) -> int:
 
 def check_new(checks: Checks, root: Path, method: Path) -> None:
     common_checks(checks, root, method, dispatch=True)
-    cards = sorted((root / "jarvis-build" / "work" / "repositories").glob("*.md"))
+    cards = sorted(
+        (root / "jarvis-build" / "work" / "repositories").glob("*/CARD.md")
+    )
+    card_names = [card.parent.name for card in cards]
     checks.add(
         "Exactly two independent repository cards exist",
-        [card.stem for card in cards] == ["fulfillment", "storefront"],
-        repr([card.stem for card in cards]),
+        card_names == ["fulfillment", "storefront"],
+        repr(card_names),
     )
     init_card = root / "jarvis-build" / "work" / "company-repo-initialization.md"
     checks.add(
@@ -178,12 +181,31 @@ def check_runtime(checks: Checks, root: Path, method: Path, manifest: dict) -> N
 def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -> None:
     common_checks(checks, root, method)
     repo = Path(manifest["repository"])
-    repo_card = root / "jarvis-build" / "work" / "repositories" / "invoice-service.md"
+    repo_card = (
+        root
+        / "jarvis-build"
+        / "work"
+        / "repositories"
+        / "invoice-service"
+        / "CARD.md"
+    )
     reconciliation = root / "jarvis-build" / "work" / "reconciliation.md"
     checks.add(
-        "Repository learning and reconciliation cards are complete",
-        field(repo_card, "Status") == "complete" and field(reconciliation, "Status") == "complete",
+        "Repository worker stops before Coordinator acceptance and reconciliation",
+        field(repo_card, "Status") == "delivered-awaiting-coordinator-verification"
+        and field(reconciliation, "Status") == "waiting-for-construction",
         f"repo={field(repo_card, 'Status')!r}; reconciliation={field(reconciliation, 'Status')!r}",
+    )
+    start = repo_card.parent / "START-REPOSITORY-LEARNING.md"
+    start_text = start.read_text(encoding="utf-8") if start.is_file() else ""
+    checks.add(
+        "Repository card has one clean top-level Codex handoff",
+        start.is_file()
+        and str(repo_card) in start_text
+        and manifest["method_commit"] in start_text
+        and "agents.enabled=false" in start_text
+        and field(repo_card, "Execution mode") == "user-launched-top-level-codex",
+        str(start),
     )
     skills_root = repo / "skills"
     skill_files = sorted(skills_root.glob("*/SKILL.md"))
@@ -196,6 +218,7 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
     except (OSError, json.JSONDecodeError):
         coverage = {}
     categories = coverage.get("categories", []) if isinstance(coverage, dict) else []
+    surfaces = coverage.get("surface_inventory", []) if isinstance(coverage, dict) else []
     capabilities = coverage.get("capabilities", []) if isinstance(coverage, dict) else []
     category_names = {row.get("name") for row in categories if isinstance(row, dict)}
     expected_categories = {
@@ -208,7 +231,9 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
     }
     primary_homes = {
         row.get("primary_home") for row in capabilities
-        if isinstance(row, dict) and row.get("disposition") in {"skill", "router"}
+        if isinstance(row, dict)
+        and row.get("disposition")
+        in {"router", "capability-skill", "focused-loop", "cross-cutting-skill"}
     }
     checks.add(
         "Capability ledger covers every required repository surface",
@@ -217,20 +242,66 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
             row.get("status") in {"covered", "not-applicable"}
             and isinstance(row.get("evidence"), list)
             and bool(row.get("evidence"))
+            and isinstance(row.get("surface_ids"), list)
+            and isinstance(row.get("capability_ids"), list)
             for row in categories if isinstance(row, dict)
         ),
         repr(sorted(category_names)),
     )
+    surface_by_id = {
+        row.get("id"): row
+        for row in surfaces
+        if isinstance(row, dict) and row.get("id")
+    }
+    required_capability_fields = {
+        "task_family",
+        "trigger_examples",
+        "authority",
+        "entrypoints",
+        "state_or_resource_model",
+        "proof",
+        "route_eval_ids",
+        "merge_split_rationale",
+        "current_state",
+    }
     checks.add(
         "Current and historical fixture capabilities all have explicit dispositions",
         {"webhook-idempotency", "invoice-lifecycle", "audit-export"}
         <= set(capability_by_id)
         and all(
             capability_by_id[name].get("disposition")
-            in {"skill", "router", "reference", "mechanical-gate", "no-skill", "candidate"}
+            in {
+                "router",
+                "capability-skill",
+                "focused-loop",
+                "cross-cutting-skill",
+                "reference",
+                "script-gate",
+                "no-skill",
+                "candidate",
+            }
+            and required_capability_fields <= set(capability_by_id[name])
+            and bool(capability_by_id[name].get("trigger_examples"))
+            and bool(capability_by_id[name].get("authority"))
+            and bool(capability_by_id[name].get("entrypoints"))
+            and bool(capability_by_id[name].get("proof"))
+            and bool(capability_by_id[name].get("route_eval_ids"))
             for name in {"webhook-idempotency", "invoice-lifecycle", "audit-export"}
         ),
         repr(sorted(capability_by_id)),
+    )
+    checks.add(
+        "Every present surface maps to explicit capabilities",
+        bool(surface_by_id)
+        and all(
+            row.get("status") != "present"
+            or (
+                bool(row.get("capability_ids"))
+                and all(capability_id in capability_by_id for capability_id in row["capability_ids"])
+            )
+            for row in surface_by_id.values()
+        ),
+        repr(sorted(surface_by_id)),
     )
     checks.add(
         "Skill topology follows capability primary homes without a fixed package count",
@@ -350,7 +421,7 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
             [
                 sys.executable,
                 str(audit),
-                "--repo-root",
+                "--repo",
                 str(repo),
                 "--router",
                 "invoice-service",
@@ -394,22 +465,20 @@ def check_repository(checks: Checks, root: Path, method: Path, manifest: dict) -
     module = company / "modules" / "billing" / "overview.md"
     module_text = module.read_text(encoding="utf-8") if module.is_file() else ""
     checks.add(
-        "Company pending handoff resolves to the delivered repo-local entry",
-        "pending repo-local entry" not in module_text
-        and "skills/invoice-service/SKILL.md" in module_text,
+        "Repository worker leaves Company handoff pending for Coordinator",
+        "pending repo-local entry" in module_text
+        and "skills/invoice-service/SKILL.md" not in module_text,
         str(module),
     )
     workflow = company / "skills" / "acme-labs-workflow-bugfix-loop" / "SKILL.md"
     workflow_text = workflow.read_text(encoding="utf-8") if workflow.is_file() else ""
     checks.add(
-        "Workflow advances only to construction-ready",
-        bool(
-            re.search(
-                r"(?m)^\*\*当前状态：`construction-ready`\*\*$",
-                workflow_text,
-            )
-        )
-        and not re.search(r"(?m)^\*\*当前状态：`active`\*\*$", workflow_text),
+        "Repository worker does not advance Company workflow maturity",
+        "draft-template" in workflow_text
+        and not re.search(
+            r"(?m)^\*\*当前状态：`(?:construction-ready|active)`\*\*$",
+            workflow_text,
+        ),
         str(workflow),
     )
     fixed = [
@@ -434,7 +503,7 @@ def main() -> int:
     parser.add_argument(
         "--case",
         required=True,
-        choices=("new-journey", "runtime-governance", "repository-reconciliation"),
+        choices=("new-journey", "runtime-governance", "repository-learning-worker"),
     )
     parser.add_argument("--fixture-root", required=True, type=Path)
     parser.add_argument("--method-repository", required=True, type=Path)

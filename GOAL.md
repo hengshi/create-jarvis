@@ -40,11 +40,11 @@ customer request
 
 - Part 1 从模板建立并发布 Company Jarvis 的最小骨架；
 - Part 2 从客户明确提供的材料构建公司级知识和 runtime governance；
-- Part 3 为每个客户代码仓库分配独立、可长时间运行、可恢复的学习任务；
+- Part 3 为每个客户代码仓库生成一个由客户在新终端启动的顶层 Codex 任务；一个进程只学习一个仓库，主 writer 禁用 multi-agent；
 - Part 4 通过 jarvis-box 的公开 release/runtime 接口完成下载、安装、启动和 onboarding。
 
 Part 2 与 Part 3 可以并行。Part 4 必须等待 Reconciliation Gate，并且至少有一个 route-scoped
-workflow 达到 `construction-ready`。并发只是效率手段，不要求客户开多个终端。
+workflow 达到 `construction-ready`。默认一次只给客户一个 Repository Learning 命令；只有客户明确要求并行时才同时准备多个命令。
 
 ## Runtime governance 的成熟过程
 
@@ -95,8 +95,8 @@ visible START
   → adjacent regression
 ```
 
-每个代码仓库有自己的 work card、writer、workspace、branch、delivery ref 和恢复点。扫描 worker 只返回
-evidence packet，不能写共享目标。只有证明行为改善的 repo-local delta 才保留。
+每个代码仓库有自己的 card 目录、顶层 writer、workspace、branch、delivery ref 和恢复点。card 分别记录
+固定 revision、逐 commit code-read coverage、当前 task-family/capability coverage、repository model、validation cursor、机械审计和远端交付；不能把这些账压成一句“已学习”。主 writer 可以运行边界明确的 replay 进程，但不能把 repository model 或最终 topology 决策分散给 subagent。只有证明行为改善的 repo-local delta 才保留。
 
 ## 从 construction 到上岗
 
@@ -124,5 +124,5 @@ Host Construction Agent 与正式 Jarvis Agent 都是高权限执行主体。正
 ## 最终客户体验
 
 客户只参与无法从证据判断的业务选择、授权 checkpoint、Git review/approval 和真实 shadow 验收。
-中断后，客户只需要告诉新的 Host Agent Construction Workspace 路径并要求继续；客户不需要理解
-phase、cursor、oracle、baseline、eval 或内部进程命令。
+Repository Learning 时客户只复制一条命令，并在完成后回原会话回复“继续”；不需要理解该命令中的
+work card、cursor、oracle、baseline 或 eval。中断后，客户只需要告诉新的 Host Agent Construction Workspace 路径并要求继续。

@@ -3,8 +3,8 @@
 
 The workspace uses Markdown as its only state surface. ``init`` creates one
 new workspace from the pinned method checkout. ``add-repository`` adds one
-independent repository work card and indexes it without overwriting existing
-cards or journey facts.
+independent repository work card. ``prepare-repository-learning`` creates the
+single customer command that starts a clean top-level Codex writer.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -22,17 +23,23 @@ from pathlib import Path
 
 REQUIRED_METHOD_FILES = (
     "SKILL.md",
+    "playbooks/prompts/repository-learning.md",
     "templates/construction-workspace/BUILD-CONTEXT.md",
     "templates/construction-workspace/CONSTRUCTION-JOURNAL.md",
     "templates/construction-workspace/CONTINUE-JARVIS.md",
+    "templates/repository-learning/START-REPOSITORY-LEARNING.md",
 )
 REPOSITORY_TEMPLATE = Path(
     "templates/construction-workspace/work/repositories/REPOSITORY-WORK-CARD.md"
+)
+REPOSITORY_START_TEMPLATE = Path(
+    "templates/repository-learning/START-REPOSITORY-LEARNING.md"
 )
 GENERIC_REPOSITORY_CARD = Path("work/repositories/REPOSITORY-WORK-CARD.md")
 TOKEN_RE = re.compile(r"\{\{([A-Z][A-Z0-9_]*)\}\}")
 COMMIT_RE = re.compile(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})\Z")
 CARD_NAME_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?\Z")
+FIELD_RE_TEMPLATE = r"(?m)^- {label}:\s*(.+?)\s*$"
 
 
 class UserError(Exception):
@@ -232,6 +239,20 @@ def atomic_write(path: Path, content: str) -> None:
             temporary.unlink()
 
 
+def field_value(content: str, label: str) -> str:
+    matches = re.findall(FIELD_RE_TEMPLATE.format(label=re.escape(label)), content)
+    if len(matches) != 1:
+        raise UserError(f"work card must contain exactly one '{label}' field")
+    return matches[0].strip().strip("`")
+
+
+def replace_field(content: str, label: str, value: str) -> str:
+    pattern = FIELD_RE_TEMPLATE.format(label=re.escape(label))
+    if len(re.findall(pattern, content)) != 1:
+        raise UserError(f"work card must contain exactly one '{label}' field")
+    return re.sub(pattern, f"- {label}: `{value}`", content)
+
+
 def add_repository(args: argparse.Namespace) -> dict[str, object]:
     workspace = resolve_existing_workspace(args.workspace)
     name = validate_card_name(args.name)
@@ -242,11 +263,12 @@ def add_repository(args: argparse.Namespace) -> dict[str, object]:
     target_branch = require_single_line(args.target_branch, "target branch")
     added_at = require_single_line(args.added_at or utc_now(), "addition time")
 
-    method, _ = read_recorded_method(workspace)
+    method, method_commit = read_recorded_method(workspace)
     template = method / REPOSITORY_TEMPLATE
-    card = workspace / "work" / "repositories" / f"{name}.md"
-    if card.exists() or card.is_symlink():
-        raise UserError(f"repository work card already exists: {card}")
+    card_root = workspace / "work" / "repositories" / name
+    card = card_root / "CARD.md"
+    if card_root.exists() or card_root.is_symlink():
+        raise UserError(f"repository work card directory already exists: {card_root}")
 
     values = {
         "REPOSITORY_NAME": name,
@@ -255,6 +277,8 @@ def add_repository(args: argparse.Namespace) -> dict[str, object]:
         "TARGET_BRANCH": target_branch,
         "HISTORY_RANGE": history_range,
         "DELIVERY_POLICY": delivery_policy,
+        "METHOD_REPOSITORY": str(method),
+        "METHOD_COMMIT": method_commit,
         "ADDED_AT": added_at,
     }
     card_content = render(template.read_text(encoding="utf-8"), values, str(template))
@@ -278,7 +302,7 @@ def add_repository(args: argparse.Namespace) -> dict[str, object]:
         )
     ) + " |"
     journal_row = (
-        f"| `work/repositories/{name}.md` | waiting-for-part-1 | unassigned | "
+        f"| `work/repositories/{name}/CARD.md` | waiting-for-part-1 | unassigned | "
         "none | wait for Part 1 delivery |"
     )
     build_updated = insert_before_marker(
@@ -294,7 +318,7 @@ def add_repository(args: argparse.Namespace) -> dict[str, object]:
         "CONSTRUCTION-JOURNAL.md",
     )
 
-    card.parent.mkdir(parents=True, exist_ok=True)
+    card_root.mkdir(parents=True, exist_ok=False)
     try:
         atomic_write(build_context, build_updated)
         atomic_write(journal, journal_updated)
@@ -302,8 +326,8 @@ def add_repository(args: argparse.Namespace) -> dict[str, object]:
     except Exception:
         atomic_write(build_context, build_original)
         atomic_write(journal, journal_original)
-        if card.exists():
-            card.unlink()
+        if card_root.exists():
+            shutil.rmtree(card_root)
         raise
 
     return {
@@ -311,6 +335,187 @@ def add_repository(args: argparse.Namespace) -> dict[str, object]:
         "workspace": str(workspace),
         "repository": name,
         "card": str(card),
+    }
+
+
+def replace_repository_journal_row(
+    content: str,
+    name: str,
+    *,
+    status: str,
+    writer: str,
+    checkpoint: str,
+    next_action: str,
+) -> str:
+    prefix = f"| `work/repositories/{name}/CARD.md` |"
+    rows = [line for line in content.splitlines() if line.startswith(prefix)]
+    if len(rows) != 1:
+        raise UserError(f"journal must contain exactly one repository row for {name}")
+    replacement = (
+        f"{prefix} {status} | {writer} | {checkpoint} | {next_action} |"
+    )
+    return content.replace(rows[0], replacement)
+
+
+def prepare_repository_learning(args: argparse.Namespace) -> dict[str, object]:
+    workspace = resolve_existing_workspace(args.workspace)
+    name = validate_card_name(args.name)
+    method, method_commit = read_recorded_method(workspace)
+    card_root = workspace / "work" / "repositories" / name
+    card = card_root / "CARD.md"
+    if not card.is_file() or card.is_symlink():
+        raise UserError(f"repository work card is missing or unsafe: {card}")
+
+    original = card.read_text(encoding="utf-8")
+    if field_value(original, "Execution mode") != "user-launched-top-level-codex":
+        raise UserError("repository card does not require a user-launched top-level Codex")
+    if field_value(original, "Scope lock") != (
+        "exactly one repository; primary writer multi-agent tools disabled"
+    ):
+        raise UserError("repository card scope lock is missing or changed")
+    if field_value(original, "Method repository") != str(method):
+        raise UserError("repository card method repository differs from CONTINUE-JARVIS.md")
+    if field_value(original, "Method commit").lower() != method_commit:
+        raise UserError("repository card method commit differs from CONTINUE-JARVIS.md")
+
+    status = field_value(original, "Status")
+    writer = field_value(original, "Writer")
+    blocker = field_value(original, "Blocker")
+    if status not in {"ready", "ready-for-user-launch"}:
+        raise UserError(
+            "repository card must be ready before handoff; verify Part 1 and set Status to ready"
+        )
+    if writer != "unassigned":
+        raise UserError(f"repository card already has a writer: {writer}")
+    if blocker.lower() != "none":
+        raise UserError(f"repository card still has a blocker: {blocker}")
+
+    target_repository = field_value(original, "Target repository")
+    target_branch = field_value(original, "Target branch")
+    history_range = field_value(original, "History range")
+    delivery_policy = field_value(original, "Delivery policy")
+    for label, value in (
+        ("Target repository", target_repository),
+        ("Target branch", target_branch),
+        ("History range", history_range),
+        ("Delivery policy", delivery_policy),
+    ):
+        if value.lower() in {"none", "unresolved"}:
+            raise UserError(f"repository card field '{label}' must be resolved before handoff")
+
+    target_workspace = Path(field_value(original, "Target workspace")).expanduser().resolve()
+    if not target_workspace.is_dir() or target_workspace.is_symlink():
+        raise UserError(f"target repository workspace is missing or unsafe: {target_workspace}")
+    repository_root = subprocess.run(
+        ["git", "-C", str(target_workspace), "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if (
+        repository_root.returncode != 0
+        or Path(repository_root.stdout.strip()).resolve() != target_workspace
+    ):
+        raise UserError(
+            f"target workspace must be the root of a Git worktree: {target_workspace}"
+        )
+    start = card_root / "START-REPOSITORY-LEARNING.md"
+
+    launch_prompt = (
+        f"读取 {start}，只执行其中指定的 {name} Repository Learning；"
+        "完成后按启动文件的返回指引停止。"
+    )
+    launch_command = shlex.join(
+        [
+            require_single_line(args.codex_command, "Codex command"),
+            "-C",
+            str(target_workspace),
+            "--add-dir",
+            str(card_root),
+            "--sandbox",
+            "workspace-write",
+            "--ask-for-approval",
+            "on-request",
+            "-c",
+            "agents.enabled=false",
+            launch_prompt,
+        ]
+    )
+
+    if start.is_symlink():
+        raise UserError(f"refusing unsafe handoff entry: {start}")
+    if start.is_file() and status == "ready-for-user-launch":
+        if field_value(original, "Handoff entry") != str(start):
+            raise UserError("existing repository handoff pointer does not match its start file")
+        return {
+            "status": "ready-for-user-launch",
+            "repository": name,
+            "card": str(card),
+            "start": str(start),
+            "launch_command": launch_command,
+            "return_instruction": "完成后回到原 create-jarvis 会话回复：继续",
+        }
+    if start.exists():
+        raise UserError(f"refusing to overwrite unexpected handoff entry: {start}")
+
+    template = method / REPOSITORY_START_TEMPLATE
+    if not template.is_file() or template.is_symlink():
+        raise UserError(f"method repository is missing the handoff template: {template}")
+    prepared_at = require_single_line(args.prepared_at or utc_now(), "preparation time")
+    start_content = render(
+        template.read_text(encoding="utf-8"),
+        {
+            "REPOSITORY_NAME": name,
+            "CONSTRUCTION_WORKSPACE": str(workspace),
+            "BUILD_CONTEXT": str(workspace / "BUILD-CONTEXT.md"),
+            "CARD_PATH": str(card),
+            "METHOD_REPOSITORY": str(method),
+            "METHOD_COMMIT": method_commit,
+            "TARGET_REPOSITORY": target_repository,
+            "TARGET_WORKSPACE": str(target_workspace),
+            "TARGET_BRANCH": target_branch,
+            "HISTORY_RANGE": history_range,
+            "DELIVERY_POLICY": delivery_policy,
+            "PREPARED_AT": prepared_at,
+        },
+        str(template),
+    )
+    updated = replace_field(original, "Handoff entry", str(start))
+    updated = replace_field(updated, "Status", "ready-for-user-launch")
+    updated = replace_field(updated, "Last verified checkpoint", "clean-process handoff generated")
+    updated = replace_field(updated, "Next", "customer runs the generated Codex command")
+    updated = replace_field(updated, "Last verified", prepared_at)
+
+    journal = workspace / "CONSTRUCTION-JOURNAL.md"
+    if not journal.is_file() or journal.is_symlink():
+        raise UserError(f"construction journal is missing or unsafe: {journal}")
+    journal_original = journal.read_text(encoding="utf-8")
+    journal_updated = replace_repository_journal_row(
+        journal_original,
+        name,
+        status="ready-for-user-launch",
+        writer="unassigned",
+        checkpoint="clean-process handoff generated",
+        next_action="customer runs printed Codex command",
+    )
+    try:
+        atomic_write(start, start_content)
+        atomic_write(card, updated)
+        atomic_write(journal, journal_updated)
+    except Exception:
+        atomic_write(card, original)
+        atomic_write(journal, journal_original)
+        if start.exists():
+            start.unlink()
+        raise
+
+    return {
+        "status": "ready-for-user-launch",
+        "repository": name,
+        "card": str(card),
+        "start": str(start),
+        "launch_command": launch_command,
+        "return_instruction": "完成后回到原 create-jarvis 会话回复：继续",
     }
 
 
@@ -338,6 +543,16 @@ def build_parser() -> argparse.ArgumentParser:
     add_repo.add_argument("--target-branch", default="unresolved")
     add_repo.add_argument("--added-at", help=argparse.SUPPRESS)
     add_repo.set_defaults(handler=add_repository)
+
+    prepare_repo = subparsers.add_parser(
+        "prepare-repository-learning",
+        help="prepare one customer-launched top-level Codex repository writer",
+    )
+    prepare_repo.add_argument("--workspace", required=True)
+    prepare_repo.add_argument("--name", required=True)
+    prepare_repo.add_argument("--codex-command", default="codex")
+    prepare_repo.add_argument("--prepared-at", help=argparse.SUPPRESS)
+    prepare_repo.set_defaults(handler=prepare_repository_learning)
     return parser
 
 

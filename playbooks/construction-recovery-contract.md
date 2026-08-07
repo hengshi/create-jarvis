@@ -14,7 +14,9 @@ jarvis-build/
 ├── work/
 │   ├── company-repo-initialization.md
 │   ├── company-construction.md
-│   ├── repositories/<repo>.md
+│   ├── repositories/<repo>/
+│   │   ├── CARD.md
+│   │   └── START-REPOSITORY-LEARNING.md
 │   ├── reconciliation.md
 │   └── jarvis-box-onboarding.md
 └── evidence/
@@ -22,7 +24,7 @@ jarvis-build/
 
 The files are human- and Agent-readable evidence. They do not define a JSON schema, state machine, scheduler, daemon or heartbeat.
 
-The Coordinator is the single writer for `CONSTRUCTION-JOURNAL.md`. A delegated worker updates only its own card and evidence, then reports the verified pointer to the Coordinator. This prevents parallel repository tasks from racing on the journal.
+The Coordinator is the single writer for `CONSTRUCTION-JOURNAL.md`. A customer-launched Repository Learning worker updates only its own repository, card directory and evidence, then leaves the card at `delivered-awaiting-coordinator-verification`. This prevents repository processes from racing on the journal or Company target.
 
 ## Required work-card fields
 
@@ -32,6 +34,11 @@ Every work card records:
 - authorized inputs;
 - allowed writes;
 - target repository, workspace and branch;
+- execution mode and one-repository scope lock;
+- pinned method and generated handoff entry;
+- fixed repository revision, default branch, reachable commit count and history cursor;
+- separate code-read coverage, capability ledger, repository model and validation cursor/evidence pointers;
+- depth-audit result, delivery ref, review state and Coordinator finding;
 - writer identity or role;
 - optional provider/session handle;
 - status;
@@ -63,16 +70,16 @@ A checkpoint is valid only when its material fact can be reverified. Examples in
 3. Read `CONSTRUCTION-JOURNAL.md`, `BUILD-CONTEXT.md` and the current work card.
 4. Run the pinned method's `scripts/verify_construction_workspace.py --workspace <path>` structural check, then verify current files, Git worktrees, remote refs, PR/MR state, customer approvals and jarvis-box state referenced by the card.
 5. Determine the prior writer state using provider-native inspection when available.
-6. Reattach if the writer is live. Replace it only when it is known to have ended.
+6. Reattach if the writer is live. For Repository Learning, use `codex resume` only for that same repository. Replace it only when it is known to have ended.
 7. If ownership is unknown, block a duplicate writer and ask only for the information or authority needed to resolve ownership.
 8. Resume from the last verified checkpoint's `Next`, not from the beginning and not from unverified prose.
-9. Update the work card before pausing, handing off or completing; the Coordinator then updates the journal from the verified card.
+9. Update the work card before pausing or handing off. A Repository Learning worker stops at `delivered-awaiting-coordinator-verification`; the Coordinator verifies the remote ref, semantic coverage and evidence before marking it `completed` and updating the journal.
 
 ## Writer invariants
 
 - One writer owns the Company Jarvis target at a time across Parts 1, 2 and reconciliation.
-- Each customer code repo has at most one learning writer at a time.
-- Evidence scanners may run concurrently, but they write only task-local packets under `evidence/`.
+- Each customer code repo has at most one learning writer at a time, and one top-level Codex process never owns more than one repository card.
+- Company evidence scanners may run concurrently, but they write only task-local packets under `evidence/`. A Repository Learning writer does not delegate its repository model, capability inventory or topology ownership.
 - Part 4 has one deployment/onboarding writer for a deployment target.
 
 When a writer changes, the outgoing or recovering Coordinator records the new owner and a verified checkpoint first. Do not infer permission to replace a writer from silence.

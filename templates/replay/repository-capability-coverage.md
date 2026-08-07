@@ -33,6 +33,8 @@
 
 ## Task-Family Ledger
 
+The delivered machine ledger uses schema version 2. Every `present` surface maps to explicit capability IDs. Every capability records `task_family`, `trigger_examples`, `authority`, `entrypoints`, `state_or_resource_model`, `proof`, `route_eval_ids`, `merge_split_rationale` and `current_state`. A category-level path or generic router row cannot substitute for these fields.
+
 Validation levels:
 
 - `L0`: discovered only;
@@ -51,9 +53,9 @@ Topology dispositions:
 - `no-skill`
 - `candidate`
 
-| ID / verb-led task family | Trigger examples | Owner / authority | Current entrypoints | Historical evidence | State/data/resource and failure model | Validation level + evidence | Topology disposition / primary home | Merge/split/no-skill rationale | Current-ref status |
-|---|---|---|---|---|---|---|---|---|---|
-| `<id>` | `<user/task/CI signals>` | `<owner>` | `<paths/symbols/commands/tests>` | `<patch/episode pointers>` | `<loop/risk summary>` | `<L0-L3 + pointer>` | `<type + path>` | `<reason>` | `valid / stale / blocked` |
+| ID / verb-led task family | Trigger examples | Owner / authority | Current entrypoints | Historical evidence | State/data/resource and failure model | Validation level + evidence | Topology disposition / primary home | Merge/split/no-skill rationale | Current-ref status | Executed representative route eval |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `<id>` | `<user/task/CI signals>` | `<owner>` | `<paths/symbols/commands/tests>` | `<patch/episode pointers>` | `<loop/risk summary>` | `<L0-L3 + pointer>` | `<type + path>` | `<reason>` | `valid / stale / blocked` | `<eval ID + executed result>` |
 
 ## Route Matrix
 

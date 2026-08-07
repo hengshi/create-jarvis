@@ -7,7 +7,7 @@
 - 新 journey 从模板创建完整 `jarvis-build/`：`CONTINUE-JARVIS.md`、`CONSTRUCTION-JOURNAL.md`、`BUILD-CONTEXT.md`、各部分/per-repo work cards 和 `evidence/`。
 - 恢复时使用 recorded method commit，核验实际文件、Git/remote、PR/MR 和 runtime state 后从 card 的 last verified checkpoint/`Next` 继续。
 - 旧 writer 存活时重连，已结束才替换；ownership 不明时阻止重复 writer。session handle 不是事实真值。
-- 没有子 Agent 时 Coordinator 顺序执行 cards，不虚假承诺后台存活、heartbeat 或上下文隔离。
+- Part 3 不把主学习任务交给子 Agent：Coordinator 每次只展示一个由客户在新终端启动的顶层 Codex 命令和“完成后回来回复继续”；该进程只拥有一个 repo，并禁用 multi-agent。
 
 ## Preparation
 
@@ -40,7 +40,9 @@
 ## Part 3 — Repository learning
 
 - 每个 repo 有独立 card 和一个 writer；不同 repo 可并行，同一 repo 不并发写。
+- card 分别记录 fixed revision、reachable commit count/history cursor、code-read ledger、current capability ledger、repository model、validation cursor、depth audit 和 delivery/review ref；一句“完成”不能关闭这些独立账。
 - 声明完成的 history range 已检查实际 code changes；commit message/stat 分类不能冒充 learning。
+- 当前 surface inventory 中每个 `present` surface 都映射到明确 task-family capability；每个 capability 都有 trigger、authority、entrypoint、state/failure model、proof、merge/split/no-skill rationale 和 current-state disposition。
 - 每个执行 case 有 visible START、隔离 baseline replay、真实 outcome comparison、skill decision 和 same-case rerun。
 - 只有证明行为改善且相邻回归可接受的最小 delta 被保留；`no_skill_gap` 不制造文件。
 - 最终 guidance 在当前 revision 核对，过时历史规则已移除或收窄。
@@ -79,4 +81,4 @@
 
 ## 客户可见结果
 
-默认只展示 Company repo/PR、repo-local PR/MR、当前可用范围、runtime-foundation 缺口、需审批或授权事项、真实 blocker、Construction Workspace recovery phrase 和下一项业务结果。内部 replay/oracle、card schema 和 provider child-process 命令不构成客户界面。
+默认只展示 Company repo/PR、repo-local PR/MR、当前可用范围、runtime-foundation 缺口、需审批或授权事项、真实 blocker、Construction Workspace recovery phrase 和下一项业务结果。唯一的 Repository Learning 操作界面是 Coordinator 生成的一条顶层 Codex 启动命令和“完成后回来回复继续”；内部 replay/oracle、card schema 和临时执行进程不构成客户界面。

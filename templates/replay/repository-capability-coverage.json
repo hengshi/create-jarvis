@@ -1,26 +1,45 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "repository": "REPLACE_WITH_REPOSITORY",
   "fixed_revision": "REPLACE_WITH_FULL_COMMIT",
   "categories": [
-    {"name": "build", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "runtime", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "lifecycle", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "config", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "concurrency", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "security", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "diagnostics", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "compatibility", "status": "not-applicable", "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
-    {"name": "repo-specific", "status": "covered", "evidence": ["REPLACE_WITH_CURRENT_CODE_TEST_OR_COMMAND"]}
+    {"name": "build", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "runtime", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "lifecycle", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "config", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "concurrency", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "security", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "diagnostics", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "compatibility", "status": "not-applicable", "surface_ids": [], "capability_ids": [], "evidence": ["REPLACE_WITH_REASON_OR_EVIDENCE"]},
+    {"name": "repo-specific", "status": "covered", "surface_ids": ["REPLACE_WITH_SURFACE_ID"], "capability_ids": ["REPLACE_WITH_STABLE_CAPABILITY_ID"], "evidence": ["REPLACE_WITH_CURRENT_CODE_TEST_OR_COMMAND"]}
+  ],
+  "surface_inventory": [
+    {
+      "id": "REPLACE_WITH_SURFACE_ID",
+      "category": "repo-specific",
+      "name": "REPLACE_WITH_CURRENT_BUSINESS_SURFACE",
+      "status": "present",
+      "entrypoints": ["REPLACE_WITH_CURRENT_PATH_SYMBOL_OR_COMMAND"],
+      "evidence": ["REPLACE_WITH_CURRENT_OR_HISTORICAL_POINTER"],
+      "capability_ids": ["REPLACE_WITH_STABLE_CAPABILITY_ID"]
+    }
   ],
   "capabilities": [
     {
       "id": "REPLACE_WITH_STABLE_CAPABILITY_ID",
       "category": "repo-specific",
-      "task_family": "REPLACE_WITH_USER_TRIGGER",
+      "task_family": "REPLACE_WITH_VERB_LED_BUSINESS_TASK",
+      "trigger_examples": ["REPLACE_WITH_USER_ISSUE_OR_CODE_SIGNAL"],
+      "authority": ["REPLACE_WITH_REPOSITORY_RELATIVE_AUTHORITY_PATH"],
+      "entrypoints": ["REPLACE_WITH_CURRENT_PATH_SYMBOL_COMMAND_OR_TEST"],
+      "state_or_resource_model": "REPLACE_WITH_TRANSITION_FAILURE_OR_DATA_MODEL",
+      "proof": ["REPLACE_WITH_SUCCESS_ORACLE_OR_VALIDATION_POINTER"],
+      "route_eval_ids": [],
       "disposition": "candidate",
       "primary_home": "",
       "evidence": ["REPLACE_WITH_CURRENT_AUTHORITY_OR_PROOF"],
+      "merge_split_rationale": "REPLACE_WITH_WHY_THIS_IS_ONE_TASK_FAMILY_OR_SEPARATE_FROM_ADJACENT_ONES",
+      "current_state": "REPLACE_WITH_VALID_STALE_OR_BLOCKED_AT_FIXED_REVISION",
       "reason": "REPLACE_WITH_MISSING_VALIDATION_AND_NEXT_PROOF"
     }
   ]

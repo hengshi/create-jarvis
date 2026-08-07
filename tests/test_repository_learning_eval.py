@@ -48,7 +48,7 @@ class RepositoryLearningEvalTests(unittest.TestCase):
                     sys.executable,
                     str(BUILDER),
                     "--case",
-                    "repository-reconciliation",
+                    "repository-learning-worker",
                     "--output",
                     str(output),
                     "--method-repository",

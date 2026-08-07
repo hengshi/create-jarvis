@@ -31,7 +31,7 @@ customer request
   → Construction Workspace
   → Part 1: Company repository initialization
   ├→ Part 2: Company construction
-  └→ Part 3: one independent learning task per code repository
+  └→ Part 3: one customer-launched top-level Codex process per code repository
   → Reconciliation Gate
   → Part 4: jarvis-box install, start and onboarding
   → supervised shadow
@@ -47,7 +47,7 @@ Part 1 establishes the target and minimum versioned skeleton. Parts 2 and 3 may 
 | Coordination | Coordinator | Construction Workspace | all authorized pointers |
 | Part 1 | Company repo writer | Company repo and approved remote | templates, build context |
 | Part 2 | Company integrator | Company repo/remote and customer-approved Host runtime foundation targets | customer docs, repos, work systems, unapproved Host locations |
-| Part 3 | one writer per repo | that customer repo and approved remote | Company routes, episode sources |
+| Part 3 | one customer-launched top-level Codex writer per repo | that customer repo, its card directory and approved remote | Company routes, episode sources |
 | Reconciliation | Coordinator or Company integrator | Company repo and reconciliation card | delivered Company/repo refs |
 | Part 4 | Coordinator | deployment target and onboarding card; Company governance only with writer ownership | immutable delivered refs, public jarvis-box release |
 
@@ -79,14 +79,16 @@ This maturity is content evidence, not a machine phase engine.
 
 ## Dispatch
 
-The Coordinator dispatches work itself:
+The Coordinator directly owns Parts 1, 2, reconciliation and Part 4. Repository Learning uses a clean-process handoff because one repository is one coherent, context-heavy outcome:
 
-- use native long-running child Agents when available;
-- otherwise execute work cards sequentially while preserving read/write boundaries;
-- record provider/session handles only as optional reattachment hints;
-- update the active work card before yielding.
+- prepare one repository card and deterministic launch command at a time by default;
+- require the customer to start that command in a new terminal;
+- disable multi-agent tools for the primary repository writer;
+- never reuse one Codex chat/process for another repository;
+- let the worker update only its repository and card directory;
+- let the Coordinator alone update the journal and accept the remote delivery.
 
-The customer does not start multiple terminals. A provider-specific launcher is a recovery fallback, not the product surface.
+The customer action is intentionally small: run one command, then return to the original Coordinator and reply `继续`. Session handles remain optional recovery hints. A process that ends may be replaced from the last verified card checkpoint; an unknown live writer still blocks replacement.
 
 ## Reconciliation Gate
 

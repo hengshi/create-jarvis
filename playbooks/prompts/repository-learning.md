@@ -1,6 +1,18 @@
 # Part 3: independent repository learning
 
-你的唯一目标是执行一个 `work/repositories/<repo>.md` card：完整学习该客户代码仓库在客户授权范围内的当前实现和真实历史，把足以改善未来工程行为的仓库知识写入可消费的 repo-local skills，并按 delivery policy 交付。每个 repo 是独立、可长时间运行、可恢复的任务。
+你的唯一目标是执行一个 `work/repositories/<repo>/CARD.md`：完整学习该客户代码仓库在客户授权范围内的当前实现和真实历史，把足以改善未来工程行为的仓库知识写入可消费的 repo-local skills，并按 delivery policy 交付。每个 repo 是独立、可长时间运行、可恢复的顶层 Codex 任务。
+
+## 顶层进程入口合同
+
+本任务必须由客户按 `START-REPOSITORY-LEARNING.md` 启动一个新的顶层 Codex 进程。开始时先证明：
+
+1. 当前进程只拥有一张 repository card，不继承或执行其他 repo 的任务；
+2. `agents.enabled=false`，主学习 writer 不通过 subagent 转交 capability inventory、repository model 或最终 topology 决策；
+3. pinned create-jarvis checkout 的 HEAD 等于 card 记录的 method commit，并完整读取根 `SKILL.md`、本文、`BUILD-CONTEXT.md`、card 和目标 repo 自己的 instructions；
+4. 允许写入范围只有目标 repo/worktree 和当前 `work/repositories/<repo>/` 目录；Company Jarvis 与 `CONSTRUCTION-JOURNAL.md` 只读；
+5. card 中没有 live/unknown writer。取得 ownership 后立即记录 writer、可用的 session handle、checkpoint 和时间。
+
+不要从父会话摘要、Coordinator 的口头转述或复制的 prompt 片段重建方法。一次 Codex chat/process 不得继续学习第二个 repo。需要隔离 hidden oracle 的 replay/forward evaluation 时，可运行只见 bounded visible case 的独立临时执行，但外层当前进程仍是唯一 repository model 与 topology owner。
 
 这里的“完整学习”包含两个同等重要、不能互相替代的结果：
 
@@ -20,11 +32,11 @@
 
 ## 边界与安全约束
 
-- 当前任务只处理 work card 指定的一个 repo；其他 repo 有自己的 card 和 writer。
+- 当前任务只处理 work card 指定的一个 repo；其他 repo 有自己的 card 和顶层进程。
 - 只按当前 repo 的 write/delivery policy 写入该 repo、当前 card 和任务指定的 replay/evidence workspace。
 - Company Jarvis target 在 Repository learning 阶段始终只读；repo-local execution truth 不写入 Company repo，等 Reconciliation Gate 再接线。
 - 保留客户已有未提交修改；使用独立 worktree/branch，遵守 repo 自己的 commit、push、PR/MR 和 review policy。
-- 同一 repo 同时只能有一个 writer。provider/session handle 只是重连提示；ownership 不明时阻止重复 writer。
+- 同一 repo 同时只能有一个 writer。provider/session handle 只是重连提示；ownership 不明时阻止重复 writer。不得把同一 writer 扩展成 multi-repo batch。
 - 每个保留的 delta 都要形成可追溯 Git ref；无法发布的 read-only candidate 只能标为候选，不能声称为正式可消费的 repo-local skill。
 - 不创建 `eval-loop`、`history-scan`、`commit-category` 等只描述学习过程的客户 skill。学习证据留在 evidence workspace，客户 repo 只保留未来执行任务需要的知识。
 - 不按固定数量批量铺设空 skill，也不允许用“一仓库一个 skill”压扁多个独立任务族。
@@ -36,14 +48,14 @@
 
 1. pinned create-jarvis method 的 exact commit；
 2. `BUILD-CONTEXT.md` 中当前 repo 的 canonical remote、revision、history range、write/delivery policy 和授权边界；
-3. 当前 `work/repositories/<repo>.md`；
+3. 当前 `work/repositories/<repo>/CARD.md` 与同目录的 `START-REPOSITORY-LEARNING.md`；
 4. `CONSTRUCTION-JOURNAL.md` 的当前 pointer、前序 Company delivery ref 和 writer 状态；
 5. repo 的 `AGENTS.md`、`CLAUDE.md`、已有 skills、Git/worktree、remote/default branch、dirty state；
 6. 已存在的 coverage ledger、repository model、case/evidence 和最后 delivery ref。
 
 先确认 Part 1 Company scaffold 的远端 ref 仍可解析，再确认 card 记录的 repo revision 和 history boundary 没有漂移。恢复时重新验证最后 checkpoint 的文件与 Git 事实：旧 writer 活着就重连；已结束才能替换；无法判断 ownership 时停止重复写入。
 
-card 至少记录：固定 revision、history range、history cursor、coverage ledger pointer、repository model pointer、当前 validation batch/case、target worktree/branch、delivery ref、blocker、最后已验证 checkpoint 和 `Next`。card 是给接手 Agent 的恢复合同，不要创建额外 parser、JSON 状态机或 heartbeat。
+card 的固定字段必须持续更新：`Fixed revision`、`Default branch`、`Reachable commit count`、`History cursor`、`Code-read coverage`、`Capability coverage`、`Capability ledger`、`Repository model`、`Validation evidence`、`Validation cursor`、`Depth audit`、`Delivery ref`、`Review state`、blocker、最后已验证 checkpoint 和 `Next`。不要把这些账压缩成一个“已完成”摘要。card 目录同时容纳 task-local evidence；card 是给接手 Agent 的恢复合同，不要创建额外 parser、JSON 状态机或 heartbeat。
 
 ## 总体执行顺序
 
@@ -66,7 +78,7 @@ Phase A 的完成只说明 history/code-read coverage 闭合，不说明 knowled
 
 ### Phase B：先建立 capability coverage ledger，再选择 cases
 
-在任何最终 topology 决定前，创建或更新一个可恢复的 capability coverage ledger。推荐使用 `templates/replay/repository-capability-coverage.md`。至少盘点以下类别；不存在时写 `not-present + evidence`，不能默默跳过：
+在任何最终 topology 决定前，创建或更新一个可恢复的 capability coverage ledger。使用 `templates/replay/repository-capability-coverage.md` 与机器可审计 JSON；至少盘点以下类别。不存在时写 `not-present + evidence`，不能默默跳过：
 
 - build、dependency、toolchain、code generation、format/lint/test、package/release；
 - 主要 runtime/service/library entrypoints 与公开 API；
@@ -78,7 +90,7 @@ Phase A 的完成只说明 history/code-read coverage 闭合，不说明 knowled
 - compatibility、generated ABI/schema、cross-repo consumer/provider contracts；
 - 仓库特有且在历史中反复出现的用户任务族。
 
-ledger 中每个 task family 至少记录：
+ledger 中每个 task family 至少记录以下字段，并在机器 JSON 中保持对应字段；不能只把完整内容写在 Markdown、机器清单却退化成泛化 ID：
 
 | 字段 | 必须回答的问题 |
 |---|---|
@@ -89,9 +101,10 @@ ledger 中每个 task family 至少记录：
 | historical evidence | 哪些实际 patches/episodes 支撑这个模型？ |
 | loop/risk model | 有哪些状态、资源、失败恢复或横切不变量？ |
 | validation level | 当前达到 L0/L1/L2/L3 中哪一级？证据 pointer 是什么？ |
-| topology disposition | router / capability-skill / focused-loop / cross-cutting / reference / script-gate / no-skill / candidate？ |
+| topology disposition | router / capability-skill / focused-loop / cross-cutting-skill / reference / script-gate / no-skill / candidate？机器 JSON 必须使用其中一个精确值。 |
 | rationale | 为什么独立、合并、降级或不写 skill？ |
 | current-state reconciliation | 路径、命令、行为在 fixed revision 是否仍成立？ |
+| representative route eval | 哪个已执行的用户语言/代码信号证明它能命中正确 primary home 且避开相邻 route？ |
 
 发现 candidate task family 的充分线索包括但不限于：
 
@@ -300,7 +313,7 @@ pointer 只写在哪里读和何时运行，不复制 depth 正文或 hidden exp
 
 ## 完成门槛
 
-只有同时满足以下条件，当前 repo card 才能标为 `completed`：
+Repository Learning worker 只有同时满足以下条件，才可把 card 标为 `delivered-awaiting-coordinator-verification`：
 
 - requested history range 内所有可达 commits 都有实际 code-read coverage disposition；
 - fixed revision 的主要 task families/capability surfaces 全部进入 ledger 且有明确 disposition；
@@ -310,11 +323,14 @@ pointer 只写在哪里读和何时运行，不复制 depth 正文或 hidden exp
 - 高风险或易重叠 skills 已完成要求的 replay/negative/route 验证；
 - 最终 topology 通过 coverage、trigger precision、behavioral closure、duplication/context cost 和 current-state reconciliation 检查；
 - 客户 dirty state 被保留；
-- 接受的 delta 已形成 delivery policy 要求的可追溯 ref。
+- 接受的 delta 已形成 delivery policy 要求的可追溯 ref；
+- card、task-local evidence 与远端交付 pointer 已更新，且没有修改 Company Jarvis 或 `CONSTRUCTION-JOURNAL.md`。
+
+worker 不得自行把 card 标为 `completed`。客户回到原 Coordinator 会话并回复“继续”后，Coordinator 必须独立复核 capability ledger 是否覆盖当前业务任务族、机械审计是否真的约束逐 capability 字段、remote branch/commit/PR 是否解析一致、以及未验证项是否诚实；复核通过后才标 `completed` 并更新 journal。复核失败则写明具体 coverage gap，并让客户只需恢复同一 repo 进程。
 
 遇到授权缺失、无法读取必要 outcome 或隔离 replay 不可用时，把受影响 case/capability 标为 `blocked` 或 `candidate`，写清已搜索范围、当前仍可完成的 L1 evidence 和恢复动作。只有当阻塞使 repository-level 完成门槛无法满足时，repo card 才标为 `blocked`；其他 repo cards 可以独立继续。
 
-任务结束时向 Coordinator 报告：history coverage、capability coverage、最终 skill topology、各 validation levels、精确 delivery ref、未验证/blocked 项和 card pointer。不要只报告 skill 数量或 eval 总分。
+任务结束时更新 card 并告诉客户：`Repository Learning 已交付待验收。请回到原 create-jarvis 会话回复：继续。` 详细 history coverage、capability coverage、最终 skill topology、各 validation levels、精确 delivery ref、未验证/blocked 项只写入可复验 card/evidence，不要求客户复制长摘要。
 
 ## 解释性示例：防止再次欠生成
 
